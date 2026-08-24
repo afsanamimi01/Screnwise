@@ -11,7 +11,7 @@ import { DEFAULT_WEIGHTS } from "./types";
 export const mockUsers: User[] = [
   {
     id: "u-admin",
-    name: "Sofia Reyes",
+    name: "Afsana Mimi",
     email: "admin@screenwise.io",
     role: "admin",
     active: true,
@@ -27,8 +27,8 @@ export const mockUsers: User[] = [
   },
   {
     id: "u-hr-2",
-    name: "Tomas Lind",
-    email: "tomas@screenwise.io",
+    name: "Tomal",
+    email: "tomal@screenwise.io",
     role: "hr",
     active: true,
     createdAt: "2026-02-02",

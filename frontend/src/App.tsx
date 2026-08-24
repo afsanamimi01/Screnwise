@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "@/shared/lib/auth";
 import { ProtectedRoute } from "@/shared/components/ProtectedRoute";
 import { Toaster } from "@/shared/components/ui/sonner";
+import { GoHomeButton } from "@/shared/components/buttons/Buttons";
 import { Landing } from "@/shared/pages/Landing";
 import { Login } from "@/shared/pages/Login";
 import { Register } from "@/shared/pages/Register";
@@ -20,12 +21,7 @@ function NotFound() {
           The page you're looking for doesn't exist or has been moved.
         </p>
         <div className="mt-6">
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Go home
-          </Link>
+          <GoHomeButton />
         </div>
       </div>
     </div>

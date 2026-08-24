@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { LogOut, Sparkles } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
-import { Button } from "@/shared/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
+import { UserMenuTriggerButton } from "@/candidate/components/buttons/Buttons";
 import { roleLabels, useAuth } from "@/shared/lib/auth";
 
 export function Navbar() {
@@ -33,12 +33,7 @@ export function Navbar() {
         </Badge>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="gap-2 px-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-soft text-xs font-semibold text-primary">
-                {user.name.slice(0, 2).toUpperCase()}
-              </span>
-              <span className="hidden text-sm sm:inline">{user.name}</span>
-            </Button>
+            <UserMenuTriggerButton name={user.name} />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel className="font-normal">

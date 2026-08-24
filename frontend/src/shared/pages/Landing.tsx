@@ -3,9 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { ArrowRight, EyeOff, ListChecks, Scale, Sparkles } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
-import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
+import {
+  SignInLinkButton,
+  CreateAccountLinkButton,
+  OpenDemoDashboardButton,
+} from "@/shared/components/buttons/Buttons";
 import { getPublicJobs } from "@/shared/lib/api";
 
 const pillars = [
@@ -46,12 +50,8 @@ export function Landing() {
           <span className="font-semibold tracking-tight">Screenwise</span>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" asChild>
-            <Link to="/login">Sign in</Link>
-          </Button>
-          <Button asChild>
-            <Link to="/register">Create account</Link>
-          </Button>
+          <SignInLinkButton />
+          <CreateAccountLinkButton />
         </div>
       </header>
 
@@ -67,11 +67,7 @@ export function Landing() {
           a blind board. You shortlist. Only then does the platform show you who they are.
         </p>
         <div className="mt-7 flex flex-wrap gap-3">
-          <Button size="lg" asChild>
-            <Link to="/login">
-              Open the demo dashboard <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
+          <OpenDemoDashboardButton />
         </div>
 
         <div className="mt-14 grid gap-4 md:grid-cols-3">

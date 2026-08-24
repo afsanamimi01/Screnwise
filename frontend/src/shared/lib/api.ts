@@ -1,6 +1,5 @@
 /**
  * Placeholder data layer.
- *
  * Every function here returns in-memory mock data behind a small artificial
  * delay so loading states are demonstrable. Swap each body for a `fetch()` to
  * your MERN REST API later — the signatures and return shapes stay the same.

@@ -1,11 +1,11 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Sparkles } from "lucide-react";
-import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/shared/components/ui/radio-group";
+import { CreateAccountSubmitButton } from "@/shared/components/buttons/Buttons";
 import { homeForRole, useAuth } from "@/shared/lib/auth";
 import type { Role } from "@/shared/lib/types";
 
@@ -92,9 +92,7 @@ export function Register() {
                   ))}
                 </RadioGroup>
               </div>
-              <Button type="submit" className="w-full">
-                Create account
-              </Button>
+              <CreateAccountSubmitButton />
             </form>
             <p className="mt-6 text-center text-sm text-muted-foreground">
               Already have an account?{" "}

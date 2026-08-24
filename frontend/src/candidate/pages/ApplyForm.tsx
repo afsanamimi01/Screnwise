@@ -5,11 +5,15 @@ import { CheckCircle2, Sparkles } from "lucide-react";
 import { TagInput } from "@/shared/components/TagInput";
 import { ErrorState, LoadingRows } from "@/shared/components/StateViews";
 import { Badge } from "@/shared/components/ui/badge";
-import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
+import {
+  TrackMyApplicationButton,
+  TrackMyStatusButton,
+  SubmitApplicationButton,
+} from "@/candidate/components/buttons/Buttons";
 import { getPublicJob, submitApplication } from "@/shared/lib/api";
 
 export function ApplyForm() {
@@ -67,9 +71,7 @@ export function ApplyForm() {
             </div>
             <span className="font-semibold tracking-tight">Screenwise</span>
           </Link>
-          <Button variant="ghost" asChild>
-            <Link to="/my-applications">Track my application</Link>
-          </Button>
+          <TrackMyApplicationButton />
         </div>
       </header>
 
@@ -93,9 +95,7 @@ export function ApplyForm() {
                 Thanks for applying for {data.title}. Your CV will be screened blind, alongside
                 everyone else's. You can follow your status any time.
               </p>
-              <Button className="mt-6" asChild>
-                <Link to="/my-applications">Track my status</Link>
-              </Button>
+              <TrackMyStatusButton />
             </CardContent>
           </Card>
         ) : null}
@@ -169,9 +169,7 @@ export function ApplyForm() {
                       I agree that my CV and the details above may be processed for this application.
                     </span>
                   </label>
-                  <Button type="submit" disabled={submitting} className="sm:col-span-2">
-                    {submitting ? "Submitting…" : "Submit application"}
-                  </Button>
+                  <SubmitApplicationButton submitting={submitting} />
                 </form>
               </CardContent>
             </Card>

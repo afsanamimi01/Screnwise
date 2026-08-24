@@ -1,10 +1,10 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Sparkles } from "lucide-react";
-import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
+import { SignInSubmitButton, DemoAccountPickerButton } from "@/shared/components/buttons/Buttons";
 import { homeForRole, useAuth } from "@/shared/lib/auth";
 import { mockUsers } from "@/shared/lib/mock-data";
 
@@ -62,9 +62,7 @@ export function Login() {
                   required
                 />
               </div>
-              <Button type="submit" className="w-full">
-                Sign in
-              </Button>
+              <SignInSubmitButton />
             </form>
 
             <div className="mt-6 rounded-lg border bg-muted/50 p-3">
@@ -73,15 +71,7 @@ export function Login() {
                 {mockUsers
                   .filter((u) => u.active)
                   .map((u) => (
-                    <button
-                      key={u.id}
-                      type="button"
-                      onClick={() => setEmail(u.email)}
-                      className="flex w-full items-center justify-between rounded px-2 py-1 text-xs hover:bg-background"
-                    >
-                      <span>{u.email}</span>
-                      <span className="text-muted-foreground">{u.role}</span>
-                    </button>
+                    <DemoAccountPickerButton key={u.id} email={u.email} role={u.role} onPick={setEmail} />
                   ))}
               </div>
             </div>

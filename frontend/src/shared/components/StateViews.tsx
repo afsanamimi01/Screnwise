@@ -1,6 +1,6 @@
-import { AlertTriangle, Inbox, RefreshCw } from "lucide-react";
-import { Button } from "@/shared/components/ui/button";
+import { AlertTriangle, Inbox } from "lucide-react";
 import { Skeleton } from "@/shared/components/ui/skeleton";
+import { TryAgainButton } from "@/shared/components/buttons/Buttons";
 
 export function LoadingRows({ rows = 5 }: { rows?: number }) {
   return (
@@ -46,11 +46,7 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
       <AlertTriangle className="mb-3 h-6 w-6 text-destructive" />
       <h3 className="text-base font-semibold">Something went wrong</h3>
       <p className="mt-1 max-w-sm text-sm text-muted-foreground">{message}</p>
-      {onRetry ? (
-        <Button variant="outline" className="mt-5" onClick={onRetry}>
-          <RefreshCw className="mr-2 h-4 w-4" /> Try again
-        </Button>
-      ) : null}
+      {onRetry ? <TryAgainButton onClick={onRetry} /> : null}
     </div>
   );
 }
