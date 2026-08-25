@@ -7,6 +7,7 @@ import { Label } from "@/shared/components/ui/label";
 import { SignInSubmitButton, DemoAccountPickerButton } from "@/shared/components/buttons/Buttons";
 import { homeForRole, useAuth } from "@/shared/lib/auth";
 import { mockUsers } from "@/shared/lib/mock-data";
+import "./Login.css";
 
 export function Login() {
   useEffect(() => {
@@ -25,21 +26,21 @@ export function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-5 py-12">
-      <div className="w-full max-w-md">
-        <Link to="/" className="mb-6 flex items-center justify-center gap-2">
-          <div className="rounded-lg bg-primary p-1.5 text-primary-foreground">
-            <Sparkles className="h-4 w-4" />
+    <div className="login-page">
+      <div className="login-page__container">
+        <Link to="/" className="login-page__brand">
+          <div className="login-page__brand-icon">
+            <Sparkles className="login-page__brand-icon-glyph" />
           </div>
-          <span className="font-semibold tracking-tight">Screenwise</span>
+          <span className="login-page__brand-name">Screenwise</span>
         </Link>
-        <Card className="shadow-card">
+        <Card className="login-page__card">
           <CardHeader>
             <CardTitle>Sign in</CardTitle>
             <CardDescription>Use one of the demo accounts below.</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={submit} className="space-y-4">
+            <form onSubmit={submit} className="login-page__form">
               <div>
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -47,7 +48,7 @@ export function Login() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1.5"
+                  className="login-page__input"
                   required
                 />
               </div>
@@ -58,16 +59,16 @@ export function Login() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="mt-1.5"
+                  className="login-page__input"
                   required
                 />
               </div>
               <SignInSubmitButton />
             </form>
 
-            <div className="mt-6 rounded-lg border bg-muted/50 p-3">
-              <p className="mb-2 text-xs font-medium text-muted-foreground">Demo accounts</p>
-              <div className="space-y-1">
+            <div className="login-page__demo-box">
+              <p className="login-page__demo-label">Demo accounts</p>
+              <div className="login-page__demo-list">
                 {mockUsers
                   .filter((u) => u.active)
                   .map((u) => (
@@ -76,9 +77,9 @@ export function Login() {
               </div>
             </div>
 
-            <p className="mt-6 text-center text-sm text-muted-foreground">
+            <p className="login-page__footer-text">
               No account yet?{" "}
-              <Link to="/register" className="font-medium text-primary hover:underline">
+              <Link to="/register" className="login-page__footer-link">
                 Create one
               </Link>
             </p>

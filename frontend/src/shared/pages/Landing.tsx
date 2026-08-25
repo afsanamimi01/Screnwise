@@ -11,6 +11,7 @@ import {
   OpenDemoDashboardButton,
 } from "@/shared/components/buttons/Buttons";
 import { getPublicJobs } from "@/shared/lib/api";
+import "./Landing.css";
 
 const pillars = [
   {
@@ -41,57 +42,57 @@ export function Landing() {
   });
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
-        <div className="flex items-center gap-2">
-          <div className="rounded-lg bg-primary p-1.5 text-primary-foreground">
-            <Sparkles className="h-4 w-4" />
+    <div className="landing">
+      <header className="landing__header">
+        <div className="landing__brand">
+          <div className="landing__brand-icon">
+            <Sparkles className="landing__brand-icon-glyph" />
           </div>
-          <span className="font-semibold tracking-tight">Screenwise</span>
+          <span className="landing__brand-name">Screenwise</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="landing__header-actions">
           <SignInLinkButton />
           <CreateAccountLinkButton />
         </div>
       </header>
 
-      <section className="mx-auto max-w-6xl px-5 pt-10 pb-16">
-        <Badge variant="outline" className="mb-4 font-normal">
+      <section className="landing__hero">
+        <Badge variant="outline" className="landing__badge">
           Applicant screening, without the bias
         </Badge>
-        <h1 className="max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
+        <h1 className="landing__title">
           Screen hundreds of CVs fairly, and still make the call yourself.
         </h1>
-        <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
+        <p className="landing__subtitle">
           Screenwise parses every CV, scores it against the job you defined, and ranks candidates on
           a blind board. You shortlist. Only then does the platform show you who they are.
         </p>
-        <div className="mt-7 flex flex-wrap gap-3">
+        <div className="landing__cta">
           <OpenDemoDashboardButton />
         </div>
 
-        <div className="mt-14 grid gap-4 md:grid-cols-3">
+        <div className="landing__pillars">
           {pillars.map((p) => (
-            <Card key={p.title} className="shadow-card">
-              <CardContent className="pt-6">
-                <div className="mb-3 w-fit rounded-lg bg-primary-soft p-2 text-primary">
-                  <p.icon className="h-5 w-5" />
+            <Card key={p.title} className="landing__pillar-card">
+              <CardContent className="landing__pillar-content">
+                <div className="landing__pillar-icon-wrap">
+                  <p.icon className="landing__pillar-icon" />
                 </div>
-                <h2 className="text-base font-semibold">{p.title}</h2>
-                <p className="mt-1.5 text-sm text-muted-foreground">{p.body}</p>
+                <h2 className="landing__pillar-title">{p.title}</h2>
+                <p className="landing__pillar-body">{p.body}</p>
               </CardContent>
             </Card>
           ))}
         </div>
       </section>
 
-      <section className="border-t bg-card">
-        <div className="mx-auto max-w-6xl px-5 py-14">
-          <h2 className="text-2xl font-semibold">Open roles</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+      <section className="landing__roles-section">
+        <div className="landing__roles-inner">
+          <h2 className="landing__roles-title">Open roles</h2>
+          <p className="landing__roles-subtitle">
             Applying takes a couple of minutes and you can track your status afterwards.
           </p>
-          <div className="mt-6 space-y-3">
+          <div className="landing__roles-list">
             {isLoading ? <LoadingRows rows={2} /> : null}
             {isError ? (
               <ErrorState message="We couldn't load the open roles." onRetry={() => refetch()} />
@@ -103,19 +104,15 @@ export function Landing() {
               />
             ) : null}
             {data?.map((job) => (
-              <Link
-                key={job.id}
-                to={`/apply/${job.id}`}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-background p-4 transition-colors hover:border-primary/40"
-              >
+              <Link key={job.id} to={`/apply/${job.id}`} className="landing__role-row">
                 <div>
-                  <div className="font-medium">{job.title}</div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="landing__role-title">{job.title}</div>
+                  <div className="landing__role-meta">
                     {job.department} · {job.location} · {job.employmentType}
                   </div>
                 </div>
-                <span className="flex items-center gap-1 text-sm font-medium text-primary">
-                  Apply <ArrowRight className="h-4 w-4" />
+                <span className="landing__role-apply">
+                  Apply <ArrowRight className="landing__role-apply-icon" />
                 </span>
               </Link>
             ))}

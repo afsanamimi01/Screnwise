@@ -15,6 +15,7 @@ import {
   SubmitApplicationButton,
 } from "@/candidate/components/buttons/Buttons";
 import { getPublicJob, submitApplication } from "@/shared/lib/api";
+import "./ApplyForm.css";
 
 export function ApplyForm() {
   const { jobId = "" } = useParams<{ jobId: string }>();
@@ -62,36 +63,36 @@ export function ApplyForm() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-5 py-4">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="rounded-lg bg-primary p-1.5 text-primary-foreground">
-              <Sparkles className="h-4 w-4" />
+    <div className="apply-form-page">
+      <header className="apply-form-page__header">
+        <div className="apply-form-page__header-inner">
+          <Link to="/" className="apply-form-page__brand">
+            <div className="apply-form-page__brand-icon">
+              <Sparkles className="apply-form-page__brand-icon-glyph" />
             </div>
-            <span className="font-semibold tracking-tight">Screenwise</span>
+            <span className="apply-form-page__brand-name">Screenwise</span>
           </Link>
           <TrackMyApplicationButton />
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-5 py-10">
+      <main className="apply-form-page__main">
         {isLoading ? <LoadingRows rows={3} /> : null}
         {isError ? <ErrorState message="We couldn't load this role." onRetry={() => refetch()} /> : null}
         {!isLoading && !data ? (
           <Card>
-            <CardContent className="py-14 text-center text-sm text-muted-foreground">
+            <CardContent className="apply-form-page__unavailable-msg">
               This role isn't accepting public applications right now.
             </CardContent>
           </Card>
         ) : null}
 
         {data && done ? (
-          <Card className="shadow-card">
-            <CardContent className="flex flex-col items-center py-14 text-center">
-              <CheckCircle2 className="mb-3 h-8 w-8 text-success" />
-              <h1 className="text-xl font-semibold">Application received</h1>
-              <p className="mt-2 max-w-md text-sm text-muted-foreground">
+          <Card className="apply-form-page__form-card">
+            <CardContent className="apply-form-page__success-content">
+              <CheckCircle2 className="apply-form-page__success-icon" />
+              <h1 className="apply-form-page__success-title">Application received</h1>
+              <p className="apply-form-page__success-body">
                 Thanks for applying for {data.title}. Your CV will be screened blind, alongside
                 everyone else's. You can follow your status any time.
               </p>
@@ -101,53 +102,83 @@ export function ApplyForm() {
         ) : null}
 
         {data && !done ? (
-          <div className="space-y-6">
+          <div className="apply-form-page__job-and-form">
             <div>
-              <Badge variant="outline" className="mb-3 font-normal">
+              <Badge variant="outline" className="apply-form-page__job-badge">
                 {data.employmentType} · {data.location}
               </Badge>
-              <h1 className="text-3xl font-semibold">{data.title}</h1>
-              <p className="mt-3 whitespace-pre-wrap text-muted-foreground">{data.description}</p>
-              <div className="mt-4 flex flex-wrap gap-1.5">
+              <h1 className="apply-form-page__job-title">{data.title}</h1>
+              <p className="apply-form-page__job-description">{data.description}</p>
+              <div className="apply-form-page__job-skills">
                 {data.requiredSkills.map((s) => (
-                  <Badge key={s} variant="secondary" className="font-normal">
+                  <Badge key={s} variant="secondary" className="apply-form-page__job-skill-badge">
                     {s}
                   </Badge>
                 ))}
               </div>
             </div>
 
-            <Card className="shadow-card">
+            <Card className="apply-form-page__form-card">
               <CardHeader>
-                <CardTitle className="text-base">Apply</CardTitle>
+                <CardTitle className="apply-form-page__form-title">Apply</CardTitle>
               </CardHeader>
               <CardContent>
-                <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+                <form onSubmit={submit} className="apply-form-page__form-grid">
                   <div>
                     <Label htmlFor="name">Full name</Label>
-                    <Input id="name" required value={form.name} onChange={(e) => set("name", e.target.value)} className="mt-1.5" />
+                    <Input
+                      id="name"
+                      required
+                      value={form.name}
+                      onChange={(e) => set("name", e.target.value)}
+                      className="apply-form-page__field-input"
+                    />
                   </div>
                   <div>
                     <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" required value={form.email} onChange={(e) => set("email", e.target.value)} className="mt-1.5" />
+                    <Input
+                      id="email"
+                      type="email"
+                      required
+                      value={form.email}
+                      onChange={(e) => set("email", e.target.value)}
+                      className="apply-form-page__field-input"
+                    />
                   </div>
                   <div>
                     <Label htmlFor="phone">Phone</Label>
-                    <Input id="phone" value={form.phone} onChange={(e) => set("phone", e.target.value)} className="mt-1.5" />
+                    <Input
+                      id="phone"
+                      value={form.phone}
+                      onChange={(e) => set("phone", e.target.value)}
+                      className="apply-form-page__field-input"
+                    />
                   </div>
                   <div>
                     <Label htmlFor="title">Current job title</Label>
-                    <Input id="title" value={form.currentTitle} onChange={(e) => set("currentTitle", e.target.value)} className="mt-1.5" />
+                    <Input
+                      id="title"
+                      value={form.currentTitle}
+                      onChange={(e) => set("currentTitle", e.target.value)}
+                      className="apply-form-page__field-input"
+                    />
                   </div>
-                  <div className="sm:col-span-2">
+                  <div className="apply-form-page__skills-field">
                     <Label>Top skills</Label>
-                    <div className="mt-1.5">
+                    <div className="apply-form-page__skills-input-wrap">
                       <TagInput value={skills} onChange={setSkills} placeholder="Add a skill and press enter" />
                     </div>
                   </div>
                   <div>
                     <Label htmlFor="years">Total years of experience</Label>
-                    <Input id="years" type="number" min={0} value={form.years} onChange={(e) => set("years", Number(e.target.value))} className="num mt-1.5" />
+                    <Input
+                      id="years"
+                      type="number"
+                      min={0}
+                      value={form.years}
+                      onChange={(e) => set("years", Number(e.target.value))}
+                      className="apply-form-page__years-input"
+                    />
                   </div>
                   <div>
                     <Label htmlFor="cv">CV (PDF or DOCX)</Label>
@@ -155,15 +186,15 @@ export function ApplyForm() {
                       id="cv"
                       type="file"
                       accept=".pdf,.docx"
-                      className="mt-1.5"
+                      className="apply-form-page__field-input"
                       onChange={(e) => set("cvFileName", e.target.files?.[0]?.name ?? "")}
                     />
                   </div>
-                  <label className="flex items-start gap-3 text-sm sm:col-span-2">
+                  <label className="apply-form-page__checkbox-label">
                     <Checkbox checked={form.eligible} onCheckedChange={(c) => set("eligible", Boolean(c))} />
                     <span>Are you legally eligible to work in {data.location}?</span>
                   </label>
-                  <label className="flex items-start gap-3 text-sm sm:col-span-2">
+                  <label className="apply-form-page__checkbox-label">
                     <Checkbox required checked={form.consent} onCheckedChange={(c) => set("consent", Boolean(c))} />
                     <span>
                       I agree that my CV and the details above may be processed for this application.

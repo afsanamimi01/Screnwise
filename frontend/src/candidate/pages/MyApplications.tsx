@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/shared/components/ui/card";
 import { getApplicationsForCandidate, getJobs } from "@/shared/lib/api";
 import { useAuth } from "@/shared/lib/auth";
 import { STATUS_PIPELINE } from "@/shared/lib/types";
+import "./MyApplications.css";
 
 export function MyApplications() {
   useEffect(() => {
@@ -38,48 +39,56 @@ export function MyApplications() {
         <EmptyState title="No applications yet" description="Once you apply to a role it shows up here." />
       ) : null}
 
-      <div className="space-y-4">
+      <div className="my-applications__list">
         {data?.map(({ app, job }) => {
           const rejected = app.status === "rejected";
           const currentIndex = STATUS_PIPELINE.indexOf(app.status);
           return (
-            <Card key={app.id} className="shadow-card">
-              <CardContent className="pt-6">
-                <div className="flex flex-wrap items-center justify-between gap-3">
+            <Card key={app.id} className="my-applications__card">
+              <CardContent className="my-applications__card-content">
+                <div className="my-applications__card-header">
                   <div>
-                    <div className="font-medium">{job?.title ?? "Role"}</div>
-                    <div className="text-sm text-muted-foreground">
+                    <div className="my-applications__job-title">{job?.title ?? "Role"}</div>
+                    <div className="my-applications__job-meta">
                       {job?.department} · applied {app.appliedAt}
                     </div>
                   </div>
                   <Badge
                     className={
                       rejected
-                        ? "bg-danger-soft font-normal text-destructive"
-                        : "bg-primary-soft font-normal text-primary"
+                        ? "my-applications__status-badge my-applications__status-badge--rejected"
+                        : "my-applications__status-badge my-applications__status-badge--active"
                     }
                   >
                     {app.status}
                   </Badge>
                 </div>
 
-                <ol className="mt-6 flex flex-wrap gap-2">
+                <ol className="my-applications__pipeline">
                   {STATUS_PIPELINE.map((stage, i) => {
                     const reached = !rejected && i <= currentIndex;
                     return (
-                      <li key={stage} className="flex items-center gap-2">
+                      <li key={stage} className="my-applications__pipeline-step">
                         <span
-                          className={`flex h-6 w-6 items-center justify-center rounded-full text-xs ${
-                            reached ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"
-                          }`}
+                          className={
+                            reached
+                              ? "my-applications__pipeline-dot my-applications__pipeline-dot--reached"
+                              : "my-applications__pipeline-dot my-applications__pipeline-dot--pending"
+                          }
                         >
-                          {reached ? <Check className="h-3 w-3" /> : i + 1}
+                          {reached ? <Check className="my-applications__pipeline-check" /> : i + 1}
                         </span>
-                        <span className={`text-sm capitalize ${reached ? "font-medium" : "text-muted-foreground"}`}>
+                        <span
+                          className={
+                            reached
+                              ? "my-applications__pipeline-label my-applications__pipeline-label--reached"
+                              : "my-applications__pipeline-label my-applications__pipeline-label--pending"
+                          }
+                        >
                           {stage}
                         </span>
                         {i < STATUS_PIPELINE.length - 1 ? (
-                          <span className="mx-1 h-px w-6 bg-border" />
+                          <span className="my-applications__pipeline-connector" />
                         ) : null}
                       </li>
                     );

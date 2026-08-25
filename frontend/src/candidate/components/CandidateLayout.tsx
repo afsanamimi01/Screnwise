@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Users } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { Navbar } from "./Navbar";
+import "./CandidateLayout.css";
 
 export function CandidateLayout({
   children,
@@ -15,25 +16,23 @@ export function CandidateLayout({
   actions?: ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen w-full bg-background">
+    <div className="candidate-layout">
       <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="candidate-layout__body">
         <Navbar />
-        <main className="mx-auto w-full max-w-7xl flex-1 px-5 py-7 md:px-8">
-          <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <main className="candidate-layout__main">
+          <div className="candidate-layout__main-header">
             <div>
-              <h1 className="text-2xl font-semibold">{title}</h1>
-              {description ? (
-                <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{description}</p>
-              ) : null}
+              <h1 className="candidate-layout__title">{title}</h1>
+              {description ? <p className="candidate-layout__description">{description}</p> : null}
             </div>
             {actions}
           </div>
           {children}
         </main>
-        <footer className="border-t px-5 py-4 text-xs text-muted-foreground md:px-8">
-          <Users className="mr-1 inline h-3 w-3" /> Demo environment — all data is mock data and
-          emails are simulated.
+        <footer className="candidate-layout__footer">
+          <Users className="candidate-layout__footer-icon" /> Demo environment — all data is mock
+          data and emails are simulated.
         </footer>
       </div>
     </div>

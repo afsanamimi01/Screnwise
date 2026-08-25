@@ -2,6 +2,7 @@ import { useState, type KeyboardEvent } from "react";
 import { Badge } from "@/shared/components/ui/badge";
 import { Input } from "@/shared/components/ui/input";
 import { RemoveTagButton } from "@/shared/components/buttons/Buttons";
+import "./TagInput.css";
 
 export function TagInput({
   value,
@@ -33,10 +34,10 @@ export function TagInput({
   };
 
   return (
-    <div className="rounded-lg border bg-card p-2">
-      <div className="flex flex-wrap gap-1.5">
+    <div className="tag-input">
+      <div className="tag-input__tags">
         {value.map((tag) => (
-          <Badge key={tag} variant="secondary" className="gap-1 rounded-md py-1 pr-1 font-normal">
+          <Badge key={tag} variant="secondary" className="tag-input__badge">
             {tag}
             <RemoveTagButton tag={tag} onRemove={(t) => onChange(value.filter((v) => v !== t))} />
           </Badge>
@@ -49,7 +50,7 @@ export function TagInput({
         onKeyDown={onKeyDown}
         onBlur={add}
         placeholder={placeholder}
-        className="mt-1 border-0 bg-transparent shadow-none focus-visible:ring-0"
+        className="tag-input__field"
       />
     </div>
   );

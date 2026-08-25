@@ -1,0 +1,107 @@
+.register-page {
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  background-color: rgb(245, 248, 250);
+  padding: 3rem 1.25rem;
+}
+
+.register-page__container {
+  width: 100%;
+  max-width: 28rem;
+}
+
+.register-page__brand {
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.register-page__brand-icon {
+  border-radius: 0.5rem;
+  background-color: rgb(0, 107, 121);
+  padding: 0.375rem;
+  color: rgb(248, 253, 254);
+}
+
+.register-page__brand-icon-glyph {
+  height: 1rem;
+  width: 1rem;
+}
+
+.register-page__brand-name {
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: rgb(11, 29, 39);
+}
+
+.register-page__card {
+  box-shadow: 0 1px 2px rgba(4, 25, 31, 0.06), 0 8px 24px rgba(4, 25, 31, 0.05);
+}
+
+.register-page__form > * + * {
+  margin-top: 1rem;
+}
+
+.register-page__input {
+  margin-top: 0.375rem;
+}
+
+.register-page__role-group {
+  margin-top: 0.5rem;
+}
+
+.register-page__role-group > * + * {
+  margin-top: 0.5rem;
+}
+
+.register-page__role-option {
+  display: flex;
+  cursor: pointer;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(222, 228, 231);
+  padding: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.register-page__role-option:has(button[data-state="checked"]) {
+  border-color: rgb(0, 107, 121);
+  background-color: rgba(220, 244, 248, 0.5);
+}
+
+.register-page__role-radio {
+  margin-top: 0.125rem;
+}
+
+.register-page__role-label {
+  font-weight: 500;
+}
+
+.register-page__role-hint {
+  display: block;
+  font-size: 0.75rem;
+  color: rgb(94, 107, 115);
+}
+
+.register-page__footer-text {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: rgb(94, 107, 115);
+}
+
+.register-page__footer-link {
+  font-weight: 500;
+  color: rgb(0, 107, 121);
+  text-decoration: none;
+}
+
+.register-page__footer-link:hover {
+  text-decoration: underline;
+}

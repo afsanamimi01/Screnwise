@@ -10,17 +10,18 @@ import { Login } from "@/shared/pages/Login";
 import { Register } from "@/shared/pages/Register";
 import { ApplyForm } from "@/candidate/pages/ApplyForm";
 import { MyApplications } from "@/candidate/pages/MyApplications";
+import "./App.css";
 
 function NotFound() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
+    <div className="not-found-page">
+      <div className="not-found-page__content">
+        <h1 className="not-found-page__code">404</h1>
+        <h2 className="not-found-page__title">Page not found</h2>
+        <p className="not-found-page__description">
           The page you're looking for doesn't exist or has been moved.
         </p>
-        <div className="mt-6">
+        <div className="not-found-page__action">
           <GoHomeButton />
         </div>
       </div>

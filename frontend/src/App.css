@@ -1,0 +1,36 @@
+.not-found-page {
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  background-color: rgb(245, 248, 250);
+  padding: 0 1rem;
+}
+
+.not-found-page__content {
+  max-width: 28rem;
+  text-align: center;
+}
+
+.not-found-page__code {
+  font-size: 4.5rem;
+  font-weight: 700;
+  color: rgb(11, 29, 39);
+}
+
+.not-found-page__title {
+  margin-top: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: rgb(11, 29, 39);
+}
+
+.not-found-page__description {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: rgb(94, 107, 115);
+}
+
+.not-found-page__action {
+  margin-top: 1.5rem;
+}

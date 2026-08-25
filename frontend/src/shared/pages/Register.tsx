@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/shared/components/ui/radio-group";
 import { CreateAccountSubmitButton } from "@/shared/components/buttons/Buttons";
 import { homeForRole, useAuth } from "@/shared/lib/auth";
 import type { Role } from "@/shared/lib/types";
+import "./Register.css";
 
 const roles: { value: Role; label: string; hint: string }[] = [
   { value: "hr", label: "HR / recruiter", hint: "Post jobs, screen CVs, shortlist and email." },
@@ -33,15 +34,15 @@ export function Register() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-5 py-12">
-      <div className="w-full max-w-md">
-        <Link to="/" className="mb-6 flex items-center justify-center gap-2">
-          <div className="rounded-lg bg-primary p-1.5 text-primary-foreground">
-            <Sparkles className="h-4 w-4" />
+    <div className="register-page">
+      <div className="register-page__container">
+        <Link to="/" className="register-page__brand">
+          <div className="register-page__brand-icon">
+            <Sparkles className="register-page__brand-icon-glyph" />
           </div>
-          <span className="font-semibold tracking-tight">Screenwise</span>
+          <span className="register-page__brand-name">Screenwise</span>
         </Link>
-        <Card className="shadow-card">
+        <Card className="register-page__card">
           <CardHeader>
             <CardTitle>Create your account</CardTitle>
             <CardDescription>
@@ -49,14 +50,14 @@ export function Register() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={submit} className="space-y-4">
+            <form onSubmit={submit} className="register-page__form">
               <div>
                 <Label htmlFor="name">Full name</Label>
                 <Input
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="mt-1.5"
+                  className="register-page__input"
                   required
                 />
               </div>
@@ -67,7 +68,7 @@ export function Register() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1.5"
+                  className="register-page__input"
                   required
                 />
               </div>
@@ -76,17 +77,14 @@ export function Register() {
                 <RadioGroup
                   value={role}
                   onValueChange={(v) => setRole(v as Role)}
-                  className="mt-2 space-y-2"
+                  className="register-page__role-group"
                 >
                   {roles.map((r) => (
-                    <label
-                      key={r.value}
-                      className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 text-sm has-[button[data-state=checked]]:border-primary has-[button[data-state=checked]]:bg-primary-soft/50"
-                    >
-                      <RadioGroupItem value={r.value} className="mt-0.5" />
+                    <label key={r.value} className="register-page__role-option">
+                      <RadioGroupItem value={r.value} className="register-page__role-radio" />
                       <span>
-                        <span className="font-medium">{r.label}</span>
-                        <span className="block text-xs text-muted-foreground">{r.hint}</span>
+                        <span className="register-page__role-label">{r.label}</span>
+                        <span className="register-page__role-hint">{r.hint}</span>
                       </span>
                     </label>
                   ))}
@@ -94,9 +92,9 @@ export function Register() {
               </div>
               <CreateAccountSubmitButton />
             </form>
-            <p className="mt-6 text-center text-sm text-muted-foreground">
+            <p className="register-page__footer-text">
               Already have an account?{" "}
-              <Link to="/login" className="font-medium text-primary hover:underline">
+              <Link to="/login" className="register-page__footer-link">
                 Sign in
               </Link>
             </p>
