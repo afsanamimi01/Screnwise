@@ -1,17 +1,29 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { mockUsers } from "./mock-data";
 import type { Role, User } from "./types";
 
 type AuthValue = {
   user: User | null;
   ready: boolean;
-  login: (email: string, role?: Role) => User;
-  register: (name: string, email: string, role: Role) => User;
+  login: (email: string, password: string) => Promise<User>;
+  register: (name: string, email: string, password: string, role: Role) => Promise<User>;
   logout: () => void;
 };
 
 const AuthContext = createContext<AuthValue | null>(null);
-const STORAGE_KEY = "screenwise.user";
+const USER_STORAGE_KEY = "screenwise.user";
+const TOKEN_STORAGE_KEY = "screenwise.token";
+const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
+
+async function authRequest(path: string, body: unknown): Promise<{ token: string; user: User }> {
+  const res = await fetch(`${API_BASE}/auth/${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message ?? "Something went wrong");
+  return data;
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -19,8 +31,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) setUser(JSON.parse(raw) as User);
+      const raw = window.localStorage.getItem(USER_STORAGE_KEY);
+      const token = window.localStorage.getItem(TOKEN_STORAGE_KEY);
+      // A user record without a token is stale (e.g. left over from before real
+      // auth existed) — treat it as signed out rather than trusting it blindly.
+      if (raw && token) {
+        setUser(JSON.parse(raw) as User);
+      } else {
+        window.localStorage.removeItem(USER_STORAGE_KEY);
+        window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+      }
     } catch {
       /* ignore */
     }
@@ -28,11 +48,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<AuthValue>(() => {
-    const persist = (u: User | null) => {
+    const persist = (u: User | null, token?: string) => {
       setUser(u);
       try {
-        if (u) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(u));
-        else window.localStorage.removeItem(STORAGE_KEY);
+        if (u && token) {
+          window.localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(u));
+          window.localStorage.setItem(TOKEN_STORAGE_KEY, token);
+        } else {
+          window.localStorage.removeItem(USER_STORAGE_KEY);
+          window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+        }
       } catch {
         /* ignore */
       }
@@ -41,31 +66,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return {
       user,
       ready,
-      login: (email, role) => {
-        const found = mockUsers.find((u) => u.email.toLowerCase() === email.toLowerCase());
-        const next: User =
-          found ??
-          ({
-            id: `u-${Date.now()}`,
-            name: email.split("@")[0] ?? "User",
-            email,
-            role: role ?? "hr",
-            active: true,
-            createdAt: new Date().toISOString().slice(0, 10),
-          } as User);
-        persist(next);
+      login: async (email, password) => {
+        const { token, user: next } = await authRequest("login", { email, password });
+        persist(next, token);
         return next;
       },
-      register: (name, email, role) => {
-        const next: User = {
-          id: role === "candidate" ? "u-cand-1" : `u-${Date.now()}`,
-          name,
-          email,
-          role,
-          active: true,
-          createdAt: new Date().toISOString().slice(0, 10),
-        };
-        persist(next);
+      register: async (name, email, password, role) => {
+        const { token, user: next } = await authRequest("register", { name, email, password, role });
+        persist(next, token);
         return next;
       },
       logout: () => persist(null),

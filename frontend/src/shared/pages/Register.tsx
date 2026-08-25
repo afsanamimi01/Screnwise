@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Sparkles } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
@@ -25,12 +26,21 @@ export function Register() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [role, setRole] = useState<Role>("hr");
+  const [submitting, setSubmitting] = useState(false);
 
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
-    const user = register(name || email.split("@")[0] || "New user", email, role);
-    navigate(homeForRole(user.role));
+    setSubmitting(true);
+    try {
+      const user = await register(name || email.split("@")[0] || "New user", email, password, role);
+      navigate(homeForRole(user.role));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not create account");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -73,6 +83,18 @@ export function Register() {
                 />
               </div>
               <div>
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="register-page__input"
+                  minLength={6}
+                  required
+                />
+              </div>
+              <div>
                 <Label>Role</Label>
                 <RadioGroup
                   value={role}
@@ -90,7 +112,7 @@ export function Register() {
                   ))}
                 </RadioGroup>
               </div>
-              <CreateAccountSubmitButton />
+              <CreateAccountSubmitButton submitting={submitting} />
             </form>
             <p className="register-page__footer-text">
               Already have an account?{" "}

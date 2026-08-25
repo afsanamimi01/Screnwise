@@ -5,7 +5,7 @@ import { CandidateLayout } from "@/candidate/components/CandidateLayout";
 import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent } from "@/shared/components/ui/card";
-import { getApplicationsForCandidate, getJobs } from "@/shared/lib/api";
+import { getApplicationsForCandidate } from "@/shared/lib/api";
 import { useAuth } from "@/shared/lib/auth";
 import { STATUS_PIPELINE } from "@/shared/lib/types";
 import "./MyApplications.css";
@@ -19,13 +19,7 @@ export function MyApplications() {
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["my-apps", user?.id],
     enabled: Boolean(user),
-    queryFn: async () => {
-      const [apps, jobs] = await Promise.all([
-        getApplicationsForCandidate(user!.id),
-        getJobs(),
-      ]);
-      return apps.map((a) => ({ app: a, job: jobs.find((j) => j.id === a.jobId) }));
-    },
+    queryFn: () => getApplicationsForCandidate(),
   });
 
   return (

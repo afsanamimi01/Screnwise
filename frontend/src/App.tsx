@@ -40,7 +40,14 @@ export default function App() {
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/apply/:jobId" element={<ApplyForm />} />
+            <Route
+              path="/apply/:jobId"
+              element={
+                <ProtectedRoute allow={["candidate"]}>
+                  <ApplyForm />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/my-applications"
               element={

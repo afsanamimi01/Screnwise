@@ -26,10 +26,10 @@ export function OpenDemoDashboardButton() {
   );
 }
 
-export function SignInSubmitButton() {
+export function SignInSubmitButton({ submitting = false }: { submitting?: boolean }) {
   return (
-    <button type="submit" className="sign-in-submit-btn">
-      Sign in
+    <button type="submit" disabled={submitting} className="sign-in-submit-btn">
+      {submitting ? "Signing in…" : "Sign in"}
     </button>
   );
 }
@@ -51,10 +51,10 @@ export function DemoAccountPickerButton({
   );
 }
 
-export function CreateAccountSubmitButton() {
+export function CreateAccountSubmitButton({ submitting = false }: { submitting?: boolean }) {
   return (
-    <button type="submit" className="create-account-submit-btn">
-      Create account
+    <button type="submit" disabled={submitting} className="create-account-submit-btn">
+      {submitting ? "Creating account…" : "Create account"}
     </button>
   );
 }
@@ -84,6 +84,14 @@ export function GoHomeButton() {
   return (
     <Link to="/" className="go-home-btn">
       Go home
+    </Link>
+  );
+}
+
+export function GoToMyHomeButton({ to, label }: { to: string; label: string }) {
+  return (
+    <Link to={to} className="go-to-my-home-btn">
+      {label}
     </Link>
   );
 }

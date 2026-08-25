@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import { CheckCircle2, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 import { TagInput } from "@/shared/components/TagInput";
 import { ErrorState, LoadingRows } from "@/shared/components/StateViews";
 import { Badge } from "@/shared/components/ui/badge";
@@ -48,18 +49,23 @@ export function ApplyForm() {
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    await submitApplication({
-      jobId,
-      name: form.name,
-      email: form.email,
-      phone: form.phone,
-      skills,
-      years: form.years,
-      currentTitle: form.currentTitle,
-      cvFileName: form.cvFileName || "cv.pdf",
-    });
-    setSubmitting(false);
-    setDone(true);
+    try {
+      await submitApplication({
+        jobId,
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        skills,
+        years: form.years,
+        currentTitle: form.currentTitle,
+        cvFileName: form.cvFileName || "cv.pdf",
+      });
+      setDone(true);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not submit application");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (

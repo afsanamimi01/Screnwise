@@ -9,9 +9,19 @@ import {
   SignInLinkButton,
   CreateAccountLinkButton,
   OpenDemoDashboardButton,
+  GoToMyHomeButton,
 } from "@/shared/components/buttons/Buttons";
 import { getPublicJobs } from "@/shared/lib/api";
+import { homeForRole, useAuth } from "@/shared/lib/auth";
+import type { Role } from "@/shared/lib/types";
 import "./Landing.css";
+
+const homeLabelForRole: Record<Role, string> = {
+  candidate: "My applications",
+  hr: "Dashboard",
+  manager: "My reviews",
+  admin: "Dashboard",
+};
 
 const pillars = [
   {
@@ -36,6 +46,7 @@ export function Landing() {
     document.title = "Screenwise — blind, explainable CV screening";
   }, []);
 
+  const { user, ready } = useAuth();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["public-jobs"],
     queryFn: () => getPublicJobs(),
@@ -51,8 +62,14 @@ export function Landing() {
           <span className="landing__brand-name">Screenwise</span>
         </div>
         <div className="landing__header-actions">
-          <SignInLinkButton />
-          <CreateAccountLinkButton />
+          {ready && user ? (
+            <GoToMyHomeButton to={homeForRole(user.role)} label={homeLabelForRole[user.role]} />
+          ) : (
+            <>
+              <SignInLinkButton />
+              <CreateAccountLinkButton />
+            </>
+          )}
         </div>
       </header>
 

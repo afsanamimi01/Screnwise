@@ -10,12 +10,12 @@ export function Sidebar() {
 
   return (
     <aside className="candidate-sidebar">
-      <div className="candidate-sidebar__brand">
+      <Link to="/" className="candidate-sidebar__brand">
         <div className="candidate-sidebar__brand-icon">
           <Sparkles className="candidate-sidebar__brand-icon-glyph" />
         </div>
         <span className="candidate-sidebar__brand-name">Screenwise</span>
-      </div>
+      </Link>
       <nav className="candidate-sidebar__nav">
         {navItems.map((item) => {
           const active = pathname === item.to || pathname.startsWith(item.to + "/");

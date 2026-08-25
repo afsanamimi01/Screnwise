@@ -1,8 +1,9 @@
 /**
- * Placeholder data layer.
- * Every function here returns in-memory mock data behind a small artificial
- * delay so loading states are demonstrable. Swap each body for a `fetch()` to
- * your MERN REST API later — the signatures and return shapes stay the same.
+ * Data layer.
+ * Candidate-facing functions (jobs browsing, apply, my applications) call the
+ * real MERN REST API. Everything else (HR/manager/admin) is still an
+ * in-memory placeholder behind a small artificial delay — swap each body for
+ * a `fetch()` the same way once those actors are built.
  */
 import {
   mockApplications,
@@ -43,6 +44,26 @@ function log(actor: string, action: string, detail: string) {
   });
 }
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
+const TOKEN_KEY = "screenwise.token";
+
+function authHeaders(): HeadersInit {
+  const token = window.localStorage.getItem(TOKEN_KEY);
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...init,
+    headers: { "Content-Type": "application/json", ...authHeaders(), ...init?.headers },
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ message: res.statusText }));
+    throw new Error(body.message ?? `Request to ${path} failed`);
+  }
+  return res.json() as Promise<T>;
+}
+
 /* ---------------------------------- jobs --------------------------------- */
 
 export async function getJobs(userId?: string, role?: string): Promise<Job[]> {
@@ -56,11 +77,15 @@ export async function getJob(jobId: string): Promise<Job | undefined> {
 }
 
 export async function getPublicJob(jobId: string): Promise<Job | undefined> {
-  return wait(db.jobs.find((j) => j.id === jobId && j.publicApplyEnabled));
+  try {
+    return await apiFetch<Job>(`/candidate/jobs/${jobId}`);
+  } catch {
+    return undefined;
+  }
 }
 
 export async function getPublicJobs(): Promise<Job[]> {
-  return wait(db.jobs.filter((j) => j.publicApplyEnabled && j.status === "open"));
+  return apiFetch<Job[]>("/candidate/jobs");
 }
 
 export async function createJob(job: Job, actor: string): Promise<Job> {
@@ -83,8 +108,17 @@ export async function getApplicationsForJob(jobId: string): Promise<Application[
   );
 }
 
-export async function getApplicationsForCandidate(candidateId: string): Promise<Application[]> {
-  return wait(db.applications.filter((a) => a.candidateId === candidateId));
+export async function getApplicationsForCandidate(): Promise<
+  { app: Application; job: Job | undefined }[]
+> {
+  const rows = await apiFetch<(Application & { jobId: Job })[]>("/candidate/applications");
+  return rows.map((row) => {
+    const job = row.jobId;
+    return {
+      app: { ...row, jobId: job?.id ?? (row.jobId as unknown as string), appliedAt: row.appliedAt.slice(0, 10) },
+      job,
+    };
+  });
 }
 
 export async function getCandidate(candidateId: string): Promise<Candidate | undefined> {
@@ -141,37 +175,10 @@ export async function submitApplication(payload: {
   currentTitle: string;
   cvFileName: string;
 }): Promise<{ trackingId: string }> {
-  const id = `app-${Date.now()}`;
-  const candidateId = `c-${Date.now()}`;
-  db.candidates.push({
-    id: candidateId,
-    name: payload.name,
-    email: payload.email,
-    phone: payload.phone,
-    location: "—",
+  return apiFetch<{ trackingId: string }>("/candidate/apply", {
+    method: "POST",
+    body: JSON.stringify(payload),
   });
-  const job = db.jobs.find((j) => j.id === payload.jobId);
-  db.applications.push({
-    id,
-    jobId: payload.jobId,
-    candidateId,
-    alias: `Candidate #NEW${db.applications.length}`,
-    source: "self-applied",
-    score: 0,
-    scoreBreakdown: [],
-    matchedSkills: payload.skills.filter((s) => job?.requiredSkills.includes(s)) ?? [],
-    missingSkills: job?.requiredSkills.filter((s) => !payload.skills.includes(s)) ?? [],
-    yearsExperience: payload.years,
-    currentTitle: payload.currentTitle,
-    pastTitles: [],
-    educationLevel: "—",
-    needsManualReview: true,
-    status: "applied",
-    appliedAt: new Date().toISOString().slice(0, 10),
-    cvFileName: payload.cvFileName,
-  });
-  log(payload.name, "Application submitted", job?.title ?? payload.jobId);
-  return wait({ trackingId: id }, 600);
 }
 
 /* --------------------------------- emails -------------------------------- */

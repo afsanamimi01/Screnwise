@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Sparkles } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
@@ -18,11 +19,19 @@ export function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("nadia@screenwise.io");
   const [password, setPassword] = useState("demo1234");
+  const [submitting, setSubmitting] = useState(false);
 
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
-    const user = login(email);
-    navigate(homeForRole(user.role));
+    setSubmitting(true);
+    try {
+      const user = await login(email, password);
+      navigate(homeForRole(user.role));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Sign in failed");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -63,7 +72,7 @@ export function Login() {
                   required
                 />
               </div>
-              <SignInSubmitButton />
+              <SignInSubmitButton submitting={submitting} />
             </form>
 
             <div className="login-page__demo-box">

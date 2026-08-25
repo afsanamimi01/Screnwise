@@ -130,6 +130,12 @@
   box-shadow: 0 0 0 1px rgb(0, 107, 121);
 }
 
+.sign-in-submit-btn:disabled {
+  pointer-events: none;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Demo account picker (Login form) */
 .demo-account-picker-btn {
   display: flex;
@@ -184,6 +190,12 @@
 .create-account-submit-btn:focus-visible {
   outline: none;
   box-shadow: 0 0 0 1px rgb(0, 107, 121);
+}
+
+.create-account-submit-btn:disabled {
+  pointer-events: none;
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Try again (StateViews ErrorState) */
@@ -270,6 +282,37 @@
 }
 
 .go-home-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 1px rgb(0, 107, 121);
+}
+
+/* Go to my home (link, Landing header — shown instead of Sign in / Create account when already logged in) */
+.go-to-my-home-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+  height: 2.25rem;
+  padding: 0.5rem 1rem;
+  background-color: rgb(0, 107, 121);
+  color: rgb(248, 253, 254);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  transition: background-color 150ms ease;
+}
+
+.go-to-my-home-btn:hover {
+  background-color: rgba(0, 107, 121, 0.9);
+}
+
+.go-to-my-home-btn:focus-visible {
   outline: none;
   box-shadow: 0 0 0 1px rgb(0, 107, 121);
 }
