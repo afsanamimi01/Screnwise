@@ -34,14 +34,6 @@ export const mockUsers: User[] = [
     createdAt: "2026-02-02",
   },
   {
-    id: "u-mgr-1",
-    name: "Priya Nair",
-    email: "priya@screenwise.io",
-    role: "manager",
-    active: true,
-    createdAt: "2026-02-08",
-  },
-  {
     id: "u-cand-1",
     name: "Jordan Blake",
     email: "jordan@example.com",
@@ -83,7 +75,6 @@ export const mockJobs: Job[] = [
     status: "open",
     createdAt: "2026-06-02",
     createdBy: "u-hr-1",
-    managerIds: ["u-mgr-1"],
     newSinceLastVisit: 4,
   },
   {
@@ -105,7 +96,6 @@ export const mockJobs: Job[] = [
     status: "open",
     createdAt: "2026-06-18",
     createdBy: "u-hr-1",
-    managerIds: ["u-mgr-1"],
     newSinceLastVisit: 2,
   },
   {
@@ -127,7 +117,6 @@ export const mockJobs: Job[] = [
     status: "open",
     createdAt: "2026-07-05",
     createdBy: "u-hr-2",
-    managerIds: [],
     newSinceLastVisit: 0,
   },
 ];
@@ -307,7 +296,7 @@ mockApplications.push(
     pastTitles: ["Software engineer"],
     educationLevel: "Bachelor's degree",
     needsManualReview: false,
-    status: "interview",
+    status: "shortlisted",
     appliedAt: "2026-07-09",
     cvFileName: "jordan-blake-cv.pdf",
   },

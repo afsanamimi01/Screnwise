@@ -91,14 +91,12 @@ export function useAuth() {
 
 export const roleLabels: Record<Role, string> = {
   hr: "HR / recruiter",
-  manager: "Hiring manager",
   candidate: "Candidate",
   admin: "Admin",
 };
 
 export function homeForRole(role: Role) {
   if (role === "candidate") return "/my-applications";
-  if (role === "manager") return "/manager";
   return "/dashboard";
 }
 

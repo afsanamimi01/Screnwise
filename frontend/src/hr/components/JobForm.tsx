@@ -49,7 +49,6 @@ export function emptyJob(userId: string): Job {
     status: "open",
     createdAt: new Date().toISOString().slice(0, 10),
     createdBy: userId,
-    managerIds: [],
     newSinceLastVisit: 0,
   };
 }

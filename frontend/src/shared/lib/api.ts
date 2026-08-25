@@ -1,7 +1,7 @@
 /**
  * Data layer.
  * Candidate-facing functions (jobs browsing, apply, my applications) call the
- * real MERN REST API. Everything else (HR/manager/admin) is still an
+ * real MERN REST API. Everything else (admin) is still an
  * in-memory placeholder behind a small artificial delay — swap each body for
  * a `fetch()` the same way once those actors are built.
  */

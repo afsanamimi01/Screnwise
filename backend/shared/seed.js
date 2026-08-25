@@ -28,11 +28,10 @@ async function seedUsersAndJobs() {
     { name: "Afsana Mimi", email: "admin@screenwise.io", role: "admin", active: true, passwordHash },
     { name: "Nadia Rahman", email: "nadia@screenwise.io", role: "hr", active: true, passwordHash },
     { name: "Tomal", email: "tomal@screenwise.io", role: "hr", active: true, passwordHash },
-    { name: "Priya Nair", email: "priya@screenwise.io", role: "manager", active: true, passwordHash },
     { name: "Jordan Blake", email: "jordan@example.com", role: "candidate", active: true, passwordHash },
     { name: "Marc Dubois", email: "marc@screenwise.io", role: "hr", active: false, passwordHash },
   ]);
-  const [, hr1, hr2, manager] = users;
+  const [, hr1, hr2] = users;
 
   await Job.create([
     {
@@ -52,7 +51,6 @@ async function seedUsersAndJobs() {
       publicApplyEnabled: true,
       status: "open",
       createdBy: hr1._id,
-      managerIds: [manager._id],
     },
     {
       title: "Product designer",
@@ -71,7 +69,6 @@ async function seedUsersAndJobs() {
       publicApplyEnabled: true,
       status: "open",
       createdBy: hr1._id,
-      managerIds: [manager._id],
     },
     {
       title: "Data analyst",
@@ -90,11 +87,10 @@ async function seedUsersAndJobs() {
       publicApplyEnabled: false,
       status: "open",
       createdBy: hr2._id,
-      managerIds: [],
     },
   ]);
 
-  console.log(`Seeded 6 demo users and 3 demo jobs (password for all: "${DEMO_PASSWORD}")`);
+  console.log(`Seeded 5 demo users and 3 demo jobs (password for all: "${DEMO_PASSWORD}")`);
 }
 
 /* ----------------- demo applicants (ported from the original Lovable mock data) ---------------- */
@@ -277,7 +273,7 @@ async function seedApplicants() {
         pastTitles: ["Software engineer"],
         educationLevel: "Bachelor's degree",
         needsManualReview: false,
-        status: "interview",
+        status: "shortlisted",
         appliedAt: new Date("2026-07-09"),
         cvFileName: "jordan-blake-cv.pdf",
       },

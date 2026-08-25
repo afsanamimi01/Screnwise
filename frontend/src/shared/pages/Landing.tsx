@@ -19,7 +19,6 @@ import "./Landing.css";
 const homeLabelForRole: Record<Role, string> = {
   candidate: "My applications",
   hr: "Dashboard",
-  manager: "My reviews",
   admin: "Dashboard",
 };
 

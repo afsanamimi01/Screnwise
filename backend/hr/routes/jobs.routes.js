@@ -8,7 +8,7 @@ router.use(verifyToken);
 
 router.get("/", requireRole("hr", "admin"), listJobs);
 router.post("/", requireRole("hr", "admin"), createJob);
-router.get("/:id", requireRole("hr", "admin", "manager"), getJobById);
+router.get("/:id", requireRole("hr", "admin"), getJobById);
 router.put("/:id", requireRole("hr", "admin"), updateJob);
 
 export default router;

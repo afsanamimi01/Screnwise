@@ -37,7 +37,6 @@ const jobSchema = new mongoose.Schema(
     publicApplyEnabled: { type: Boolean, default: false },
     status: { type: String, enum: ["open", "closed"], default: "open" },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    managerIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     newSinceLastVisit: { type: Number, default: 0 },
   },
   { timestamps: { createdAt: "createdAt", updatedAt: false } },

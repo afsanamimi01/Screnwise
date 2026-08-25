@@ -115,7 +115,7 @@ export default function App() {
             <Route
               path="/jobs/:jobId/shortlist"
               element={
-                <ProtectedRoute allow={["hr", "admin", "manager"]}>
+                <ProtectedRoute allow={["hr", "admin"]}>
                   <JobShortlist />
                 </ProtectedRoute>
               }

@@ -13,7 +13,6 @@ import "./Register.css";
 
 const roles: { value: Role; label: string; hint: string }[] = [
   { value: "hr", label: "HR / recruiter", hint: "Post jobs, screen CVs, shortlist and email." },
-  { value: "manager", label: "Hiring manager", hint: "Review shortlists and leave feedback." },
   { value: "candidate", label: "Candidate", hint: "Apply to roles and track your status." },
 ];
 

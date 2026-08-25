@@ -1,4 +1,4 @@
-export type Role = "hr" | "manager" | "candidate" | "admin";
+export type Role = "hr" | "candidate" | "admin";
 
 export type User = {
   id: string;
@@ -41,17 +41,10 @@ export type Job = {
   status: "open" | "closed";
   createdAt: string;
   createdBy: string;
-  managerIds: string[];
   newSinceLastVisit: number;
 };
 
-export type ApplicationStatus =
-  | "applied"
-  | "screened"
-  | "shortlisted"
-  | "interview"
-  | "hired"
-  | "rejected";
+export type ApplicationStatus = "applied" | "screened" | "shortlisted" | "rejected";
 
 export type ScoreBreakdownItem = {
   dimension: string;
@@ -117,10 +110,4 @@ export const DEFAULT_WEIGHTS: ScoringWeights = {
 
 export const SCORE_THRESHOLD = 50;
 
-export const STATUS_PIPELINE: ApplicationStatus[] = [
-  "applied",
-  "screened",
-  "shortlisted",
-  "interview",
-  "hired",
-];
+export const STATUS_PIPELINE: ApplicationStatus[] = ["applied", "screened", "shortlisted"];

@@ -1,1 +1,0 @@
-// TODO: Manager side navigation
