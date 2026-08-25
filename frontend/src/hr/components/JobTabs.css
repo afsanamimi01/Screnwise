@@ -1,0 +1,39 @@
+.job-tabs {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(222, 228, 231);
+  background-color: rgb(255, 255, 255);
+  padding: 0.25rem;
+}
+
+.job-tabs__tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  height: 2rem;
+  padding: 0 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-decoration: none;
+  color: rgb(11, 29, 39);
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.job-tabs__tab:hover {
+  background-color: rgb(213, 242, 243);
+  color: rgb(3, 52, 60);
+}
+
+.job-tabs__tab--active {
+  background-color: rgb(220, 244, 248);
+  color: rgb(0, 107, 121);
+}
+
+.job-tabs__tab--active:hover {
+  background-color: rgb(220, 244, 248);
+  color: rgb(0, 107, 121);
+}

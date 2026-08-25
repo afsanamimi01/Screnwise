@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { resolveMockUserId } from "./mock-data";
 import type { Role, User } from "./types";
 
 type AuthValue = {
@@ -105,5 +106,7 @@ export function homeForRole(role: Role) {
 /** Access rule: a job's rank board is visible only to its creator and admins. */
 export function canViewBoard(user: User | null, createdBy: string) {
   if (!user) return false;
-  return user.role === "admin" || user.id === createdBy;
+  if (user.role === "admin") return true;
+  const effectiveId = resolveMockUserId(user.email) ?? user.id;
+  return effectiveId === createdBy;
 }

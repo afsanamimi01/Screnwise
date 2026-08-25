@@ -10,6 +10,14 @@ import { Login } from "@/shared/pages/Login";
 import { Register } from "@/shared/pages/Register";
 import { ApplyForm } from "@/candidate/pages/ApplyForm";
 import { MyApplications } from "@/candidate/pages/MyApplications";
+import { Dashboard } from "@/hr/pages/Dashboard";
+import { JobsList } from "@/hr/pages/JobsList";
+import { JobNew } from "@/hr/pages/JobNew";
+import { JobEdit } from "@/hr/pages/JobEdit";
+import { JobUpload } from "@/hr/pages/JobUpload";
+import { JobBoard } from "@/hr/pages/JobBoard";
+import { JobShortlist } from "@/hr/pages/JobShortlist";
+import { JobEmail } from "@/hr/pages/JobEmail";
 import "./App.css";
 
 function NotFound() {
@@ -53,6 +61,70 @@ export default function App() {
               element={
                 <ProtectedRoute allow={["candidate"]}>
                   <MyApplications />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute allow={["hr", "admin"]}>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/jobs"
+              element={
+                <ProtectedRoute allow={["hr", "admin"]}>
+                  <JobsList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/jobs/new"
+              element={
+                <ProtectedRoute allow={["hr", "admin"]}>
+                  <JobNew />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/jobs/:jobId/edit"
+              element={
+                <ProtectedRoute allow={["hr", "admin"]}>
+                  <JobEdit />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/jobs/:jobId/upload"
+              element={
+                <ProtectedRoute allow={["hr", "admin"]}>
+                  <JobUpload />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/jobs/:jobId/board"
+              element={
+                <ProtectedRoute allow={["hr", "admin"]}>
+                  <JobBoard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/jobs/:jobId/shortlist"
+              element={
+                <ProtectedRoute allow={["hr", "admin", "manager"]}>
+                  <JobShortlist />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/jobs/:jobId/email"
+              element={
+                <ProtectedRoute allow={["hr", "admin"]}>
+                  <JobEmail />
                 </ProtectedRoute>
               }
             />

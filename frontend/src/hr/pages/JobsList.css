@@ -1,0 +1,41 @@
+.jobs-list__card {
+  overflow: hidden;
+  padding: 0;
+  box-shadow: 0 1px 2px rgba(4, 25, 31, 0.06), 0 8px 24px rgba(4, 25, 31, 0.05);
+}
+
+.jobs-list__row {
+  cursor: pointer;
+}
+
+.jobs-list__job-title {
+  font-weight: 500;
+}
+
+.jobs-list__job-meta {
+  font-size: 0.75rem;
+  color: rgb(94, 107, 115);
+}
+
+.jobs-list__status-badge {
+  font-weight: 400;
+}
+
+.jobs-list__status-badge--open {
+  border-color: rgba(20, 135, 78, 0.4);
+  background-color: rgb(210, 246, 221);
+  color: rgb(20, 135, 78);
+}
+
+.jobs-list__status-badge--closed {
+  color: rgb(94, 107, 115);
+}
+
+.jobs-list__numeric {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.jobs-list__created {
+  color: rgb(94, 107, 115);
+}

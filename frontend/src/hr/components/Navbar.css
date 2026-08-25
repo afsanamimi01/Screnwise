@@ -1,0 +1,96 @@
+.hr-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  height: 4rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid rgb(222, 228, 231);
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  padding: 0 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .hr-navbar {
+    padding: 0 2rem;
+  }
+}
+
+.hr-navbar__brand-mobile {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .hr-navbar__brand-mobile {
+    display: none;
+  }
+}
+
+.hr-navbar__brand-icon {
+  height: 1rem;
+  width: 1rem;
+  color: rgb(0, 107, 121);
+}
+
+.hr-navbar__brand-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.hr-navbar__tagline {
+  display: none;
+  font-size: 0.875rem;
+  color: rgb(94, 107, 115);
+}
+
+@media (min-width: 768px) {
+  .hr-navbar__tagline {
+    display: block;
+  }
+}
+
+.hr-navbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.hr-navbar__role-badge {
+  display: none;
+  font-weight: 400;
+}
+
+@media (min-width: 640px) {
+  .hr-navbar__role-badge {
+    display: inline-flex;
+  }
+}
+
+.hr-navbar__menu-content {
+  width: 14rem;
+}
+
+.hr-navbar__menu-label {
+  font-weight: 400;
+}
+
+.hr-navbar__menu-user-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.hr-navbar__menu-user-email {
+  font-size: 0.75rem;
+  color: rgb(94, 107, 115);
+}
+
+.hr-navbar__signout-icon {
+  margin-right: 0.5rem;
+  height: 1rem;
+  width: 1rem;
+}

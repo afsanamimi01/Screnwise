@@ -11,6 +11,7 @@ import {
   mockCandidates,
   mockJobs,
   mockUsers,
+  resolveMockUserId,
 } from "./mock-data";
 import type {
   Application,
@@ -66,9 +67,12 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 
 /* ---------------------------------- jobs --------------------------------- */
 
-export async function getJobs(userId?: string, role?: string): Promise<Job[]> {
+export async function getJobs(userId?: string, role?: string, email?: string): Promise<Job[]> {
+  const effectiveId = (email && resolveMockUserId(email)) || userId;
   const jobs =
-    !userId || role === "admin" ? db.jobs : db.jobs.filter((j) => j.createdBy === userId);
+    !effectiveId || role === "admin"
+      ? db.jobs
+      : db.jobs.filter((j) => j.createdBy === effectiveId);
   return wait(jobs.map((j) => ({ ...j })));
 }
 
