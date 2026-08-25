@@ -34,7 +34,7 @@ export function JobsList() {
     queryKey: ["jobs-table", user?.id],
     enabled: Boolean(user),
     queryFn: async () => {
-      const jobs = await getJobs(user!.id, user!.role, user!.email);
+      const jobs = await getJobs();
       return Promise.all(
         jobs.map(async (job) => {
           const apps = await getApplicationsForJob(job.id);

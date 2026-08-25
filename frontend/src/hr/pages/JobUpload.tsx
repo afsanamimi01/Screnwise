@@ -9,14 +9,12 @@ import { Card, CardContent } from "@/shared/components/ui/card";
 import { Progress } from "@/shared/components/ui/progress";
 import { GoToRankBoardButton } from "@/hr/components/buttons/Buttons";
 import { getJob, uploadCvs } from "@/shared/lib/api";
-import { useAuth } from "@/shared/lib/auth";
 import "./JobUpload.css";
 
 type Row = { name: string; status: "uploaded" | "parsing" | "scored" | "review" };
 
 export function JobUpload() {
   const { jobId = "" } = useParams<{ jobId: string }>();
-  const { user } = useAuth();
   const navigate = useNavigate();
   const jobQuery = useQuery({ queryKey: ["job", jobId], queryFn: () => getJob(jobId) });
   const [rows, setRows] = useState<Row[]>([]);
@@ -30,7 +28,7 @@ export function JobUpload() {
     if (!files.length) return;
     const incoming: Row[] = files.map((f) => ({ name: f.name, status: "uploaded" }));
     setRows((prev) => [...prev, ...incoming]);
-    await uploadCvs(jobId, files.map((f) => f.name), user?.name ?? "HR");
+    await uploadCvs(jobId, files.map((f) => f.name));
     incoming.forEach((row, i) => {
       setTimeout(() => {
         setRows((prev) => prev.map((r) => (r.name === row.name ? { ...r, status: "parsing" } : r)));

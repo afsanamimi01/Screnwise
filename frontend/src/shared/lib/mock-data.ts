@@ -59,17 +59,6 @@ export const mockUsers: User[] = [
   },
 ];
 
-/**
- * The real backend issues its own user IDs (MongoDB ObjectIds), which don't
- * match the "u-hr-1"-style IDs baked into this mock data's `createdBy` /
- * `managerIds` fields. Resolving by email (stable across any backend/device)
- * lets ownership checks against this mock data keep working regardless of
- * what ID the real auth session actually has.
- */
-export function resolveMockUserId(email: string): string | undefined {
-  return mockUsers.find((u) => u.email.toLowerCase() === email.toLowerCase())?.id;
-}
-
 export const mockJobs: Job[] = [
   {
     id: "job-1",

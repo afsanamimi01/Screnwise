@@ -19,7 +19,6 @@ import { Switch } from "@/shared/components/ui/switch";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { JobFormSubmitButton, JobFormCancelButton } from "@/hr/components/buttons/Buttons";
 import { createJob, updateJob } from "@/shared/lib/api";
-import { useAuth } from "@/shared/lib/auth";
 import { DEFAULT_WEIGHTS, type Job, type ScoringWeights } from "@/shared/lib/types";
 import "./JobForm.css";
 
@@ -56,7 +55,6 @@ export function emptyJob(userId: string): Job {
 }
 
 export function JobForm({ initial, mode }: { initial: Job; mode: "create" | "edit" }) {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [job, setJob] = useState<Job>(initial);
   const [saving, setSaving] = useState(false);
@@ -77,9 +75,8 @@ export function JobForm({ initial, mode }: { initial: Job; mode: "create" | "edi
     }
 
     setSaving(true);
-    const actor = user?.name ?? "HR";
-    if (mode === "create") await createJob(job, actor);
-    else await updateJob(job, actor);
+    if (mode === "create") await createJob(job);
+    else await updateJob(job);
     setSaving(false);
     toast.success(mode === "create" ? "Job posted." : "Job updated.");
     navigate("/jobs");

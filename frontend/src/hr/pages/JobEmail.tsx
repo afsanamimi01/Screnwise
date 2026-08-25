@@ -20,14 +20,7 @@ import {
 } from "@/shared/components/ui/select";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { SendEmailButton } from "@/hr/components/buttons/Buttons";
-import {
-  getApplicationsForJob,
-  getCandidates,
-  getJob,
-  getSentEmails,
-  sendShortlistEmails,
-} from "@/shared/lib/api";
-import { useAuth } from "@/shared/lib/auth";
+import { getJob, getSentEmails, getShortlist, sendShortlistEmails } from "@/shared/lib/api";
 import "./JobEmail.css";
 
 const templates: Record<string, { subject: string; body: string }> = {
@@ -47,7 +40,6 @@ const templates: Record<string, { subject: string; body: string }> = {
 
 export function JobEmail() {
   const { jobId = "" } = useParams<{ jobId: string }>();
-  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -57,12 +49,7 @@ export function JobEmail() {
   const jobQuery = useQuery({ queryKey: ["job", jobId], queryFn: () => getJob(jobId) });
   const query = useQuery({
     queryKey: ["shortlist", jobId],
-    queryFn: async () => {
-      const [apps, candidates] = await Promise.all([getApplicationsForJob(jobId), getCandidates()]);
-      return apps
-        .filter((a) => a.status === "shortlisted")
-        .map((a) => ({ app: a, candidate: candidates.find((c) => c.id === a.candidateId) }));
-    },
+    queryFn: () => getShortlist(jobId),
   });
   const sentQuery = useQuery({ queryKey: ["emails", jobId], queryFn: () => getSentEmails(jobId) });
 
@@ -100,7 +87,6 @@ export function JobEmail() {
       body,
       template,
       recipients: rows.filter((r) => selected.includes(r.app.id)).map((r) => r.candidate?.email ?? "unknown"),
-      actor: user?.name ?? "HR",
     });
     setSending(false);
     setSelected([]);

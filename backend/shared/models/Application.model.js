@@ -13,7 +13,7 @@ const scoreBreakdownItemSchema = new mongoose.Schema(
 const applicationSchema = new mongoose.Schema(
   {
     jobId: { type: mongoose.Schema.Types.ObjectId, ref: "Job", required: true },
-    candidateId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    candidateId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     name: { type: String, required: true },
     email: { type: String, required: true },
     phone: String,
@@ -43,6 +43,7 @@ const applicationSchema = new mongoose.Schema(
 applicationSchema.set("toJSON", {
   transform: (_doc, ret) => {
     ret.id = ret._id.toString();
+    ret.appliedAt = ret.appliedAt.toISOString().slice(0, 10);
     delete ret._id;
     delete ret.__v;
     return ret;

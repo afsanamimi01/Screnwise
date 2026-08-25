@@ -17,7 +17,7 @@ import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateVi
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { NewJobButton, CreateJobButton } from "@/hr/components/buttons/Buttons";
-import { getApplicationsForJob, getJobs } from "@/shared/lib/api";
+import { getDashboard } from "@/shared/lib/api";
 import { useAuth } from "@/shared/lib/auth";
 import type { Application, Job } from "@/shared/lib/types";
 import "./Dashboard.css";
@@ -31,11 +31,7 @@ export function Dashboard() {
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["dashboard", user?.id],
     enabled: Boolean(user),
-    queryFn: async () => {
-      const jobs = await getJobs(user!.id, user!.role, user!.email);
-      const apps = await Promise.all(jobs.map((j) => getApplicationsForJob(j.id)));
-      return { jobs, apps: apps.flat() };
-    },
+    queryFn: getDashboard,
   });
 
   return (

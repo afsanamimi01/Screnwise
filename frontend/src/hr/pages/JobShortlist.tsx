@@ -9,7 +9,7 @@ import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateVi
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { ComposeEmailButton, OpenRankBoardButton, MessageButton } from "@/hr/components/buttons/Buttons";
-import { getApplicationsForJob, getCandidates, getJob } from "@/shared/lib/api";
+import { getJob, getShortlist } from "@/shared/lib/api";
 import "./JobShortlist.css";
 
 export function JobShortlist() {
@@ -22,12 +22,7 @@ export function JobShortlist() {
   const jobQuery = useQuery({ queryKey: ["job", jobId], queryFn: () => getJob(jobId) });
   const query = useQuery({
     queryKey: ["shortlist", jobId],
-    queryFn: async () => {
-      const [apps, candidates] = await Promise.all([getApplicationsForJob(jobId), getCandidates()]);
-      return apps
-        .filter((a) => a.status === "shortlisted")
-        .map((a) => ({ app: a, candidate: candidates.find((c) => c.id === a.candidateId) }));
-    },
+    queryFn: () => getShortlist(jobId),
   });
 
   return (

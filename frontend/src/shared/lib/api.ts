@@ -5,23 +5,8 @@
  * in-memory placeholder behind a small artificial delay — swap each body for
  * a `fetch()` the same way once those actors are built.
  */
-import {
-  mockApplications,
-  mockAudit,
-  mockCandidates,
-  mockJobs,
-  mockUsers,
-  resolveMockUserId,
-} from "./mock-data";
-import type {
-  Application,
-  ApplicationStatus,
-  AuditEntry,
-  Candidate,
-  Job,
-  SentEmail,
-  User,
-} from "./types";
+import { mockApplications, mockAudit, mockCandidates, mockJobs, mockUsers } from "./mock-data";
+import type { Application, AuditEntry, Candidate, Job, SentEmail, User } from "./types";
 
 const db = {
   jobs: [...mockJobs],
@@ -67,17 +52,20 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 
 /* ---------------------------------- jobs --------------------------------- */
 
-export async function getJobs(userId?: string, role?: string, email?: string): Promise<Job[]> {
-  const effectiveId = (email && resolveMockUserId(email)) || userId;
-  const jobs =
-    !effectiveId || role === "admin"
-      ? db.jobs
-      : db.jobs.filter((j) => j.createdBy === effectiveId);
-  return wait(jobs.map((j) => ({ ...j })));
+export async function getJobs(): Promise<Job[]> {
+  return apiFetch<Job[]>("/hr/jobs");
+}
+
+export async function getDashboard(): Promise<{ jobs: Job[]; apps: Application[] }> {
+  return apiFetch<{ jobs: Job[]; apps: Application[] }>("/hr/dashboard");
 }
 
 export async function getJob(jobId: string): Promise<Job | undefined> {
-  return wait(db.jobs.find((j) => j.id === jobId));
+  try {
+    return await apiFetch<Job>(`/hr/jobs/${jobId}`);
+  } catch {
+    return undefined;
+  }
 }
 
 export async function getPublicJob(jobId: string): Promise<Job | undefined> {
@@ -92,24 +80,24 @@ export async function getPublicJobs(): Promise<Job[]> {
   return apiFetch<Job[]>("/candidate/jobs");
 }
 
-export async function createJob(job: Job, actor: string): Promise<Job> {
-  db.jobs.unshift(job);
-  log(actor, "Job created", job.title);
-  return wait(job);
+export async function createJob(job: Job): Promise<Job> {
+  return apiFetch<Job>("/hr/jobs", { method: "POST", body: JSON.stringify(job) });
 }
 
-export async function updateJob(job: Job, actor: string): Promise<Job> {
-  db.jobs = db.jobs.map((j) => (j.id === job.id ? job : j));
-  log(actor, "Job updated", job.title);
-  return wait(job);
+export async function updateJob(job: Job): Promise<Job> {
+  return apiFetch<Job>(`/hr/jobs/${job.id}`, { method: "PUT", body: JSON.stringify(job) });
 }
 
 /* ------------------------------ applications ----------------------------- */
 
 export async function getApplicationsForJob(jobId: string): Promise<Application[]> {
-  return wait(
-    db.applications.filter((a) => a.jobId === jobId).sort((a, b) => b.score - a.score),
-  );
+  return apiFetch<Application[]>(`/hr/board/${jobId}`);
+}
+
+export async function getShortlist(
+  jobId: string,
+): Promise<{ app: Application; candidate: Candidate }[]> {
+  return apiFetch<{ app: Application; candidate: Candidate }[]>(`/hr/shortlist/${jobId}`);
 }
 
 export async function getApplicationsForCandidate(): Promise<
@@ -125,48 +113,15 @@ export async function getApplicationsForCandidate(): Promise<
   });
 }
 
-export async function getCandidate(candidateId: string): Promise<Candidate | undefined> {
-  return wait(db.candidates.find((c) => c.id === candidateId));
+export async function shortlistCandidate(applicationIds: string[]): Promise<void> {
+  await apiFetch("/hr/shortlist", { method: "POST", body: JSON.stringify({ applicationIds }) });
 }
 
-export async function getCandidates(): Promise<Candidate[]> {
-  return wait(db.candidates);
-}
-
-/** Backend-owned in production: parses the CV and produces score + breakdown. */
-export async function scoreApplication(applicationId: string): Promise<Application | undefined> {
-  return wait(db.applications.find((a) => a.id === applicationId));
-}
-
-export async function shortlistCandidate(
-  applicationIds: string[],
-  actor: string,
-): Promise<Application[]> {
-  db.applications = db.applications.map((a) =>
-    applicationIds.includes(a.id) ? { ...a, status: "shortlisted" as ApplicationStatus } : a,
-  );
-  log(actor, "Candidate shortlisted", `${applicationIds.length} candidate(s)`);
-  return wait(db.applications.filter((a) => applicationIds.includes(a.id)));
-}
-
-export async function setApplicationStatus(
-  applicationId: string,
-  status: ApplicationStatus,
-  actor: string,
-): Promise<void> {
-  db.applications = db.applications.map((a) => (a.id === applicationId ? { ...a, status } : a));
-  log(actor, "Status changed", `${applicationId} → ${status}`);
-  return wait(undefined, 150);
-}
-
-export async function uploadCvs(
-  jobId: string,
-  fileNames: string[],
-  actor: string,
-): Promise<Application[]> {
-  const job = db.jobs.find((j) => j.id === jobId);
-  log(actor, "CVs uploaded", `${fileNames.length} files to ${job?.title ?? jobId}`);
-  return wait([], 200);
+export async function uploadCvs(jobId: string, fileNames: string[]): Promise<Application[]> {
+  return apiFetch<Application[]>(`/hr/upload/${jobId}`, {
+    method: "POST",
+    body: JSON.stringify({ fileNames }),
+  });
 }
 
 export async function submitApplication(payload: {
@@ -193,24 +148,15 @@ export async function sendShortlistEmails(payload: {
   body: string;
   recipients: string[];
   template: string;
-  actor: string;
 }): Promise<SentEmail> {
-  const email: SentEmail = {
-    id: `mail-${Date.now()}`,
-    jobId: payload.jobId,
-    subject: payload.subject,
-    body: payload.body,
-    recipients: payload.recipients,
-    template: payload.template,
-    sentAt: new Date().toISOString().slice(0, 16).replace("T", " "),
-  };
-  db.emails.unshift(email);
-  log(payload.actor, "Email sent", `${payload.template} — ${payload.recipients.length} recipients`);
-  return wait(email, 700);
+  return apiFetch<SentEmail>(`/hr/email/${payload.jobId}`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
-export async function getSentEmails(jobId?: string): Promise<SentEmail[]> {
-  return wait(jobId ? db.emails.filter((e) => e.jobId === jobId) : db.emails);
+export async function getSentEmails(jobId: string): Promise<SentEmail[]> {
+  return apiFetch<SentEmail[]>(`/hr/email/${jobId}`);
 }
 
 /* ---------------------------------- admin -------------------------------- */

@@ -83,7 +83,7 @@ export function JobBoard() {
 
   const shortlist = async (ids: string[]) => {
     if (!ids.length) return;
-    await shortlistCandidate(ids, user?.name ?? "HR");
+    await shortlistCandidate(ids);
     await queryClient.invalidateQueries({ queryKey: ["applications", jobId] });
     setSelected([]);
     toast.success(
@@ -91,7 +91,7 @@ export function JobBoard() {
     );
   };
 
-  const denied = job && !canViewBoard(user, job.createdBy);
+  const denied = Boolean(job) && !canViewBoard(user, job!.createdBy);
 
   return (
     <HrLayout
@@ -101,7 +101,7 @@ export function JobBoard() {
       <JobTabs jobId={jobId} />
 
       {jobQuery.isLoading || appsQuery.isLoading ? <LoadingRows rows={6} /> : null}
-      {jobQuery.isError || appsQuery.isError ? (
+      {jobQuery.isError || (appsQuery.isError && !denied) ? (
         <ErrorState
           message="We couldn't load this rank board."
           onRetry={() => {

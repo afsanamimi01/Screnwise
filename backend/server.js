@@ -8,6 +8,12 @@ import authRoutes from "./auth/routes/auth.routes.js";
 import candidateJobsRoutes from "./candidate/routes/jobs.routes.js";
 import candidateApplyRoutes from "./candidate/routes/apply.routes.js";
 import candidateApplicationsRoutes from "./candidate/routes/applications.routes.js";
+import hrJobsRoutes from "./hr/routes/jobs.routes.js";
+import hrBoardRoutes from "./hr/routes/board.routes.js";
+import hrShortlistRoutes from "./hr/routes/shortlist.routes.js";
+import hrUploadRoutes from "./hr/routes/upload.routes.js";
+import hrEmailRoutes from "./hr/routes/email.routes.js";
+import hrDashboardRoutes from "./hr/routes/dashboard.routes.js";
 
 const app = express();
 
@@ -18,6 +24,12 @@ app.use("/api/auth", authRoutes);
 app.use("/api/candidate/jobs", candidateJobsRoutes);
 app.use("/api/candidate/apply", candidateApplyRoutes);
 app.use("/api/candidate/applications", candidateApplicationsRoutes);
+app.use("/api/hr/jobs", hrJobsRoutes);
+app.use("/api/hr/board", hrBoardRoutes);
+app.use("/api/hr/shortlist", hrShortlistRoutes);
+app.use("/api/hr/upload", hrUploadRoutes);
+app.use("/api/hr/email", hrEmailRoutes);
+app.use("/api/hr/dashboard", hrDashboardRoutes);
 
 app.use(errorMiddleware);
 

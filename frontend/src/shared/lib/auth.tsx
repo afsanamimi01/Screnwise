@@ -1,5 +1,4 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { resolveMockUserId } from "./mock-data";
 import type { Role, User } from "./types";
 
 type AuthValue = {
@@ -107,6 +106,5 @@ export function homeForRole(role: Role) {
 export function canViewBoard(user: User | null, createdBy: string) {
   if (!user) return false;
   if (user.role === "admin") return true;
-  const effectiveId = resolveMockUserId(user.email) ?? user.id;
-  return effectiveId === createdBy;
+  return user.id === createdBy;
 }

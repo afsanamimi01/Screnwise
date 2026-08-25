@@ -38,6 +38,7 @@ const jobSchema = new mongoose.Schema(
     status: { type: String, enum: ["open", "closed"], default: "open" },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     managerIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    newSinceLastVisit: { type: Number, default: 0 },
   },
   { timestamps: { createdAt: "createdAt", updatedAt: false } },
 );
@@ -45,6 +46,7 @@ const jobSchema = new mongoose.Schema(
 jobSchema.set("toJSON", {
   transform: (_doc, ret) => {
     ret.id = ret._id.toString();
+    ret.createdAt = ret.createdAt.toISOString().slice(0, 10);
     delete ret._id;
     delete ret.__v;
     return ret;
