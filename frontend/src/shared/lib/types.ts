@@ -1,12 +1,49 @@
-export type Role = "hr" | "manager" | "candidate" | "admin";
+export type Role = "hr" | "manager" | "candidate" | "superadmin";
+
+export type PlanKey = "basic" | "advance" | "custom";
 
 export type User = {
   id: string;
   name: string;
   email: string;
   role: Role;
+  /** Set for `manager` and `hr`; null for `candidate` and `superadmin`. */
+  companyId: string | null;
+  /** Filled by the super-admin users endpoint only. */
+  companyName?: string | null;
   active: boolean;
   createdAt: string;
+};
+
+export type PlanFeature = { label: string; included: boolean };
+
+export type Plan = {
+  id: string;
+  key: PlanKey;
+  name: string;
+  tagline: string;
+  price: string;
+  period: string;
+  cta: string;
+  featured: boolean;
+  /** null = unlimited HR seats. */
+  hrSeatLimit: number | null;
+  features: PlanFeature[];
+  order: number;
+};
+
+export type Company = {
+  id: string;
+  name: string;
+  /** null until the manager picks a plan on first sign-in. */
+  plan: PlanKey | null;
+  hrSeatLimit: number | null;
+  status: "active" | "revoked";
+  subscriptionStartedAt: string | null;
+  subscriptionExpiresAt: string | null;
+  createdAt: string;
+  expired: boolean;
+  accessible: boolean;
 };
 
 export type ScoringWeights = {
@@ -39,9 +76,13 @@ export type Job = {
   weights: ScoringWeights;
   publicApplyEnabled: boolean;
   status: "open" | "closed";
+  /** "screening" = an internal CV batch, never on the public board or dashboard. */
+  kind: "job" | "screening";
   createdAt: string;
-  createdBy: string;
-  managerIds: string[];
+  companyId: string;
+  /** Present on the public candidate endpoints. */
+  companyName?: string | null;
+  createdBy: string | null;
   newSinceLastVisit: number;
 };
 
@@ -49,8 +90,6 @@ export type ApplicationStatus =
   | "applied"
   | "screened"
   | "shortlisted"
-  | "interview"
-  | "hired"
   | "rejected";
 
 export type ScoreBreakdownItem = {
@@ -117,10 +156,15 @@ export const DEFAULT_WEIGHTS: ScoringWeights = {
 
 export const SCORE_THRESHOLD = 50;
 
-export const STATUS_PIPELINE: ApplicationStatus[] = [
-  "applied",
-  "screened",
-  "shortlisted",
-  "interview",
-  "hired",
-];
+export const STATUS_PIPELINE: ApplicationStatus[] = ["applied", "screened", "shortlisted"];
+
+/**
+ * Map a status coming back from the API onto the current pipeline. Records
+ * created before the `interview` / `hired` stages were removed still carry
+ * those values — collapse them onto `shortlisted`, which is the final stage
+ * now, so the tracker renders them as fully progressed instead of unknown.
+ */
+export function normalizeStatus(status: string): ApplicationStatus {
+  if (status === "interview" || status === "hired") return "shortlisted";
+  return status as ApplicationStatus;
+}

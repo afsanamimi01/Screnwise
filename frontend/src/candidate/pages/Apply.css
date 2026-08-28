@@ -1,0 +1,248 @@
+/* "Apply to a role" page — self-contained: page wrapper, the role lead block
+   and the application form, all styled here. Chrome lives in candidate/components. */
+
+.apply {
+  flex: 1;
+  width: 100%;
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem;
+}
+
+.apply__gate {
+  min-height: 100vh;
+  background: #f5f8fa;
+}
+
+/* --- "not accepting applications" notice --------------------------- */
+.apply__notice {
+  padding: 3.5rem 1.5rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+.apply__notice-link {
+  font-weight: 500;
+  color: #006b79;
+  text-decoration: none;
+}
+
+.apply__notice-link:hover {
+  text-decoration: underline;
+}
+
+/* --- success state ---------------------------------------------- */
+.apply__done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3.5rem 1.5rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 1px 2px #04191f0f, 0 8px 24px #04191f0d;
+  text-align: center;
+}
+
+.apply__done-icon {
+  margin-bottom: 0.75rem;
+  color: #14874e;
+}
+
+.apply__done-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.apply__done-text {
+  margin-top: 0.5rem;
+  max-width: 28rem;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+.apply__done .apply__btn {
+  margin-top: 1.5rem;
+}
+
+/* --- lead: title, meta, description, skills -------------------- */
+.apply__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.apply__title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.apply__meta {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+.apply__desc {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: #5e6b73;
+  white-space: pre-wrap;
+}
+
+.apply__skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-top: 1rem;
+}
+
+.apply__skill {
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  background: #ebf1f4;
+  color: #1e313a;
+}
+
+/* --- form card ----------------------------------------------- */
+.apply__card {
+  padding: 1.5rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 1px 2px #04191f0f, 0 8px 24px #04191f0d;
+}
+
+.apply__card-title {
+  margin-bottom: 1.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.apply__form {
+  display: grid;
+  gap: 1rem;
+}
+
+.apply__field {
+  display: flex;
+  flex-direction: column;
+}
+
+.apply__label {
+  margin-bottom: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.apply__input {
+  height: 2.25rem;
+  padding: 0 0.75rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  font: inherit;
+  font-size: 0.875rem;
+  color: #0b1d27;
+}
+
+.apply__input:focus-visible {
+  outline: 2px solid #006b79;
+  outline-offset: 1px;
+}
+
+.apply__input[type="file"] {
+  height: auto;
+  padding: 0.375rem 0.75rem;
+}
+
+.apply__input--num {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* --- checkboxes ------------------------------------------------ */
+.apply__check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.apply__checkbox {
+  margin-top: 0.15rem;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  accent-color: #006b79;
+}
+
+/* --- error + submit ---------------------------------------- */
+.apply__error {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  background: #ffe5e1;
+  font-size: 0.875rem;
+  color: #c92f33;
+}
+
+.apply__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: #006b79;
+  color: #f8fdfe;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.apply__btn:hover {
+  background: #00606d;
+}
+
+.apply__btn:focus-visible {
+  outline: 2px solid #006b79;
+  outline-offset: 2px;
+}
+
+.apply__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.apply__submit {
+  width: 100%;
+}
+
+/* --- breakpoints -------------------------------------------- */
+@media (min-width: 640px) {
+  .apply__form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .apply__field--full {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 768px) {
+  .apply {
+    padding: 2rem;
+  }
+}

@@ -9,6 +9,7 @@ import Register from "@/shared/pages/Register";
 import NotFound from "@/shared/pages/NotFound";
 import Apply from "@/candidate/pages/Apply";
 import MyApplications from "@/candidate/pages/MyApplications";
+import OpenRoles from "@/candidate/pages/OpenRoles";
 import Dashboard from "@/hr/pages/Dashboard";
 import Jobs from "@/hr/pages/Jobs";
 import JobNew from "@/hr/pages/JobNew";
@@ -80,6 +81,7 @@ export default function App() {
               {/* candidate */}
               <Route path="/apply/:jobId" element={<Apply />} />
               <Route path="/my-applications" element={<MyApplications />} />
+              <Route path="/open-roles" element={<OpenRoles />} />
 
               {/* hr / recruiter */}
               <Route path="/dashboard" element={<Dashboard />} />

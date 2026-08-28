@@ -1,0 +1,255 @@
+/* Candidate sidebar. Independent styles — no shared or utility classes.
+   Collapsible: `.candidate-sidebar--collapsed` shrinks it to an icon rail. */
+
+.candidate-sidebar {
+  --candidate-sidebar-width: 16rem;
+  --candidate-sidebar-width-collapsed: 4.25rem;
+
+  position: sticky;
+  top: 0;
+  display: flex;
+  height: 100vh;
+  width: var(--candidate-sidebar-width);
+  flex-shrink: 0;
+  flex-direction: column;
+  background: #0d2734;
+  color: #d8dfe3;
+  transition: width 0.2s ease;
+}
+
+.candidate-sidebar--collapsed {
+  width: var(--candidate-sidebar-width-collapsed);
+}
+
+/* --- brand ----------------------------------------------------------- */
+.candidate-sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.25rem;
+}
+
+.candidate-sidebar--collapsed .candidate-sidebar__brand {
+  justify-content: center;
+  padding: 1.25rem 0;
+}
+
+.candidate-sidebar__logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem;
+  border-radius: 0.5rem;
+  background: #00a099;
+  color: #000d15;
+}
+
+.candidate-sidebar__wordmark {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+}
+
+.candidate-sidebar--collapsed .candidate-sidebar__wordmark {
+  display: none;
+}
+
+/* --- nav ----------------------------------------------------------- */
+.candidate-sidebar__nav {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0 0.75rem;
+}
+
+.candidate-sidebar--collapsed .candidate-sidebar__nav {
+  padding: 0 0.5rem;
+}
+
+.candidate-sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: #d8dfe3cc;
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.candidate-sidebar__link:hover {
+  background: #1a3a4899;
+  color: #d8dfe3;
+}
+
+.candidate-sidebar__link--active {
+  background: #1a3a48;
+  color: #f5f9fb;
+  font-weight: 500;
+}
+
+.candidate-sidebar__link-icon {
+  flex-shrink: 0;
+}
+
+.candidate-sidebar--collapsed .candidate-sidebar__link {
+  justify-content: center;
+  padding: 0.5rem 0;
+}
+
+.candidate-sidebar--collapsed .candidate-sidebar__link-label {
+  display: none;
+}
+
+/* --- footer block: collapse toggle + account, pinned to the bottom --- */
+.candidate-sidebar__footer {
+  border-top: 1px solid #213c49;
+  padding: 0.75rem;
+}
+
+.candidate-sidebar--collapsed .candidate-sidebar__footer {
+  padding: 0.5rem;
+}
+
+.candidate-sidebar__toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #213c49;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: #d8dfe3d9;
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.candidate-sidebar__toggle:hover {
+  background: #1a3a4899;
+  color: #d8dfe3;
+}
+
+.candidate-sidebar__toggle:focus-visible {
+  outline: 2px solid #00a099;
+  outline-offset: 2px;
+}
+
+.candidate-sidebar__toggle-icon {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.candidate-sidebar--collapsed .candidate-sidebar__toggle {
+  justify-content: center;
+  width: auto;
+  padding: 0.4375rem;
+}
+
+.candidate-sidebar--collapsed .candidate-sidebar__toggle-label {
+  display: none;
+}
+
+.candidate-sidebar--collapsed .candidate-sidebar__toggle-icon {
+  transform: rotate(180deg);
+}
+
+/* --- account ----------------------------------------------------------- */
+.candidate-sidebar__account {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.candidate-sidebar--collapsed .candidate-sidebar__account {
+  align-items: center;
+}
+
+.candidate-sidebar__account-label {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #d8dfe38c;
+}
+
+.candidate-sidebar__account-name {
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #d8dfe3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.candidate-sidebar--collapsed .candidate-sidebar__account-label,
+.candidate-sidebar--collapsed .candidate-sidebar__account-name,
+.candidate-sidebar--collapsed .candidate-sidebar__site-label {
+  display: none;
+}
+
+.candidate-sidebar__account-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.candidate-sidebar--collapsed .candidate-sidebar__account-actions {
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.candidate-sidebar__site,
+.candidate-sidebar__logout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.4375rem 0.75rem;
+  border: 1px solid #213c49;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: #d8dfe3d9;
+  font: inherit;
+  font-size: 0.8125rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.candidate-sidebar__site {
+  flex: 1;
+}
+
+.candidate-sidebar__logout {
+  padding: 0.4375rem;
+}
+
+.candidate-sidebar__site:hover,
+.candidate-sidebar__logout:hover {
+  background: #1a3a4899;
+  color: #d8dfe3;
+}
+
+.candidate-sidebar__site:focus-visible,
+.candidate-sidebar__logout:focus-visible {
+  outline: 2px solid #00a099;
+  outline-offset: 2px;
+}
+
+.candidate-sidebar--collapsed .candidate-sidebar__site {
+  flex: none;
+  padding: 0.4375rem;
+}
+
+/* Desktop-only, matching the other actor sidebars. */
+@media (max-width: 767px) {
+  .candidate-sidebar {
+    display: none;
+  }
+}

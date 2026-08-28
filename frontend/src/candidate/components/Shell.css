@@ -1,0 +1,22 @@
+/* Layout skeleton for the candidate workspace: sidebar + (navbar / page / footer).
+   No page-content styles here — each page owns its own wrapper and heading. */
+
+.candidate-shell {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  background: #f5f8fa;
+  color: #0b1d27;
+}
+
+.candidate-shell__blank {
+  min-height: 100vh;
+  background: #f5f8fa;
+}
+
+.candidate-shell__main {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+}
