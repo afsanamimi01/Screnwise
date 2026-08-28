@@ -1,30 +1,32 @@
 import { Link, useLocation } from "react-router-dom";
+import { Button } from "@/shared/components/ui/button";
 import { cn } from "@/shared/lib/utils";
-import "./JobTabs.css";
 
 const tabs = [
-  { suffix: "board", label: "Rank board" },
-  { suffix: "shortlist", label: "Shortlist" },
-  { suffix: "upload", label: "Upload CVs" },
-  { suffix: "email", label: "Email" },
-  { suffix: "edit", label: "Edit job" },
+  { segment: "board", label: "Rank board" },
+  { segment: "shortlist", label: "Shortlist" },
+  { segment: "upload", label: "Upload CVs" },
+  { segment: "email", label: "Email" },
+  { segment: "edit", label: "Edit job" },
 ] as const;
 
 export function JobTabs({ jobId }: { jobId: string }) {
-  const { pathname } = useLocation();
+  const pathname = useLocation().pathname;
   return (
-    <div className="job-tabs">
+    <div className="mb-6 flex flex-wrap gap-1 rounded-xl border bg-card p-1">
       {tabs.map((t) => {
-        const href = `/jobs/${jobId}/${t.suffix}`;
+        const href = `/jobs/${jobId}/${t.segment}`;
         const active = pathname === href;
         return (
-          <Link
-            key={t.suffix}
-            to={href}
-            className={cn("job-tabs__tab", active && "job-tabs__tab--active")}
+          <Button
+            key={t.segment}
+            asChild
+            variant="ghost"
+            size="sm"
+            className={cn(active && "bg-primary-soft text-primary hover:bg-primary-soft")}
           >
-            {t.label}
-          </Link>
+            <Link to={href}>{t.label}</Link>
+          </Button>
         );
       })}
     </div>

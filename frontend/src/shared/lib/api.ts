@@ -1,130 +1,82 @@
 /**
- * Data layer.
- * Candidate-facing functions (jobs browsing, apply, my applications) call the
- * real MERN REST API. Everything else (admin) is still an
- * in-memory placeholder behind a small artificial delay — swap each body for
- * a `fetch()` the same way once those actors are built.
+ * REST client for the ScanWise backend (Express + MongoDB).
+ *
+ * Every call goes to `VITE_API_BASE_URL` (see `.env`) with the signed-in
+ * user's JWT attached. Shapes returned here match the `types.ts` models the
+ * pages expect.
  */
-import { mockApplications, mockAudit, mockCandidates, mockJobs, mockUsers } from "./mock-data";
-import type { Application, AuditEntry, Candidate, Job, SentEmail, User } from "./types";
+import { getToken } from "./auth-storage";
+import type {
+  Application,
+  ApplicationStatus,
+  AuditEntry,
+  Candidate,
+  Job,
+  Role,
+  SentEmail,
+  User,
+} from "./types";
 
-const db = {
-  jobs: [...mockJobs],
-  applications: [...mockApplications],
-  candidates: [...mockCandidates],
-  users: [...mockUsers],
-  audit: [...mockAudit],
-  emails: [] as SentEmail[],
-};
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5000/api";
 
-const wait = <T,>(value: T, ms = 350): Promise<T> =>
-  new Promise((resolve) => setTimeout(() => resolve(value), ms));
-
-function log(actor: string, action: string, detail: string) {
-  db.audit.unshift({
-    id: `a-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-    actor,
-    action,
-    detail,
-    timestamp: new Date().toISOString().slice(0, 16).replace("T", " "),
-  });
+export class ApiError extends Error {
+  status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
-const TOKEN_KEY = "screenwise.token";
-
-function authHeaders(): HeadersInit {
-  const token = window.localStorage.getItem(TOKEN_KEY);
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
-async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...init,
-    headers: { "Content-Type": "application/json", ...authHeaders(), ...init?.headers },
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const token = getToken();
+  const res = await fetch(`${BASE_URL}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers ?? {}),
+    },
   });
+
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : null;
+
   if (!res.ok) {
-    const body = await res.json().catch(() => ({ message: res.statusText }));
-    throw new Error(body.message ?? `Request to ${path} failed`);
+    throw new ApiError(res.status, data?.message ?? `Request failed (${res.status})`);
   }
-  return res.json() as Promise<T>;
+  return data as T;
 }
 
-/* ---------------------------------- jobs --------------------------------- */
+const body = (value: unknown) => JSON.stringify(value);
 
-export async function getJobs(): Promise<Job[]> {
-  return apiFetch<Job[]>("/hr/jobs");
-}
+/* ---------------------------------- auth --------------------------------- */
 
-export async function getDashboard(): Promise<{ jobs: Job[]; apps: Application[] }> {
-  return apiFetch<{ jobs: Job[]; apps: Application[] }>("/hr/dashboard");
-}
-
-export async function getJob(jobId: string): Promise<Job | undefined> {
-  try {
-    return await apiFetch<Job>(`/hr/jobs/${jobId}`);
-  } catch {
-    return undefined;
-  }
-}
-
-export async function getPublicJob(jobId: string): Promise<Job | undefined> {
-  try {
-    return await apiFetch<Job>(`/candidate/jobs/${jobId}`);
-  } catch {
-    return undefined;
-  }
-}
-
-export async function getPublicJobs(): Promise<Job[]> {
-  return apiFetch<Job[]>("/candidate/jobs");
-}
-
-export async function createJob(job: Job): Promise<Job> {
-  return apiFetch<Job>("/hr/jobs", { method: "POST", body: JSON.stringify(job) });
-}
-
-export async function updateJob(job: Job): Promise<Job> {
-  return apiFetch<Job>(`/hr/jobs/${job.id}`, { method: "PUT", body: JSON.stringify(job) });
-}
-
-/* ------------------------------ applications ----------------------------- */
-
-export async function getApplicationsForJob(jobId: string): Promise<Application[]> {
-  return apiFetch<Application[]>(`/hr/board/${jobId}`);
-}
-
-export async function getShortlist(
-  jobId: string,
-): Promise<{ app: Application; candidate: Candidate }[]> {
-  return apiFetch<{ app: Application; candidate: Candidate }[]>(`/hr/shortlist/${jobId}`);
-}
-
-export async function getApplicationsForCandidate(): Promise<
-  { app: Application; job: Job | undefined }[]
-> {
-  const rows = await apiFetch<(Application & { jobId: Job })[]>("/candidate/applications");
-  return rows.map((row) => {
-    const job = row.jobId;
-    return {
-      app: { ...row, jobId: job?.id ?? (row.jobId as unknown as string), appliedAt: row.appliedAt.slice(0, 10) },
-      job,
-    };
-  });
-}
-
-export async function shortlistCandidate(applicationIds: string[]): Promise<void> {
-  await apiFetch("/hr/shortlist", { method: "POST", body: JSON.stringify({ applicationIds }) });
-}
-
-export async function uploadCvs(jobId: string, fileNames: string[]): Promise<Application[]> {
-  return apiFetch<Application[]>(`/hr/upload/${jobId}`, {
+export function authLogin(email: string, password: string) {
+  return request<{ token: string; user: User }>("/auth/login", {
     method: "POST",
-    body: JSON.stringify({ fileNames }),
+    body: body({ email, password }),
   });
 }
 
-export async function submitApplication(payload: {
+export function authRegister(name: string, email: string, password: string, role: Role) {
+  return request<{ token: string; user: User }>("/auth/register", {
+    method: "POST",
+    body: body({ name, email, password, role }),
+  });
+}
+
+/* --------------------------------- public -------------------------------- */
+
+export function getPublicJobs(): Promise<Job[]> {
+  return request<Job[]>("/candidate/jobs");
+}
+
+export function getPublicJob(jobId: string): Promise<Job> {
+  return request<Job>(`/candidate/jobs/${jobId}`);
+}
+
+export function submitApplication(payload: {
   jobId: string;
   name: string;
   email: string;
@@ -134,47 +86,104 @@ export async function submitApplication(payload: {
   currentTitle: string;
   cvFileName: string;
 }): Promise<{ trackingId: string }> {
-  return apiFetch<{ trackingId: string }>("/candidate/apply", {
+  return request("/candidate/apply", { method: "POST", body: body(payload) });
+}
+
+/* -------------------------------- candidate ------------------------------ */
+
+export function getMyApplications(): Promise<{ app: Application; job: Job | null }[]> {
+  return request("/candidate/applications");
+}
+
+/* ----------------------------------- hr --------------------------------- */
+
+export function getDashboard(): Promise<{ jobs: Job[]; apps: Application[] }> {
+  return request("/hr/dashboard");
+}
+
+export function getJobs(): Promise<Job[]> {
+  return request<Job[]>("/hr/jobs");
+}
+
+export function getJob(jobId: string): Promise<Job> {
+  return request<Job>(`/hr/jobs/${jobId}`);
+}
+
+export function createJob(job: Job): Promise<Job> {
+  return request<Job>("/hr/jobs", { method: "POST", body: body(job) });
+}
+
+export function updateJob(job: Job): Promise<Job> {
+  return request<Job>(`/hr/jobs/${job.id}`, { method: "PUT", body: body(job) });
+}
+
+/** Blind rank board — identity fields are stripped by the server. */
+export function getApplicationsForJob(jobId: string): Promise<Application[]> {
+  return request<Application[]>(`/hr/board/${jobId}`);
+}
+
+/** Shortlisted-and-beyond candidates with identities revealed. */
+export function getShortlist(
+  jobId: string,
+): Promise<{ app: Application; candidate: Candidate }[]> {
+  return request(`/hr/shortlist/${jobId}`);
+}
+
+export function shortlistCandidate(applicationIds: string[]): Promise<{ shortlisted: number }> {
+  return request("/hr/shortlist", { method: "POST", body: body({ applicationIds }) });
+}
+
+export function uploadCvs(jobId: string, fileNames: string[]): Promise<Application[]> {
+  return request<Application[]>(`/hr/upload/${jobId}`, {
     method: "POST",
-    body: JSON.stringify(payload),
+    body: body({ fileNames }),
   });
 }
 
-/* --------------------------------- emails -------------------------------- */
-
-export async function sendShortlistEmails(payload: {
+export function sendShortlistEmails(payload: {
   jobId: string;
   subject: string;
   body: string;
-  recipients: string[];
   template: string;
+  recipients: string[];
 }): Promise<SentEmail> {
-  return apiFetch<SentEmail>(`/hr/email/${payload.jobId}`, {
-    method: "POST",
-    body: JSON.stringify(payload),
+  const { jobId, ...rest } = payload;
+  return request<SentEmail>(`/hr/email/${jobId}`, { method: "POST", body: body(rest) });
+}
+
+export function getSentEmails(jobId: string): Promise<SentEmail[]> {
+  return request<SentEmail[]>(`/hr/email/${jobId}`);
+}
+
+/* -------------------------------- manager ------------------------------- */
+
+export function getManagerShortlists(): Promise<
+  { job: Job; entries: { app: Application; candidate: Candidate }[] }[]
+> {
+  return request("/manager/shortlists");
+}
+
+export function sendManagerFeedback(jobId: string, note: string): Promise<{ ok: true }> {
+  return request("/manager/feedback", { method: "POST", body: body({ jobId, note }) });
+}
+
+/* --------------------------------- admin -------------------------------- */
+
+export function getUsers(): Promise<User[]> {
+  return request<User[]>("/admin/users");
+}
+
+export function updateUser(
+  user: Pick<User, "id"> & Partial<Pick<User, "role" | "active" | "name">>,
+): Promise<User> {
+  return request<User>(`/admin/users/${user.id}`, {
+    method: "PATCH",
+    body: body({ role: user.role, active: user.active, name: user.name }),
   });
 }
 
-export async function getSentEmails(jobId: string): Promise<SentEmail[]> {
-  return apiFetch<SentEmail[]>(`/hr/email/${jobId}`);
+export function getAuditLog(): Promise<AuditEntry[]> {
+  return request<AuditEntry[]>("/admin/audit");
 }
 
-/* ---------------------------------- admin -------------------------------- */
-
-export async function getUsers(): Promise<User[]> {
-  return wait(db.users);
-}
-
-export async function updateUser(user: User, actor: string): Promise<User> {
-  db.users = db.users.map((u) => (u.id === user.id ? user : u));
-  log(actor, "User updated", `${user.name} — ${user.role}, ${user.active ? "active" : "inactive"}`);
-  return wait(user, 200);
-}
-
-export async function getAuditLog(): Promise<AuditEntry[]> {
-  return wait(db.audit);
-}
-
-export async function logAudit(actor: string, action: string, detail: string) {
-  log(actor, action, detail);
-}
+export type { ApplicationStatus };

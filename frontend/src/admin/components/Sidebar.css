@@ -1,0 +1,182 @@
+/* Admin console sidebar. Independent styles — no shared/utility classes.
+   Collapsible: `.admin-sidebar--collapsed` shrinks to an icon rail. */
+
+.admin-sidebar {
+  --admin-sidebar-width: 16rem;
+  --admin-sidebar-width-collapsed: 4.25rem;
+
+  position: sticky;
+  top: 0;
+  display: flex;
+  height: 100vh;
+  width: var(--admin-sidebar-width);
+  flex-shrink: 0;
+  flex-direction: column;
+  background: var(--sidebar);
+  color: var(--sidebar-foreground);
+  transition: width 0.2s ease;
+}
+
+.admin-sidebar--collapsed {
+  width: var(--admin-sidebar-width-collapsed);
+}
+
+/* --- brand ------------------------------------------------------------- */
+.admin-sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.25rem;
+}
+
+.admin-sidebar--collapsed .admin-sidebar__brand {
+  justify-content: center;
+  padding: 1.25rem 0;
+}
+
+.admin-sidebar__logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem;
+  border-radius: 0.5rem;
+  background: var(--sidebar-primary);
+  color: var(--sidebar-primary-foreground);
+}
+
+.admin-sidebar__wordmark {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+}
+
+.admin-sidebar--collapsed .admin-sidebar__wordmark {
+  display: none;
+}
+
+/* --- nav ------------------------------------------------------------- */
+.admin-sidebar__nav {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0 0.75rem;
+}
+
+.admin-sidebar--collapsed .admin-sidebar__nav {
+  padding: 0 0.5rem;
+}
+
+.admin-sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: color-mix(in srgb, var(--sidebar-foreground) 80%, transparent);
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.admin-sidebar__link:hover {
+  background: color-mix(in srgb, var(--sidebar-accent) 60%, transparent);
+  color: var(--sidebar-foreground);
+}
+
+.admin-sidebar__link--active {
+  background: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
+  font-weight: 500;
+}
+
+.admin-sidebar__link-icon {
+  flex-shrink: 0;
+}
+
+.admin-sidebar--collapsed .admin-sidebar__link {
+  justify-content: center;
+  padding: 0.5rem 0;
+}
+
+.admin-sidebar--collapsed .admin-sidebar__link-label {
+  display: none;
+}
+
+/* --- governance note ---------------------------------------------------- */
+.admin-sidebar__note {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--sidebar-accent) 50%, transparent);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--sidebar-foreground) 80%, transparent);
+}
+
+.admin-sidebar__note-icon {
+  flex-shrink: 0;
+  color: var(--sidebar-primary);
+}
+
+.admin-sidebar--collapsed .admin-sidebar__note {
+  display: none;
+}
+
+/* --- collapse toggle -------------------------------------------------- */
+.admin-sidebar__toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: calc(100% - 1.5rem);
+  margin: 0 0.75rem 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--sidebar-border);
+  border-radius: 0.5rem;
+  background: transparent;
+  color: color-mix(in srgb, var(--sidebar-foreground) 85%, transparent);
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.admin-sidebar__toggle:hover {
+  background: color-mix(in srgb, var(--sidebar-accent) 60%, transparent);
+  color: var(--sidebar-foreground);
+}
+
+.admin-sidebar__toggle:focus-visible {
+  outline: 2px solid var(--sidebar-ring);
+  outline-offset: 2px;
+}
+
+.admin-sidebar__toggle-icon {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.admin-sidebar--collapsed .admin-sidebar__toggle {
+  justify-content: center;
+  width: calc(100% - 1rem);
+  margin: 0 0.5rem 0.75rem;
+  padding: 0.5rem 0;
+}
+
+.admin-sidebar--collapsed .admin-sidebar__toggle-label {
+  display: none;
+}
+
+.admin-sidebar--collapsed .admin-sidebar__toggle-icon {
+  transform: rotate(180deg);
+}
+
+/* Sidebar is desktop-only, matching the original shell. */
+@media (max-width: 767px) {
+  .admin-sidebar {
+    display: none;
+  }
+}

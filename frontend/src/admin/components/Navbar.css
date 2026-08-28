@@ -1,0 +1,177 @@
+/* Admin console top bar. Independent styles — no shared/utility classes. */
+
+.admin-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  height: 4rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--card);
+  backdrop-filter: blur(8px);
+}
+
+/* --- brand (mobile) / subtitle (desktop) ----------------------------- */
+.admin-navbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.admin-navbar__brand-icon {
+  color: var(--primary);
+}
+
+.admin-navbar__subtitle {
+  display: none;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+/* --- right-side actions --------------------------------------------- */
+.admin-navbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-navbar__badge {
+  display: none;
+  padding: 0.125rem 0.625rem;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--foreground);
+}
+
+/* --- user menu ----------------------------------------------------- */
+.admin-navbar__user {
+  position: relative;
+}
+
+.admin-navbar__user-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.admin-navbar__user-trigger:hover {
+  background: var(--accent);
+}
+
+.admin-navbar__user-trigger:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.admin-navbar__avatar {
+  display: flex;
+  height: 2rem;
+  width: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.admin-navbar__user-name {
+  display: none;
+  font-size: 0.875rem;
+}
+
+.admin-navbar__menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.5rem);
+  z-index: 50;
+  width: 14rem;
+  padding: 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--popover);
+  color: var(--popover-foreground);
+  box-shadow: 0 1px 2px oklch(0.2 0.03 220 / 0.06), 0 8px 24px oklch(0.2 0.03 220 / 0.12);
+}
+
+.admin-navbar__menu-head {
+  padding: 0.5rem;
+}
+
+.admin-navbar__menu-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.admin-navbar__menu-email {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.admin-navbar__menu-sep {
+  height: 1px;
+  margin: 0.25rem 0;
+  background: var(--border);
+}
+
+.admin-navbar__menu-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-navbar__menu-item:hover {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+@media (min-width: 640px) {
+  .admin-navbar__badge {
+    display: inline-flex;
+  }
+
+  .admin-navbar__user-name {
+    display: inline;
+  }
+}
+
+@media (min-width: 768px) {
+  .admin-navbar {
+    padding: 0 2rem;
+  }
+
+  .admin-navbar__brand {
+    display: none;
+  }
+
+  .admin-navbar__subtitle {
+    display: block;
+  }
+}

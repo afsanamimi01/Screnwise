@@ -1,40 +1,66 @@
-import { useState } from "react";
+import { Component, useState, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "@/shared/lib/auth";
-import { ProtectedRoute } from "@/shared/components/ProtectedRoute";
 import { Toaster } from "@/shared/components/ui/sonner";
-import { GoHomeButton } from "@/shared/components/buttons/Buttons";
-import { Landing } from "@/shared/pages/Landing";
-import { Login } from "@/shared/pages/Login";
-import { Register } from "@/shared/pages/Register";
-import { ApplyForm } from "@/candidate/pages/ApplyForm";
-import { MyApplications } from "@/candidate/pages/MyApplications";
-import { Dashboard } from "@/hr/pages/Dashboard";
-import { JobsList } from "@/hr/pages/JobsList";
-import { JobNew } from "@/hr/pages/JobNew";
-import { JobEdit } from "@/hr/pages/JobEdit";
-import { JobUpload } from "@/hr/pages/JobUpload";
-import { JobBoard } from "@/hr/pages/JobBoard";
-import { JobShortlist } from "@/hr/pages/JobShortlist";
-import { JobEmail } from "@/hr/pages/JobEmail";
-import "./App.css";
+import Landing from "@/shared/pages/Landing";
+import Login from "@/shared/pages/Login";
+import Register from "@/shared/pages/Register";
+import NotFound from "@/shared/pages/NotFound";
+import Apply from "@/candidate/pages/Apply";
+import MyApplications from "@/candidate/pages/MyApplications";
+import Dashboard from "@/hr/pages/Dashboard";
+import Jobs from "@/hr/pages/Jobs";
+import JobNew from "@/hr/pages/JobNew";
+import JobEdit from "@/hr/pages/JobEdit";
+import JobBoard from "@/hr/pages/JobBoard";
+import JobShortlist from "@/hr/pages/JobShortlist";
+import JobUpload from "@/hr/pages/JobUpload";
+import JobEmail from "@/hr/pages/JobEmail";
+import ReviewShortlists from "@/manager/pages/ReviewShortlists";
+import Users from "@/admin/pages/Users";
+import AuditLog from "@/admin/pages/AuditLog";
 
-function NotFound() {
-  return (
-    <div className="not-found-page">
-      <div className="not-found-page__content">
-        <h1 className="not-found-page__code">404</h1>
-        <h2 className="not-found-page__title">Page not found</h2>
-        <p className="not-found-page__description">
-          The page you're looking for doesn't exist or has been moved.
-        </p>
-        <div className="not-found-page__action">
-          <GoHomeButton />
+class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+  override state = { error: null as Error | null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  override componentDidCatch(error: Error) {
+    console.error(error);
+  }
+
+  override render() {
+    if (!this.state.error) return this.props.children;
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <div className="max-w-md text-center">
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">
+            This page didn't load
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Something went wrong on our end. You can try refreshing or head back home.
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
+            <button
+              onClick={() => this.setState({ error: null })}
+              className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Try again
+            </button>
+            <a
+              href="/"
+              className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            >
+              Go home
+            </a>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
 
 export default function App() {
@@ -44,92 +70,37 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route
-              path="/apply/:jobId"
-              element={
-                <ProtectedRoute allow={["candidate"]}>
-                  <ApplyForm />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/my-applications"
-              element={
-                <ProtectedRoute allow={["candidate"]}>
-                  <MyApplications />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute allow={["hr", "admin"]}>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/jobs"
-              element={
-                <ProtectedRoute allow={["hr", "admin"]}>
-                  <JobsList />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/jobs/new"
-              element={
-                <ProtectedRoute allow={["hr", "admin"]}>
-                  <JobNew />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/jobs/:jobId/edit"
-              element={
-                <ProtectedRoute allow={["hr", "admin"]}>
-                  <JobEdit />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/jobs/:jobId/upload"
-              element={
-                <ProtectedRoute allow={["hr", "admin"]}>
-                  <JobUpload />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/jobs/:jobId/board"
-              element={
-                <ProtectedRoute allow={["hr", "admin"]}>
-                  <JobBoard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/jobs/:jobId/shortlist"
-              element={
-                <ProtectedRoute allow={["hr", "admin"]}>
-                  <JobShortlist />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/jobs/:jobId/email"
-              element={
-                <ProtectedRoute allow={["hr", "admin"]}>
-                  <JobEmail />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <ErrorBoundary>
+            <Routes>
+              {/* shared / public */}
+              <Route path="/" element={<Landing />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+
+              {/* candidate */}
+              <Route path="/apply/:jobId" element={<Apply />} />
+              <Route path="/my-applications" element={<MyApplications />} />
+
+              {/* hr / recruiter */}
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/jobs" element={<Jobs />} />
+              <Route path="/jobs/new" element={<JobNew />} />
+              <Route path="/jobs/:jobId/edit" element={<JobEdit />} />
+              <Route path="/jobs/:jobId/board" element={<JobBoard />} />
+              <Route path="/jobs/:jobId/shortlist" element={<JobShortlist />} />
+              <Route path="/jobs/:jobId/upload" element={<JobUpload />} />
+              <Route path="/jobs/:jobId/email" element={<JobEmail />} />
+
+              {/* manager */}
+              <Route path="/manager" element={<ReviewShortlists />} />
+
+              {/* admin */}
+              <Route path="/admin/users" element={<Users />} />
+              <Route path="/admin/audit" element={<AuditLog />} />
+
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </ErrorBoundary>
         </BrowserRouter>
         <Toaster richColors position="top-right" />
       </AuthProvider>

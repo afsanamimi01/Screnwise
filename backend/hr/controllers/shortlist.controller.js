@@ -9,7 +9,10 @@ export async function getShortlist(req, res, next) {
     const job = await Job.findById(jobId);
     if (!job) return res.status(404).json({ message: "Job not found" });
 
-    const apps = await Application.find({ jobId, status: "shortlisted" }).sort({ score: -1 });
+    const apps = await Application.find({
+      jobId,
+      status: { $in: ["shortlisted", "interview", "hired"] },
+    }).sort({ score: -1 });
     const rows = apps.map((a) => ({
       app: a.toJSON(),
       candidate: {

@@ -1,26 +1,13 @@
-import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { ArrowRight, EyeOff, ListChecks, Scale, Sparkles } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
+import { SiteFooter } from "@/shared/components/SiteFooter";
 import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
-import {
-  SignInLinkButton,
-  CreateAccountLinkButton,
-  OpenDemoDashboardButton,
-  GoToMyHomeButton,
-} from "@/shared/components/buttons/Buttons";
 import { getPublicJobs } from "@/shared/lib/api";
-import { homeForRole, useAuth } from "@/shared/lib/auth";
-import type { Role } from "@/shared/lib/types";
-import "./Landing.css";
-
-const homeLabelForRole: Record<Role, string> = {
-  candidate: "My applications",
-  hr: "Dashboard",
-  admin: "Dashboard",
-};
+import { usePageTitle } from "@/shared/lib/use-page-title";
 
 const pillars = [
   {
@@ -40,75 +27,73 @@ const pillars = [
   },
 ];
 
-export function Landing() {
-  useEffect(() => {
-    document.title = "Screenwise — blind, explainable CV screening";
-  }, []);
-
-  const { user, ready } = useAuth();
+export default function Landing() {
+  usePageTitle("Screenwise — blind, explainable CV screening");
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["public-jobs"],
     queryFn: () => getPublicJobs(),
   });
 
   return (
-    <div className="landing">
-      <header className="landing__header">
-        <div className="landing__brand">
-          <div className="landing__brand-icon">
-            <Sparkles className="landing__brand-icon-glyph" />
+    <div className="min-h-screen bg-background">
+      <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
+        <div className="flex items-center gap-2">
+          <div className="rounded-lg bg-primary p-1.5 text-primary-foreground">
+            <Sparkles className="h-4 w-4" />
           </div>
-          <span className="landing__brand-name">Screenwise</span>
+          <span className="font-semibold tracking-tight">Screenwise</span>
         </div>
-        <div className="landing__header-actions">
-          {ready && user ? (
-            <GoToMyHomeButton to={homeForRole(user.role)} label={homeLabelForRole[user.role]} />
-          ) : (
-            <>
-              <SignInLinkButton />
-              <CreateAccountLinkButton />
-            </>
-          )}
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" asChild>
+            <Link to="/login">Sign in</Link>
+          </Button>
+          <Button asChild>
+            <Link to="/register">Create account</Link>
+          </Button>
         </div>
       </header>
 
-      <section className="landing__hero">
-        <Badge variant="outline" className="landing__badge">
+      <section className="mx-auto max-w-6xl px-5 pt-10 pb-16">
+        <Badge variant="outline" className="mb-4 font-normal">
           Applicant screening, without the bias
         </Badge>
-        <h1 className="landing__title">
+        <h1 className="max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
           Screen hundreds of CVs fairly, and still make the call yourself.
         </h1>
-        <p className="landing__subtitle">
+        <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
           Screenwise parses every CV, scores it against the job you defined, and ranks candidates on
           a blind board. You shortlist. Only then does the platform show you who they are.
         </p>
-        <div className="landing__cta">
-          <OpenDemoDashboardButton />
+        <div className="mt-7 flex flex-wrap gap-3">
+          <Button size="lg" asChild>
+            <Link to="/login">
+              Open the demo dashboard <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
         </div>
 
-        <div className="landing__pillars">
+        <div className="mt-14 grid gap-4 md:grid-cols-3">
           {pillars.map((p) => (
-            <Card key={p.title} className="landing__pillar-card">
-              <CardContent className="landing__pillar-content">
-                <div className="landing__pillar-icon-wrap">
-                  <p.icon className="landing__pillar-icon" />
+            <Card key={p.title} className="shadow-card">
+              <CardContent className="pt-6">
+                <div className="mb-3 w-fit rounded-lg bg-primary-soft p-2 text-primary">
+                  <p.icon className="h-5 w-5" />
                 </div>
-                <h2 className="landing__pillar-title">{p.title}</h2>
-                <p className="landing__pillar-body">{p.body}</p>
+                <h2 className="text-base font-semibold">{p.title}</h2>
+                <p className="mt-1.5 text-sm text-muted-foreground">{p.body}</p>
               </CardContent>
             </Card>
           ))}
         </div>
       </section>
 
-      <section className="landing__roles-section">
-        <div className="landing__roles-inner">
-          <h2 className="landing__roles-title">Open roles</h2>
-          <p className="landing__roles-subtitle">
+      <section className="border-t bg-card">
+        <div className="mx-auto max-w-6xl px-5 py-14">
+          <h2 className="text-2xl font-semibold">Open roles</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
             Applying takes a couple of minutes and you can track your status afterwards.
           </p>
-          <div className="landing__roles-list">
+          <div className="mt-6 space-y-3">
             {isLoading ? <LoadingRows rows={2} /> : null}
             {isError ? (
               <ErrorState message="We couldn't load the open roles." onRetry={() => refetch()} />
@@ -120,21 +105,27 @@ export function Landing() {
               />
             ) : null}
             {data?.map((job) => (
-              <Link key={job.id} to={`/apply/${job.id}`} className="landing__role-row">
+              <Link
+                key={job.id}
+                to={`/apply/${job.id}`}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-background p-4 transition-colors hover:border-primary/40"
+              >
                 <div>
-                  <div className="landing__role-title">{job.title}</div>
-                  <div className="landing__role-meta">
+                  <div className="font-medium">{job.title}</div>
+                  <div className="text-sm text-muted-foreground">
                     {job.department} · {job.location} · {job.employmentType}
                   </div>
                 </div>
-                <span className="landing__role-apply">
-                  Apply <ArrowRight className="landing__role-apply-icon" />
+                <span className="flex items-center gap-1 text-sm font-medium text-primary">
+                  Apply <ArrowRight className="h-4 w-4" />
                 </span>
               </Link>
             ))}
           </div>
         </div>
       </section>
+
+      <SiteFooter />
     </div>
   );
 }

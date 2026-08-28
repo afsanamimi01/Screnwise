@@ -14,6 +14,9 @@ import hrShortlistRoutes from "./hr/routes/shortlist.routes.js";
 import hrUploadRoutes from "./hr/routes/upload.routes.js";
 import hrEmailRoutes from "./hr/routes/email.routes.js";
 import hrDashboardRoutes from "./hr/routes/dashboard.routes.js";
+import managerRoutes from "./manager/routes/shortlists.routes.js";
+import adminUsersRoutes from "./admin/routes/users.routes.js";
+import adminAuditRoutes from "./admin/routes/audit.routes.js";
 
 const app = express();
 
@@ -30,6 +33,9 @@ app.use("/api/hr/shortlist", hrShortlistRoutes);
 app.use("/api/hr/upload", hrUploadRoutes);
 app.use("/api/hr/email", hrEmailRoutes);
 app.use("/api/hr/dashboard", hrDashboardRoutes);
+app.use("/api/manager", managerRoutes);
+app.use("/api/admin/users", adminUsersRoutes);
+app.use("/api/admin/audit", adminAuditRoutes);
 
 app.use(errorMiddleware);
 

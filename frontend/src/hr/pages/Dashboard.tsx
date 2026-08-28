@@ -1,7 +1,6 @@
-import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Briefcase, Clock, TrendingUp, Users } from "lucide-react";
+import { Briefcase, Clock, Plus, TrendingUp, Users } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -12,47 +11,87 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { HrLayout } from "@/hr/components/HrLayout";
+import { HrShell } from "@/hr/components/HrShell";
 import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
 import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { NewJobButton, CreateJobButton } from "@/hr/components/buttons/Buttons";
 import { getDashboard } from "@/shared/lib/api";
 import { useAuth } from "@/shared/lib/auth";
 import type { Application, Job } from "@/shared/lib/types";
-import "./Dashboard.css";
+import { usePageTitle } from "@/shared/lib/use-page-title";
 
-export function Dashboard() {
-  useEffect(() => {
-    document.title = "Dashboard — Screenwise";
-  }, []);
+/**
+ * The four KPI cards across the top of the dashboard, in display order.
+ * Reorder / add / remove entries here — `value` receives the loaded data.
+ */
+const KPI_CARDS: {
+  key: string;
+  label: string;
+  icon: typeof Briefcase;
+  value: (ctx: { jobs: Job[]; apps: Application[] }) => string | number;
+}[] = [
+  {
+    key: "activeJobs",
+    label: "Active jobs",
+    icon: Briefcase,
+    value: ({ jobs }) => jobs.filter((j) => j.status === "open").length,
+  },
+  {
+    key: "applicants",
+    label: "Total applicants",
+    icon: Users,
+    value: ({ apps }) => apps.length,
+  },
+  {
+    key: "shortlistRate",
+    label: "Shortlist rate",
+    icon: TrendingUp,
+    value: ({ apps }) => {
+      const shortlisted = apps.filter((a) => a.status === "shortlisted").length;
+      return `${apps.length ? Math.round((shortlisted / apps.length) * 100) : 0}%`;
+    },
+  },
+  {
+    key: "timeToScreen",
+    label: "Avg. time to screen",
+    icon: Clock,
+    value: () => "1.8 days",
+  },
+];
 
+export default function Dashboard() {
+  usePageTitle("Dashboard — Screenwise");
   const { user } = useAuth();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["dashboard", user?.id],
     enabled: Boolean(user),
-    queryFn: getDashboard,
+    queryFn: () => getDashboard(),
   });
 
   return (
-    <HrLayout
+    <HrShell
+      allow={["hr", "admin"]}
       title={`Welcome back${user ? `, ${user.name.split(" ")[0]}` : ""}`}
       description="Here's where your open roles stand today."
-      actions={<NewJobButton />}
+      actions={
+        <Button asChild>
+          <Link to="/jobs/new">
+            <Plus className="mr-2 h-4 w-4" /> New job
+          </Link>
+        </Button>
+      }
     >
       {isLoading ? <LoadingRows rows={4} /> : null}
       {isError ? (
         <ErrorState message="We couldn't load your dashboard." onRetry={() => refetch()} />
       ) : null}
       {data ? <DashboardBody jobs={data.jobs} apps={data.apps} /> : null}
-    </HrLayout>
+    </HrShell>
   );
 }
 
 function DashboardBody({ jobs, apps }: { jobs: Job[]; apps: Application[] }) {
-  const shortlisted = apps.filter((a) => a.status === "shortlisted").length;
-  const rate = apps.length ? Math.round((shortlisted / apps.length) * 100) : 0;
-
   const chartData = jobs.map((job) => {
     const jobApps = apps.filter((a) => a.jobId === job.id);
     return {
@@ -62,72 +101,73 @@ function DashboardBody({ jobs, apps }: { jobs: Job[]; apps: Application[] }) {
     };
   });
 
-  const metrics = [
-    { label: "Active jobs", value: jobs.filter((j) => j.status === "open").length, icon: Briefcase },
-    { label: "Total applicants", value: apps.length, icon: Users },
-    { label: "Shortlist rate", value: `${rate}%`, icon: TrendingUp },
-    { label: "Avg. time to screen", value: "1.8 days", icon: Clock },
-  ];
-
   return (
-    <div className="dashboard">
-      <div className="dashboard__metrics">
-        {metrics.map((m) => (
-          <Card key={m.label} className="dashboard__metric-card">
-            <CardContent className="dashboard__metric-content">
-              <div className="dashboard__metric-icon-wrap">
-                <m.icon className="dashboard__metric-icon" />
+    <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {KPI_CARDS.map((card) => (
+          <Card key={card.key} className="shadow-card">
+            <CardContent className="flex items-center gap-4 pt-6">
+              <div className="rounded-lg bg-primary-soft p-2.5 text-primary">
+                <card.icon className="h-5 w-5" />
               </div>
               <div>
-                <div className="dashboard__metric-value">{m.value}</div>
-                <div className="dashboard__metric-label">{m.label}</div>
+                <div className="num text-2xl font-semibold">{card.value({ jobs, apps })}</div>
+                <div className="text-sm text-muted-foreground">{card.label}</div>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <div className="dashboard__panels">
-        <Card className="dashboard__jobs-card">
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="shadow-card lg:col-span-2">
           <CardHeader>
-            <CardTitle className="dashboard__card-title">Your active job postings</CardTitle>
+            <CardTitle className="text-base">Your active job postings</CardTitle>
           </CardHeader>
           <CardContent>
             {jobs.length === 0 ? (
               <EmptyState
                 title="No jobs yet"
                 description="Create your first job posting to start collecting and screening CVs."
-                action={<CreateJobButton />}
+                action={
+                  <Button asChild>
+                    <Link to="/jobs/new">Create a job</Link>
+                  </Button>
+                }
               />
             ) : (
-              <div className="dashboard__jobs-list">
+              <div className="space-y-3">
                 {jobs.map((job) => {
                   const jobApps = apps.filter((a) => a.jobId === job.id);
                   return (
-                    <Link key={job.id} to={`/jobs/${job.id}/board`} className="dashboard__job-row">
+                    <Link
+                      key={job.id}
+                      to={`/jobs/${job.id}/board`}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4 transition-colors hover:border-primary/40"
+                    >
                       <div>
-                        <div className="dashboard__job-row-title-line">
-                          <span className="dashboard__job-row-title">{job.title}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{job.title}</span>
                           {job.newSinceLastVisit > 0 ? (
-                            <Badge className="dashboard__new-badge">
+                            <Badge className="bg-success-soft font-normal text-success">
                               {job.newSinceLastVisit} new since last visit
                             </Badge>
                           ) : null}
                         </div>
-                        <div className="dashboard__job-row-meta">
+                        <div className="text-sm text-muted-foreground">
                           {job.department} · {job.location}
                         </div>
                       </div>
-                      <div className="dashboard__job-row-stats">
+                      <div className="flex gap-6 text-sm">
                         <div>
-                          <div className="dashboard__job-row-stat-value">{jobApps.length}</div>
-                          <div className="dashboard__job-row-stat-label">applicants</div>
+                          <div className="num font-semibold">{jobApps.length}</div>
+                          <div className="text-xs text-muted-foreground">applicants</div>
                         </div>
                         <div>
-                          <div className="dashboard__job-row-stat-value">
+                          <div className="num font-semibold">
                             {jobApps.filter((a) => a.status === "shortlisted").length}
                           </div>
-                          <div className="dashboard__job-row-stat-label">shortlisted</div>
+                          <div className="text-xs text-muted-foreground">shortlisted</div>
                         </div>
                       </div>
                     </Link>
@@ -138,12 +178,12 @@ function DashboardBody({ jobs, apps }: { jobs: Job[]; apps: Application[] }) {
           </CardContent>
         </Card>
 
-        <Card className="dashboard__chart-card">
+        <Card className="shadow-card">
           <CardHeader>
-            <CardTitle className="dashboard__card-title">Applicant source</CardTitle>
+            <CardTitle className="text-base">Applicant source</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="dashboard__chart">
+            <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} margin={{ left: -20 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
@@ -152,23 +192,23 @@ function DashboardBody({ jobs, apps }: { jobs: Job[]; apps: Application[] }) {
                   <Tooltip />
                   <Bar dataKey="selfApplied" name="Self-applied" radius={[4, 4, 0, 0]}>
                     {chartData.map((_, i) => (
-                      <Cell key={i} fill="rgb(0, 107, 121)" />
+                      <Cell key={i} fill="var(--chart-1)" />
                     ))}
                   </Bar>
                   <Bar dataKey="hrUploaded" name="HR-uploaded" radius={[4, 4, 0, 0]}>
                     {chartData.map((_, i) => (
-                      <Cell key={i} fill="rgb(0, 160, 147)" />
+                      <Cell key={i} fill="var(--chart-2)" />
                     ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <div className="dashboard__chart-legend">
-              <span className="dashboard__chart-legend-item">
-                <span className="dashboard__chart-legend-dot dashboard__chart-legend-dot--1" /> Self-applied
+            <div className="mt-2 flex gap-4 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-chart-1" /> Self-applied
               </span>
-              <span className="dashboard__chart-legend-item">
-                <span className="dashboard__chart-legend-dot dashboard__chart-legend-dot--2" /> HR-uploaded
+              <span className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-chart-2" /> HR-uploaded
               </span>
             </div>
           </CardContent>

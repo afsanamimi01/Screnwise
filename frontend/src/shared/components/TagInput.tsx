@@ -1,8 +1,7 @@
+import { X } from "lucide-react";
 import { useState, type KeyboardEvent } from "react";
 import { Badge } from "@/shared/components/ui/badge";
 import { Input } from "@/shared/components/ui/input";
-import { RemoveTagButton } from "@/shared/components/buttons/Buttons";
-import "./TagInput.css";
 
 export function TagInput({
   value,
@@ -34,12 +33,19 @@ export function TagInput({
   };
 
   return (
-    <div className="tag-input">
-      <div className="tag-input__tags">
+    <div className="rounded-lg border bg-card p-2">
+      <div className="flex flex-wrap gap-1.5">
         {value.map((tag) => (
-          <Badge key={tag} variant="secondary" className="tag-input__badge">
+          <Badge key={tag} variant="secondary" className="gap-1 rounded-md py-1 pr-1 font-normal">
             {tag}
-            <RemoveTagButton tag={tag} onRemove={(t) => onChange(value.filter((v) => v !== t))} />
+            <button
+              type="button"
+              aria-label={`Remove ${tag}`}
+              onClick={() => onChange(value.filter((t) => t !== tag))}
+              className="rounded p-0.5 hover:bg-background"
+            >
+              <X className="h-3 w-3" />
+            </button>
           </Badge>
         ))}
       </div>
@@ -50,7 +56,7 @@ export function TagInput({
         onKeyDown={onKeyDown}
         onBlur={add}
         placeholder={placeholder}
-        className="tag-input__field"
+        className="mt-1 border-0 bg-transparent shadow-none focus-visible:ring-0"
       />
     </div>
   );

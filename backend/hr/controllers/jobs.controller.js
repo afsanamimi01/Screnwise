@@ -16,6 +16,7 @@ const EDITABLE_FIELDS = [
   "weights",
   "publicApplyEnabled",
   "status",
+  "managerIds",
 ];
 
 function pickEditableFields(body) {

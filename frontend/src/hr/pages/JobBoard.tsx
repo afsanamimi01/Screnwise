@@ -1,14 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
-import { AlertTriangle, Copy, EyeOff, Info, Lock } from "lucide-react";
+import { AlertTriangle, ChevronDown, Copy, EyeOff, Info, Lock } from "lucide-react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { HrLayout } from "@/hr/components/HrLayout";
+import { HrShell } from "@/hr/components/HrShell";
 import { JobTabs } from "@/hr/components/JobTabs";
-import { ScoreBadge } from "@/hr/components/ScoreBadge";
+import { ScoreBadge } from "@/shared/components/ScoreBadge";
 import { ScoreExplainDrawer } from "@/hr/components/ScoreExplainDrawer";
 import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
 import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Input } from "@/shared/components/ui/input";
@@ -21,32 +22,60 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select";
 import { Slider } from "@/shared/components/ui/slider";
-import {
-  ClearSelectionButton,
-  ShortlistSelectedButton,
-  ShortlistTop20Button,
-  WhyThisScoreButton,
-  ShortlistButton,
-  ToggleBelowThresholdButton,
-} from "@/hr/components/buttons/Buttons";
 import { getApplicationsForJob, getJob, shortlistCandidate } from "@/shared/lib/api";
 import { canViewBoard, useAuth } from "@/shared/lib/auth";
 import { SCORE_THRESHOLD, type Application, type Job } from "@/shared/lib/types";
-import "./JobBoard.css";
+import { usePageTitle } from "@/shared/lib/use-page-title";
 
-export function JobBoard() {
-  const { jobId = "" } = useParams<{ jobId: string }>();
+/** Options for the "Source" filter dropdown. */
+const SOURCE_OPTIONS = [
+  { value: "all", label: "All sources" },
+  { value: "self-applied", label: "Self-applied" },
+  { value: "HR-uploaded", label: "HR-uploaded" },
+] as const;
+
+/** Options for the "Sort by" dropdown. */
+const SORT_OPTIONS = [
+  { value: "score", label: "Match score" },
+  { value: "experience", label: "Years of experience" },
+  { value: "date", label: "Date applied" },
+] as const;
+
+/**
+ * The four tiles in the summary strip above the board, in display order.
+ * `value` receives the loaded applications for this job.
+ */
+const SUMMARY_TILES: { key: string; label: string; value: (apps: Application[]) => number }[] = [
+  { key: "total", label: "Total applicants", value: (apps) => apps.length },
+  {
+    key: "aboveThreshold",
+    label: `Above ${SCORE_THRESHOLD}%`,
+    value: (apps) => apps.filter((a) => a.score >= SCORE_THRESHOLD).length,
+  },
+  {
+    key: "shortlisted",
+    label: "Shortlisted",
+    value: (apps) => apps.filter((a) => a.status === "shortlisted").length,
+  },
+  {
+    key: "needsReview",
+    label: "Needs manual review",
+    value: (apps) => apps.filter((a) => a.needsManualReview).length,
+  },
+];
+
+export default function JobBoard() {
+  usePageTitle("Rank board — Screenwise");
+  const { jobId = "" } = useParams();
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    document.title = "Rank board — Screenwise";
-  }, []);
-
   const jobQuery = useQuery({ queryKey: ["job", jobId], queryFn: () => getJob(jobId) });
+  const canView = canViewBoard(user, jobQuery.data?.createdBy ?? "");
   const appsQuery = useQuery({
     queryKey: ["applications", jobId],
     queryFn: () => getApplicationsForJob(jobId),
+    enabled: Boolean(jobQuery.data) && canView,
   });
 
   const [minScore, setMinScore] = useState(0);
@@ -91,17 +120,18 @@ export function JobBoard() {
     );
   };
 
-  const denied = Boolean(job) && !canViewBoard(user, job!.createdBy);
+  const denied = job && !canView;
 
   return (
-    <HrLayout
+    <HrShell
+      allow={["hr", "admin"]}
       title={job ? job.title : "Rank board"}
       description="Screening is blind: identity stays hidden until you shortlist."
     >
       <JobTabs jobId={jobId} />
 
       {jobQuery.isLoading || appsQuery.isLoading ? <LoadingRows rows={6} /> : null}
-      {jobQuery.isError || (appsQuery.isError && !denied) ? (
+      {jobQuery.isError || appsQuery.isError ? (
         <ErrorState
           message="We couldn't load this rank board."
           onRetry={() => {
@@ -112,11 +142,11 @@ export function JobBoard() {
       ) : null}
 
       {denied ? (
-        <Card className="job-board__denied-card">
-          <CardContent className="job-board__denied-content">
-            <Lock className="job-board__denied-icon" />
-            <h3 className="job-board__denied-title">This board isn't yours</h3>
-            <p className="job-board__denied-text">
+        <Card className="shadow-card">
+          <CardContent className="flex flex-col items-center gap-3 py-14 text-center">
+            <Lock className="h-6 w-6 text-muted-foreground" />
+            <h3 className="text-base font-semibold">This board isn't yours</h3>
+            <p className="max-w-sm text-sm text-muted-foreground">
               A job's rank board is visible only to the recruiter who created it, and to admins.
             </p>
           </CardContent>
@@ -124,17 +154,17 @@ export function JobBoard() {
       ) : null}
 
       {job && !denied ? (
-        <div className="job-board">
+        <div className="space-y-5">
           <SummaryStrip apps={apps} />
 
-          <Card className="job-board__filters-card">
-            <CardContent className="job-board__filters-grid">
+          <Card className="shadow-card">
+            <CardContent className="grid gap-4 pt-6 md:grid-cols-4">
               <div>
-                <Label className="job-board__filter-label">
-                  Minimum score: <span className="job-board__filter-value">{minScore}%</span>
+                <Label className="text-xs">
+                  Minimum score: <span className="num">{minScore}%</span>
                 </Label>
                 <Slider
-                  className="job-board__filter-slider"
+                  className="mt-3"
                   value={[minScore]}
                   max={100}
                   step={5}
@@ -142,20 +172,22 @@ export function JobBoard() {
                 />
               </div>
               <div>
-                <Label className="job-board__filter-label">Source</Label>
+                <Label className="text-xs">Source</Label>
                 <Select value={source} onValueChange={setSource}>
-                  <SelectTrigger className="job-board__filter-input">
+                  <SelectTrigger className="mt-1.5">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All sources</SelectItem>
-                    <SelectItem value="self-applied">Self-applied</SelectItem>
-                    <SelectItem value="HR-uploaded">HR-uploaded</SelectItem>
+                    {SOURCE_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label className="job-board__filter-label" htmlFor="skill">
+                <Label className="text-xs" htmlFor="skill">
                   Skill
                 </Label>
                 <Input
@@ -163,19 +195,21 @@ export function JobBoard() {
                   value={skill}
                   onChange={(e) => setSkill(e.target.value)}
                   placeholder="e.g. Docker"
-                  className="job-board__filter-input"
+                  className="mt-1.5"
                 />
               </div>
               <div>
-                <Label className="job-board__filter-label">Sort by</Label>
+                <Label className="text-xs">Sort by</Label>
                 <Select value={sort} onValueChange={setSort}>
-                  <SelectTrigger className="job-board__filter-input">
+                  <SelectTrigger className="mt-1.5">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="score">Match score</SelectItem>
-                    <SelectItem value="experience">Years of experience</SelectItem>
-                    <SelectItem value="date">Date applied</SelectItem>
+                    {SORT_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -183,20 +217,30 @@ export function JobBoard() {
           </Card>
 
           {selected.length > 0 ? (
-            <div className="job-board__selection-bar">
-              <span className="job-board__selection-count">{selected.length} selected</span>
-              <div className="job-board__selection-actions">
-                <ClearSelectionButton onClick={() => setSelected([])} />
-                <ShortlistSelectedButton onClick={() => shortlist(selected)} />
+            <div className="sticky top-16 z-10 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary-soft px-4 py-3">
+              <span className="text-sm font-medium text-primary">{selected.length} selected</span>
+              <div className="flex gap-2">
+                <Button variant="ghost" size="sm" onClick={() => setSelected([])}>
+                  Clear
+                </Button>
+                <Button size="sm" onClick={() => shortlist(selected)}>
+                  Shortlist selected
+                </Button>
               </div>
             </div>
           ) : (
-            <div className="job-board__toolbar">
-              <p className="job-board__blind-note">
-                <EyeOff className="job-board__blind-note-icon" /> Names, photos, age, address,
-                nationality and university are hidden while screening.
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                <EyeOff className="h-4 w-4" /> Names, photos, age, address, nationality and
+                university are hidden while screening.
               </p>
-              <ShortlistTop20Button onClick={() => shortlist(above.slice(0, 20).map((a) => a.id))} />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => shortlist(above.slice(0, 20).map((a) => a.id))}
+              >
+                Shortlist top 20
+              </Button>
             </div>
           )}
 
@@ -207,7 +251,7 @@ export function JobBoard() {
             />
           ) : null}
 
-          <div className="job-board__rows">
+          <div className="space-y-2">
             {above.map((app, i) => (
               <CandidateRow
                 key={app.id}
@@ -223,15 +267,25 @@ export function JobBoard() {
           </div>
 
           {below.length > 0 ? (
-            <div className="job-board__below-panel">
-              <ToggleBelowThresholdButton
-                expanded={showBelow}
-                count={below.length}
+            <div className="rounded-xl border bg-card">
+              <button
                 onClick={() => setShowBelow((s) => !s)}
-              />
+                className="flex w-full items-center justify-between gap-3 px-4 py-3 text-sm"
+              >
+                <span className="flex items-center gap-2">
+                  <Info className="h-4 w-4 text-muted-foreground" />
+                  {showBelow ? "Hide" : "Show"} below-threshold candidates
+                  <Badge variant="secondary" className="num font-normal">
+                    {below.length}
+                  </Badge>
+                </span>
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform ${showBelow ? "rotate-180" : ""}`}
+                />
+              </button>
               {showBelow ? (
-                <div className="job-board__below-list">
-                  <p className="job-board__below-note">
+                <div className="space-y-2 border-t p-3">
+                  <p className="px-1 pb-1 text-xs text-muted-foreground">
                     These candidates scored under {SCORE_THRESHOLD}%. They are collapsed, never
                     removed — you can shortlist any of them.
                   </p>
@@ -260,26 +314,17 @@ export function JobBoard() {
         open={Boolean(drawerApp)}
         onOpenChange={(o) => !o && setDrawerApp(null)}
       />
-    </HrLayout>
+    </HrShell>
   );
 }
 
 function SummaryStrip({ apps }: { apps: Application[] }) {
-  const above = apps.filter((a) => a.score >= SCORE_THRESHOLD).length;
-  const shortlisted = apps.filter((a) => a.status === "shortlisted").length;
-  const review = apps.filter((a) => a.needsManualReview).length;
-  const stats = [
-    { label: "Total applicants", value: apps.length },
-    { label: `Above ${SCORE_THRESHOLD}%`, value: above },
-    { label: "Shortlisted", value: shortlisted },
-    { label: "Needs manual review", value: review },
-  ];
   return (
-    <div className="job-board__summary-strip">
-      {stats.map((s) => (
-        <div key={s.label} className="job-board__summary-stat">
-          <div className="job-board__summary-stat-value">{s.value}</div>
-          <div className="job-board__summary-stat-label">{s.label}</div>
+    <div className="grid gap-3 sm:grid-cols-4">
+      {SUMMARY_TILES.map((tile) => (
+        <div key={tile.key} className="rounded-xl border bg-card px-4 py-3">
+          <div className="num text-xl font-semibold">{tile.value(apps)}</div>
+          <div className="text-xs text-muted-foreground">{tile.label}</div>
         </div>
       ))}
     </div>
@@ -304,52 +349,58 @@ function CandidateRow({
   onShortlist: () => void;
 }) {
   return (
-    <div className="job-board__candidate-row">
+    <div className="flex flex-wrap items-center gap-4 rounded-xl border bg-card p-4 shadow-card transition-colors hover:border-primary/30">
       <Checkbox checked={selected} onCheckedChange={onToggle} aria-label={`Select ${app.alias}`} />
-      <span className="job-board__candidate-rank">{rank}</span>
+      <span className="num w-6 text-sm text-muted-foreground">{rank}</span>
       {app.needsManualReview ? (
-        <span className="job-board__na-badge">n/a</span>
+        <span className="num inline-flex min-w-14 items-center justify-center rounded-lg border border-warning/40 bg-warning-soft px-2.5 py-1 text-xs font-semibold text-warning-foreground">
+          n/a
+        </span>
       ) : (
         <ScoreBadge score={app.score} />
       )}
 
-      <div className="job-board__candidate-main">
-        <div className="job-board__candidate-title-line">
-          <span className="job-board__candidate-alias">{app.alias}</span>
-          <Badge variant="outline" className="job-board__source-badge">
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-medium">{app.alias}</span>
+          <Badge variant="outline" className="font-normal text-muted-foreground">
             {app.source}
           </Badge>
           {app.needsManualReview ? (
-            <Badge className="job-board__review-badge">
-              <AlertTriangle className="job-board__review-badge-icon" /> Needs manual review
+            <Badge className="gap-1 bg-warning-soft font-normal text-warning-foreground">
+              <AlertTriangle className="h-3 w-3" /> Needs manual review
             </Badge>
           ) : null}
           {app.duplicateOf ? (
-            <Badge variant="secondary" className="job-board__duplicate-badge">
-              <Copy className="job-board__duplicate-badge-icon" /> Possible duplicate
+            <Badge variant="secondary" className="gap-1 font-normal">
+              <Copy className="h-3 w-3" /> Possible duplicate
             </Badge>
           ) : null}
           {app.status === "shortlisted" ? (
-            <Badge className="job-board__shortlisted-badge">Shortlisted</Badge>
+            <Badge className="bg-success-soft font-normal text-success">Shortlisted</Badge>
           ) : null}
         </div>
-        <div className="job-board__candidate-meta">
-          {app.currentTitle} · <span className="job-board__numeric">{app.yearsExperience}</span> yrs
-          experience · <span className="job-board__numeric">{app.matchedSkills.length}</span>/
-          <span className="job-board__numeric">{job.requiredSkills.length}</span> required skills
+        <div className="mt-1 text-sm text-muted-foreground">
+          {app.currentTitle} · <span className="num">{app.yearsExperience}</span> yrs experience ·{" "}
+          <span className="num">{app.matchedSkills.length}</span>/
+          <span className="num">{job.requiredSkills.length}</span> required skills
         </div>
-        <div className="job-board__candidate-skills">
+        <div className="mt-2 flex flex-wrap gap-1.5">
           {app.matchedSkills.slice(0, 5).map((s) => (
-            <Badge key={s} variant="secondary" className="job-board__skill-badge">
+            <Badge key={s} variant="secondary" className="font-normal">
               {s}
             </Badge>
           ))}
         </div>
       </div>
 
-      <div className="job-board__candidate-actions">
-        <WhyThisScoreButton onClick={onExplain} />
-        <ShortlistButton shortlisted={app.status === "shortlisted"} onClick={onShortlist} />
+      <div className="flex gap-2">
+        <Button variant="outline" size="sm" onClick={onExplain}>
+          Why this score
+        </Button>
+        <Button size="sm" onClick={onShortlist} disabled={app.status === "shortlisted"}>
+          {app.status === "shortlisted" ? "On shortlist" : "Shortlist"}
+        </Button>
       </div>
     </div>
   );

@@ -1,28 +1,27 @@
-import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { AlertTriangle, CheckCircle2, UploadCloud } from "lucide-react";
-import { HrLayout } from "@/hr/components/HrLayout";
+import { useState } from "react";
+import { HrShell } from "@/hr/components/HrShell";
 import { JobTabs } from "@/hr/components/JobTabs";
 import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Progress } from "@/shared/components/ui/progress";
-import { GoToRankBoardButton } from "@/hr/components/buttons/Buttons";
 import { getJob, uploadCvs } from "@/shared/lib/api";
-import "./JobUpload.css";
+import { useAuth } from "@/shared/lib/auth";
+import { usePageTitle } from "@/shared/lib/use-page-title";
 
 type Row = { name: string; status: "uploaded" | "parsing" | "scored" | "review" };
 
-export function JobUpload() {
-  const { jobId = "" } = useParams<{ jobId: string }>();
+export default function JobUpload() {
+  usePageTitle("Bulk CV upload — Screenwise");
+  const { jobId = "" } = useParams();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const jobQuery = useQuery({ queryKey: ["job", jobId], queryFn: () => getJob(jobId) });
   const [rows, setRows] = useState<Row[]>([]);
   const [dragging, setDragging] = useState(false);
-
-  useEffect(() => {
-    document.title = "Bulk CV upload — Screenwise";
-  }, []);
 
   const process = async (files: File[]) => {
     if (!files.length) return;
@@ -31,12 +30,18 @@ export function JobUpload() {
     await uploadCvs(jobId, files.map((f) => f.name));
     incoming.forEach((row, i) => {
       setTimeout(() => {
-        setRows((prev) => prev.map((r) => (r.name === row.name ? { ...r, status: "parsing" } : r)));
+        setRows((prev) =>
+          prev.map((r) => (r.name === row.name ? { ...r, status: "parsing" } : r)),
+        );
       }, 400 + i * 200);
       setTimeout(
         () => {
           setRows((prev) =>
-            prev.map((r) => (r.name === row.name ? { ...r, status: i % 7 === 6 ? "review" : "scored" } : r)),
+            prev.map((r) =>
+              r.name === row.name
+                ? { ...r, status: i % 7 === 6 ? "review" : "scored" }
+                : r,
+            ),
           );
         },
         1200 + i * 250,
@@ -47,19 +52,21 @@ export function JobUpload() {
   const done = rows.length > 0 && rows.every((r) => r.status === "scored" || r.status === "review");
   const progress = rows.length
     ? Math.round(
-        (rows.filter((r) => r.status === "scored" || r.status === "review").length / rows.length) * 100,
+        (rows.filter((r) => r.status === "scored" || r.status === "review").length / rows.length) *
+          100,
       )
     : 0;
 
   return (
-    <HrLayout
+    <HrShell
+      allow={["hr", "admin"]}
       title={jobQuery.data ? `Upload CVs — ${jobQuery.data.title}` : "Upload CVs"}
       description="Every uploaded candidate is tagged as HR-uploaded and joins the same rank board."
     >
       <JobTabs jobId={jobId} />
 
-      <Card className="job-upload__dropzone-card">
-        <CardContent className="job-upload__dropzone-content">
+      <Card className="shadow-card">
+        <CardContent className="pt-6">
           <label
             onDragOver={(e) => {
               e.preventDefault();
@@ -71,22 +78,20 @@ export function JobUpload() {
               setDragging(false);
               process(Array.from(e.dataTransfer.files));
             }}
-            className={
-              dragging
-                ? "job-upload__dropzone job-upload__dropzone--active"
-                : "job-upload__dropzone"
-            }
+            className={`flex cursor-pointer flex-col items-center rounded-xl border-2 border-dashed px-6 py-14 text-center transition-colors ${
+              dragging ? "border-primary bg-primary-soft" : "border-border"
+            }`}
           >
-            <UploadCloud className="job-upload__dropzone-icon" />
-            <span className="job-upload__dropzone-title">Drag and drop CVs here</span>
-            <span className="job-upload__dropzone-subtitle">
+            <UploadCloud className="mb-3 h-7 w-7 text-primary" />
+            <span className="font-medium">Drag and drop CVs here</span>
+            <span className="mt-1 text-sm text-muted-foreground">
               PDF and DOCX, as many files as you like
             </span>
             <input
               type="file"
               multiple
               accept=".pdf,.docx"
-              className="job-upload__hidden-input"
+              className="hidden"
               onChange={(e) => process(Array.from(e.target.files ?? []))}
             />
           </label>
@@ -94,31 +99,38 @@ export function JobUpload() {
       </Card>
 
       {rows.length > 0 ? (
-        <Card className="job-upload__progress-card">
-          <CardContent className="job-upload__progress-content">
+        <Card className="mt-6 shadow-card">
+          <CardContent className="space-y-3 pt-6">
             <Progress value={progress} />
             {rows.map((r) => (
-              <div key={r.name} className="job-upload__row">
-                <span className="job-upload__row-name">{r.name}</span>
+              <div
+                key={r.name}
+                className="flex items-center justify-between gap-3 rounded-lg border p-3 text-sm"
+              >
+                <span className="truncate">{r.name}</span>
                 {r.status === "review" ? (
-                  <Badge className="job-upload__badge job-upload__badge--review">
-                    <AlertTriangle className="job-upload__badge-icon" /> Needs manual review
+                  <Badge className="gap-1 bg-warning-soft font-normal text-warning-foreground">
+                    <AlertTriangle className="h-3 w-3" /> Needs manual review
                   </Badge>
                 ) : r.status === "scored" ? (
-                  <Badge className="job-upload__badge job-upload__badge--scored">
-                    <CheckCircle2 className="job-upload__badge-icon" /> Scored
+                  <Badge className="gap-1 bg-success-soft font-normal text-success">
+                    <CheckCircle2 className="h-3 w-3" /> Scored
                   </Badge>
                 ) : (
-                  <Badge variant="secondary" className="job-upload__badge job-upload__badge--pending">
+                  <Badge variant="secondary" className="font-normal capitalize">
                     {r.status}…
                   </Badge>
                 )}
               </div>
             ))}
-            {done ? <GoToRankBoardButton onClick={() => navigate(`/jobs/${jobId}/board`)} /> : null}
+            {done ? (
+              <Button className="w-full" onClick={() => navigate(`/jobs/${jobId}/board`)}>
+                Go to the rank board
+              </Button>
+            ) : null}
           </CardContent>
         </Card>
       ) : null}
-    </HrLayout>
+    </HrShell>
   );
 }

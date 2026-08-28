@@ -31,7 +31,7 @@ const applicationSchema = new mongoose.Schema(
     duplicateOf: { type: mongoose.Schema.Types.ObjectId, ref: "Application" },
     status: {
       type: String,
-      enum: ["applied", "screened", "shortlisted", "rejected"],
+      enum: ["applied", "screened", "shortlisted", "interview", "hired", "rejected"],
       default: "applied",
     },
     appliedAt: { type: Date, default: Date.now },

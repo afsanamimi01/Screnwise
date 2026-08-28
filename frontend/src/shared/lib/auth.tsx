@@ -1,8 +1,11 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { authLogin, authRegister } from "./api";
+import { clearStoredAuth, getStoredAuth, setStoredAuth } from "./auth-storage";
 import type { Role, User } from "./types";
 
 type AuthValue = {
   user: User | null;
+  token: string | null;
   ready: boolean;
   login: (email: string, password: string) => Promise<User>;
   register: (name: string, email: string, password: string, role: Role) => Promise<User>;
@@ -10,75 +13,51 @@ type AuthValue = {
 };
 
 const AuthContext = createContext<AuthValue | null>(null);
-const USER_STORAGE_KEY = "screenwise.user";
-const TOKEN_STORAGE_KEY = "screenwise.token";
-const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
-
-async function authRequest(path: string, body: unknown): Promise<{ token: string; user: User }> {
-  const res = await fetch(`${API_BASE}/auth/${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.message ?? "Something went wrong");
-  return data;
-}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(USER_STORAGE_KEY);
-      const token = window.localStorage.getItem(TOKEN_STORAGE_KEY);
-      // A user record without a token is stale (e.g. left over from before real
-      // auth existed) — treat it as signed out rather than trusting it blindly.
-      if (raw && token) {
-        setUser(JSON.parse(raw) as User);
-      } else {
-        window.localStorage.removeItem(USER_STORAGE_KEY);
-        window.localStorage.removeItem(TOKEN_STORAGE_KEY);
-      }
-    } catch {
-      /* ignore */
+    const stored = getStoredAuth();
+    if (stored) {
+      setUser(stored.user);
+      setToken(stored.token);
     }
     setReady(true);
   }, []);
 
   const value = useMemo<AuthValue>(() => {
-    const persist = (u: User | null, token?: string) => {
-      setUser(u);
-      try {
-        if (u && token) {
-          window.localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(u));
-          window.localStorage.setItem(TOKEN_STORAGE_KEY, token);
-        } else {
-          window.localStorage.removeItem(USER_STORAGE_KEY);
-          window.localStorage.removeItem(TOKEN_STORAGE_KEY);
-        }
-      } catch {
-        /* ignore */
+    const persist = (next: { token: string; user: User } | null) => {
+      if (next) {
+        setUser(next.user);
+        setToken(next.token);
+        setStoredAuth(next);
+      } else {
+        setUser(null);
+        setToken(null);
+        clearStoredAuth();
       }
     };
 
     return {
       user,
+      token,
       ready,
       login: async (email, password) => {
-        const { token, user: next } = await authRequest("login", { email, password });
-        persist(next, token);
-        return next;
+        const result = await authLogin(email, password);
+        persist(result);
+        return result.user;
       },
       register: async (name, email, password, role) => {
-        const { token, user: next } = await authRequest("register", { name, email, password, role });
-        persist(next, token);
-        return next;
+        const result = await authRegister(name, email, password, role);
+        persist(result);
+        return result.user;
       },
       logout: () => persist(null),
     };
-  }, [user, ready]);
+  }, [user, token, ready]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
@@ -91,18 +70,19 @@ export function useAuth() {
 
 export const roleLabels: Record<Role, string> = {
   hr: "HR / recruiter",
+  manager: "Hiring manager",
   candidate: "Candidate",
   admin: "Admin",
 };
 
 export function homeForRole(role: Role) {
   if (role === "candidate") return "/my-applications";
+  if (role === "manager") return "/manager";
   return "/dashboard";
 }
 
 /** Access rule: a job's rank board is visible only to its creator and admins. */
 export function canViewBoard(user: User | null, createdBy: string) {
   if (!user) return false;
-  if (user.role === "admin") return true;
-  return user.id === createdBy;
+  return user.role === "admin" || user.id === createdBy;
 }

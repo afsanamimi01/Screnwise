@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
-import { FlaskConical } from "lucide-react";
+import { FlaskConical, Send } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { HrLayout } from "@/hr/components/HrLayout";
+import { HrShell } from "@/hr/components/HrShell";
 import { JobTabs } from "@/hr/components/JobTabs";
 import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
 import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Input } from "@/shared/components/ui/input";
@@ -19,9 +20,9 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select";
 import { Textarea } from "@/shared/components/ui/textarea";
-import { SendEmailButton } from "@/hr/components/buttons/Buttons";
 import { getJob, getSentEmails, getShortlist, sendShortlistEmails } from "@/shared/lib/api";
-import "./JobEmail.css";
+import { useAuth } from "@/shared/lib/auth";
+import { usePageTitle } from "@/shared/lib/use-page-title";
 
 const templates: Record<string, { subject: string; body: string }> = {
   "Invite to interview": {
@@ -38,14 +39,11 @@ const templates: Record<string, { subject: string; body: string }> = {
   },
 };
 
-export function JobEmail() {
-  const { jobId = "" } = useParams<{ jobId: string }>();
+export default function JobEmail() {
+  usePageTitle("Email composer — Screenwise");
+  const { jobId = "" } = useParams();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    document.title = "Email composer — Screenwise";
-  }, []);
-
   const jobQuery = useQuery({ queryKey: ["job", jobId], queryFn: () => getJob(jobId) });
   const query = useQuery({
     queryKey: ["shortlist", jobId],
@@ -69,7 +67,8 @@ export function JobEmail() {
   };
 
   const rows = query.data ?? [];
-  const firstName = rows.find((r) => selected.includes(r.app.id))?.candidate?.name ?? "Candidate name";
+  const firstName =
+    rows.find((r) => selected.includes(r.app.id))?.candidate?.name ?? "Candidate name";
   const render = (text: string) =>
     text
       .replaceAll("{{candidate_name}}", firstName)
@@ -86,7 +85,9 @@ export function JobEmail() {
       subject,
       body,
       template,
-      recipients: rows.filter((r) => selected.includes(r.app.id)).map((r) => r.candidate?.email ?? "unknown"),
+      recipients: rows
+        .filter((r) => selected.includes(r.app.id))
+        .map((r) => r.candidate?.email ?? "unknown"),
     });
     setSending(false);
     setSelected([]);
@@ -95,15 +96,15 @@ export function JobEmail() {
   };
 
   return (
-    <HrLayout
+    <HrShell
+      allow={["hr", "admin"]}
       title="Email shortlisted candidates"
       description="Write once, send to many. Sandbox mode: messages are logged, never delivered."
     >
       <JobTabs jobId={jobId} />
 
-      <div className="job-email__sandbox-notice">
-        <FlaskConical className="job-email__sandbox-icon" /> Sandbox mode is on. Nothing leaves this
-        demo.
+      <div className="mb-5 flex items-center gap-2 rounded-xl border border-warning/40 bg-warning-soft px-4 py-3 text-sm text-warning-foreground">
+        <FlaskConical className="h-4 w-4" /> Sandbox mode is on. Nothing leaves this demo.
       </div>
 
       {query.isLoading ? <LoadingRows rows={3} /> : null}
@@ -118,17 +119,17 @@ export function JobEmail() {
       ) : null}
 
       {rows.length > 0 ? (
-        <div className="job-email__layout">
-          <div className="job-email__main">
-            <Card className="job-email__card">
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="space-y-6 lg:col-span-2">
+            <Card className="shadow-card">
               <CardHeader>
-                <CardTitle className="job-email__card-title">Message</CardTitle>
+                <CardTitle className="text-base">Message</CardTitle>
               </CardHeader>
-              <CardContent className="job-email__form">
+              <CardContent className="space-y-4">
                 <div>
                   <Label>Template</Label>
                   <Select value={template} onValueChange={applyTemplate}>
-                    <SelectTrigger className="job-email__input">
+                    <SelectTrigger className="mt-1.5">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -146,7 +147,7 @@ export function JobEmail() {
                     id="subject"
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
-                    className="job-email__input"
+                    className="mt-1.5"
                   />
                 </div>
                 <div>
@@ -156,80 +157,86 @@ export function JobEmail() {
                     rows={10}
                     value={body}
                     onChange={(e) => setBody(e.target.value)}
-                    className="job-email__input"
+                    className="mt-1.5"
                   />
-                  <p className="job-email__variables-note">
+                  <p className="mt-1.5 text-xs text-muted-foreground">
                     Variables: {"{{candidate_name}}"} and {"{{job_title}}"}
                   </p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="job-email__card">
+            <Card className="shadow-card">
               <CardHeader>
-                <CardTitle className="job-email__card-title">Preview</CardTitle>
+                <CardTitle className="text-base">Preview</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="job-email__preview">
-                  <div className="job-email__preview-subject">{render(subject)}</div>
-                  <p className="job-email__preview-body">{render(body)}</p>
+                <div className="rounded-lg border bg-muted/40 p-4 text-sm">
+                  <div className="font-medium">{render(subject)}</div>
+                  <p className="mt-3 whitespace-pre-wrap text-muted-foreground">{render(body)}</p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="job-email__card">
+            <Card className="shadow-card">
               <CardHeader>
-                <CardTitle className="job-email__card-title">Sent log (simulated)</CardTitle>
+                <CardTitle className="text-base">Sent log (simulated)</CardTitle>
               </CardHeader>
-              <CardContent className="job-email__sent-log">
+              <CardContent className="space-y-2">
                 {sentQuery.data && sentQuery.data.length > 0 ? (
                   sentQuery.data.map((mail) => (
-                    <div key={mail.id} className="job-email__sent-item">
-                      <div className="job-email__sent-item-header">
-                        <span className="job-email__sent-item-subject">{mail.subject}</span>
-                        <span className="job-email__sent-item-date">{mail.sentAt}</span>
+                    <div key={mail.id} className="rounded-lg border p-3 text-sm">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-medium">{mail.subject}</span>
+                        <span className="text-xs text-muted-foreground">{mail.sentAt}</span>
                       </div>
-                      <div className="job-email__sent-item-meta">
-                        {mail.template} · {mail.recipients.length} recipient(s): {mail.recipients.join(", ")}
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        {mail.template} · {mail.recipients.length} recipient(s):{" "}
+                        {mail.recipients.join(", ")}
                       </div>
                     </div>
                   ))
                 ) : (
-                  <p className="job-email__sent-empty">Nothing sent yet.</p>
+                  <p className="text-sm text-muted-foreground">Nothing sent yet.</p>
                 )}
               </CardContent>
             </Card>
           </div>
 
-          <Card className="job-email__recipients-card">
+          <Card className="h-fit shadow-card">
             <CardHeader>
-              <CardTitle className="job-email__card-title">Recipients</CardTitle>
+              <CardTitle className="text-base">Recipients</CardTitle>
             </CardHeader>
-            <CardContent className="job-email__recipients">
+            <CardContent className="space-y-3">
               {rows.map(({ app, candidate }) => (
-                <label key={app.id} className="job-email__recipient">
+                <label key={app.id} className="flex items-start gap-3 text-sm">
                   <Checkbox
                     checked={selected.includes(app.id)}
                     onCheckedChange={() =>
                       setSelected((prev) =>
-                        prev.includes(app.id) ? prev.filter((x) => x !== app.id) : [...prev, app.id],
+                        prev.includes(app.id)
+                          ? prev.filter((x) => x !== app.id)
+                          : [...prev, app.id],
                       )
                     }
                   />
                   <span>
-                    <span className="job-email__recipient-name">{candidate?.name}</span>
-                    <span className="job-email__recipient-email">{candidate?.email}</span>
+                    <span className="font-medium">{candidate?.name}</span>
+                    <span className="block text-xs text-muted-foreground">{candidate?.email}</span>
                   </span>
                 </label>
               ))}
-              <Badge variant="secondary" className="job-email__selected-count">
+              <Badge variant="secondary" className="num font-normal">
                 {selected.length} selected
               </Badge>
-              <SendEmailButton sending={sending} onClick={send} />
+              <Button className="w-full" onClick={send} disabled={sending}>
+                <Send className="mr-2 h-4 w-4" />
+                {sending ? "Sending…" : "Send (simulated)"}
+              </Button>
             </CardContent>
           </Card>
         </div>
       ) : null}
-    </HrLayout>
+    </HrShell>
   );
 }

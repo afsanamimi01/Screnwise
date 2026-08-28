@@ -1,88 +1,88 @@
-import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Check } from "lucide-react";
-import { CandidateLayout } from "@/candidate/components/CandidateLayout";
+import { CandidateShell } from "@/candidate/components/CandidateShell";
 import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent } from "@/shared/components/ui/card";
-import { getApplicationsForCandidate } from "@/shared/lib/api";
+import { getMyApplications } from "@/shared/lib/api";
 import { useAuth } from "@/shared/lib/auth";
 import { STATUS_PIPELINE } from "@/shared/lib/types";
-import "./MyApplications.css";
+import { usePageTitle } from "@/shared/lib/use-page-title";
 
-export function MyApplications() {
-  useEffect(() => {
-    document.title = "My applications — Screenwise";
-  }, []);
-
+export default function MyApplications() {
+  usePageTitle("My applications — Screenwise");
   const { user } = useAuth();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["my-apps", user?.id],
     enabled: Boolean(user),
-    queryFn: () => getApplicationsForCandidate(),
+    queryFn: () => getMyApplications(),
   });
 
   return (
-    <CandidateLayout
+    <CandidateShell
+      allow={["candidate"]}
       title="My applications"
       description="You'll see your stage here. Scores and other candidates stay private."
     >
       {isLoading ? <LoadingRows rows={2} /> : null}
-      {isError ? <ErrorState message="We couldn't load your applications." onRetry={() => refetch()} /> : null}
+      {isError ? (
+        <ErrorState message="We couldn't load your applications." onRetry={() => refetch()} />
+      ) : null}
       {data && data.length === 0 ? (
-        <EmptyState title="No applications yet" description="Once you apply to a role it shows up here." />
+        <EmptyState
+          title="No applications yet"
+          description="Once you apply to a role it shows up here."
+        />
       ) : null}
 
-      <div className="my-applications__list">
+      <div className="space-y-4">
         {data?.map(({ app, job }) => {
           const rejected = app.status === "rejected";
           const currentIndex = STATUS_PIPELINE.indexOf(app.status);
           return (
-            <Card key={app.id} className="my-applications__card">
-              <CardContent className="my-applications__card-content">
-                <div className="my-applications__card-header">
+            <Card key={app.id} className="shadow-card">
+              <CardContent className="pt-6">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <div className="my-applications__job-title">{job?.title ?? "Role"}</div>
-                    <div className="my-applications__job-meta">
+                    <div className="font-medium">{job?.title ?? "Role"}</div>
+                    <div className="text-sm text-muted-foreground">
                       {job?.department} · applied {app.appliedAt}
                     </div>
                   </div>
                   <Badge
                     className={
                       rejected
-                        ? "my-applications__status-badge my-applications__status-badge--rejected"
-                        : "my-applications__status-badge my-applications__status-badge--active"
+                        ? "bg-danger-soft font-normal text-destructive"
+                        : "bg-primary-soft font-normal text-primary"
                     }
                   >
                     {app.status}
                   </Badge>
                 </div>
 
-                <ol className="my-applications__pipeline">
+                <ol className="mt-6 flex flex-wrap gap-2">
                   {STATUS_PIPELINE.map((stage, i) => {
                     const reached = !rejected && i <= currentIndex;
                     return (
-                      <li key={stage} className="my-applications__pipeline-step">
+                      <li key={stage} className="flex items-center gap-2">
                         <span
-                          className={
+                          className={`flex h-6 w-6 items-center justify-center rounded-full text-xs ${
                             reached
-                              ? "my-applications__pipeline-dot my-applications__pipeline-dot--reached"
-                              : "my-applications__pipeline-dot my-applications__pipeline-dot--pending"
-                          }
+                              ? "bg-success text-success-foreground"
+                              : "bg-muted text-muted-foreground"
+                          }`}
                         >
-                          {reached ? <Check className="my-applications__pipeline-check" /> : i + 1}
+                          {reached ? <Check className="h-3 w-3" /> : i + 1}
                         </span>
                         <span
-                          className={
-                            reached
-                              ? "my-applications__pipeline-label my-applications__pipeline-label--reached"
-                              : "my-applications__pipeline-label my-applications__pipeline-label--pending"
-                          }
+                          className={`text-sm capitalize ${
+                            reached ? "font-medium" : "text-muted-foreground"
+                          }`}
                         >
                           {stage}
                         </span>
                         {i < STATUS_PIPELINE.length - 1 ? (
-                          <span className="my-applications__pipeline-connector" />
+                          <span className="mx-1 h-px w-6 bg-border" />
                         ) : null}
                       </li>
                     );
@@ -93,6 +93,6 @@ export function MyApplications() {
           );
         })}
       </div>
-    </CandidateLayout>
+    </CandidateShell>
   );
 }
