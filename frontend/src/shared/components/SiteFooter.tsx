@@ -96,28 +96,32 @@ export function SiteFooter({ role, className }: { role?: Role; className?: strin
           ))}
         </div>
 
-        <div className="mt-10 flex flex-col gap-3 border-t pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <span className="inline-flex items-center gap-1.5">
-            {role ? <ShieldCheck className="h-3.5 w-3.5 text-primary" /> : null}
-            {role ? ROLE_NOTE[role] : `© ${year} Screenwise · Portfolio project`}
-          </span>
-          <div className="flex items-center gap-4">
-            {role ? <span>© {year} Screenwise</span> : null}
-            <a
-              href="mailto:hello@screenwise.io"
-              className="inline-flex items-center gap-1.5 transition-colors hover:text-foreground"
-            >
-              <Mail className="h-3.5 w-3.5" /> hello@screenwise.io
-            </a>
-            <button
-              type="button"
-              onClick={scrollToTop}
-              className="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 transition-colors hover:bg-accent hover:text-foreground"
-            >
-              <ArrowUp className="h-3.5 w-3.5" /> Back to top
-            </button>
+        {/* Admin has a dedicated footer (admin/components/Footer.tsx), so this
+            role-note / meta bar is skipped for them. */}
+        {role !== "admin" ? (
+          <div className="mt-10 flex flex-col gap-3 border-t pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <span className="inline-flex items-center gap-1.5">
+              {role ? <ShieldCheck className="h-3.5 w-3.5 text-primary" /> : null}
+              {role ? ROLE_NOTE[role] : `© ${year} Screenwise · Portfolio project`}
+            </span>
+            <div className="flex items-center gap-4">
+              {role ? <span>© {year} Screenwise</span> : null}
+              <a
+                href="mailto:hello@screenwise.io"
+                className="inline-flex items-center gap-1.5 transition-colors hover:text-foreground"
+              >
+                <Mail className="h-3.5 w-3.5" /> hello@screenwise.io
+              </a>
+              <button
+                type="button"
+                onClick={scrollToTop}
+                className="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 transition-colors hover:bg-accent hover:text-foreground"
+              >
+                <ArrowUp className="h-3.5 w-3.5" /> Back to top
+              </button>
+            </div>
           </div>
-        </div>
+        ) : null}
       </div>
     </footer>
   );

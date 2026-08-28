@@ -1,87 +1,123 @@
-/* Admin-console footer. Independent styles, content tailored to the admin
-   actor — governance note + copyright + contact + back-to-top. No columns. */
+/* Admin-console footer. Independent styles — no shared/utility classes.
+   Column layout ported from the shared SiteFooter so it can diverge freely. */
 
 .admin-footer {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem 1.5rem;
-  padding: 1rem 1.25rem;
   border-top: 1px solid var(--border);
   background: color-mix(in srgb, var(--card) 40%, transparent);
-  font-size: 0.75rem;
-  color: var(--muted-foreground);
 }
 
-.admin-footer__note {
+.admin-footer__inner {
+  width: 100%;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem;
+}
+
+/* --- grid ---------------------------------------------------------- */
+.admin-footer__grid {
+  display: grid;
+  gap: 2rem;
+}
+
+/* --- brand block ------------------------------------------------------- */
+.admin-footer__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-footer__brand-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.375rem;
+  justify-content: center;
+  padding: 0.375rem;
+  border-radius: 0.5rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
 }
 
-.admin-footer__note-icon {
-  flex-shrink: 0;
+.admin-footer__wordmark {
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.admin-footer__wordmark-accent {
   color: var(--primary);
 }
 
-.admin-footer__meta {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 1rem;
+.admin-footer__tagline {
+  margin-top: 0.75rem;
+  max-width: 20rem;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
 }
 
-.admin-footer__copy {
-  white-space: nowrap;
-}
-
-.admin-footer__contact {
+.admin-footer__workspace {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  color: var(--muted-foreground);
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--primary);
   text-decoration: none;
-  transition: color 0.15s ease;
 }
 
-.admin-footer__contact:hover {
-  color: var(--foreground);
+.admin-footer__workspace:hover {
+  text-decoration: underline;
 }
 
-.admin-footer__contact:focus-visible {
+.admin-footer__workspace:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
   border-radius: 0.25rem;
 }
 
-.admin-footer__top {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.25rem 0.5rem;
-  border: 1px solid var(--border);
-  border-radius: 0.375rem;
-  background: transparent;
+/* --- link columns -------------------------------------------------- */
+.admin-footer__col-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.admin-footer__col-list {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin-footer__link {
+  font-size: 0.875rem;
   color: var(--muted-foreground);
-  font: inherit;
-  font-size: 0.75rem;
-  cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  text-decoration: none;
+  transition: color 0.15s ease;
 }
 
-.admin-footer__top:hover {
-  background: var(--accent);
-  color: var(--accent-foreground);
+.admin-footer__link:hover {
+  color: var(--foreground);
 }
 
-.admin-footer__top:focus-visible {
+.admin-footer__link:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+/* --- breakpoints ------------------------------------------------------- */
+@media (min-width: 640px) {
+  .admin-footer__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (min-width: 768px) {
-  .admin-footer {
-    padding: 1rem 2rem;
+  .admin-footer__inner {
+    padding: 2.5rem 2rem;
+  }
+
+  .admin-footer__grid {
+    grid-template-columns: 1.6fr 1fr 1fr 1fr;
   }
 }

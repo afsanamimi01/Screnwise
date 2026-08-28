@@ -1,31 +1,82 @@
-import { ArrowUp, Mail, ShieldCheck } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Sparkles } from "lucide-react";
+import { homeForRole, useAuth } from "@/shared/lib/auth";
 import "./Footer.css";
 
+type FooterColumn = { heading: string; links: { label: string; to: string }[] };
+
+/** Link columns for the admin footer. Every `to` is a real route. */
+const COLUMNS: FooterColumn[] = [
+  {
+    heading: "Platform",
+    links: [
+      { label: "Browse open roles", to: "/" },
+      { label: "How screening ", to: "/" },
+      { label: "Create account", to: "/register" },
+    ],
+  },
+  {
+    heading: "For recruiters",
+    links: [
+      { label: "Recruiter dashboard", to: "/dashboard" },
+      { label: "Jobs", to: "/jobs" },
+      { label: "Review shortlists", to: "/manager" },
+    ],
+  },
+  {
+    heading: "For candidates",
+    links: [
+      { label: "Apply to a role", to: "/" },
+      { label: "My applications", to: "/my-applications" },
+      { label: "Sign in", to: "/login" },
+    ],
+  },
+];
+
 /**
- * Footer for the admin actor. Just what an admin needs to see: the governance
- * reminder, the copyright, a contact address and a back-to-top control.
- * The public marketing columns (Platform / For recruiters / For candidates)
- * are intentionally left out — an admin has no use for them.
+ * Footer for the admin actor. Independent of the shared SiteFooter so it can
+ * be customised separately — edit the columns and copy here freely.
  */
 export function Footer() {
-  const year = new Date().getFullYear();
-  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+  const { user } = useAuth();
+  const workspace = user ? homeForRole(user.role) : "/dashboard";
 
   return (
     <footer className="admin-footer">
-      <span className="admin-footer__note">
-        <ShieldCheck className="admin-footer__note-icon" size={14} />
-        Every role change and identity reveal is written to the audit log.
-      </span>
+      <div className="admin-footer__inner">
+        <div className="admin-footer__grid">
+          <div>
+            <div className="admin-footer__brand">
+              <span className="admin-footer__brand-badge">
+                <Sparkles size={16} />
+              </span>
+              <span className="admin-footer__wordmark">
+                Screen<span className="admin-footer__wordmark-accent">wise</span>
+              </span>
+            </div>
+            <p className="admin-footer__tagline">
+              Blind, explainable CV screening. The platform suggests — you always make the call.
+            </p>
+            <Link to={workspace} className="admin-footer__workspace">
+              Go to your workspace
+            </Link>
+          </div>
 
-      <div className="admin-footer__meta">
-        <span className="admin-footer__copy">© {year} Screenwise</span>
-        <a className="admin-footer__contact" href="mailto:hello@screenwise.io">
-          <Mail size={14} /> hello@screenwise.io
-        </a>
-        <button type="button" className="admin-footer__top" onClick={scrollToTop}>
-          <ArrowUp size={14} /> Back to top
-        </button>
+          {COLUMNS.map((col) => (
+            <div key={col.heading}>
+              <h3 className="admin-footer__col-title">{col.heading}</h3>
+              <ul className="admin-footer__col-list">
+                {col.links.map((link) => (
+                  <li key={link.label}>
+                    <Link to={link.to} className="admin-footer__link">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
       </div>
     </footer>
   );
