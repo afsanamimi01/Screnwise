@@ -2,103 +2,81 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Shell } from "@/admin/components/Shell";
 import { ErrorState, LoadingRows } from "@/shared/components/StateViews";
-import { Badge } from "@/shared/components/ui/badge";
-import { Card } from "@/shared/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/components/ui/select";
-import { Switch } from "@/shared/components/ui/switch";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/shared/components/ui/table";
 import { getUsers, updateUser } from "@/shared/lib/api";
-import { roleLabels, useAuth } from "@/shared/lib/auth";
-import type { Role } from "@/shared/lib/types";
+import { roleLabels } from "@/shared/lib/auth";
 import { usePageTitle } from "@/shared/lib/use-page-title";
+import "./Users.css";
 
-/** Column headers for the users table, left to right. */
-const COLUMNS = ["Name", "Email", "Role", "Joined", "Active"] as const;
+/** Table columns — reorder / rename here. */
+const COLUMNS = ["Name", "Email", "Role", "Company", "Joined", "Active"] as const;
 
 export default function Users() {
-  usePageTitle("Users and roles — Screenwise");
-  const { user } = useAuth();
+  usePageTitle("Users — Screenwise");
   const queryClient = useQueryClient();
   const { data, isLoading, isError, refetch } = useQuery({ queryKey: ["users"], queryFn: getUsers });
 
-  const save = async (id: string, patch: Partial<{ role: Role; active: boolean }>) => {
+  const setActive = async (id: string, active: boolean) => {
     try {
-      await updateUser({ id, ...patch });
+      await updateUser({ id, active });
       await queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success("User updated.");
+      toast.success("Account updated.");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not update the user.");
+      toast.error(err instanceof Error ? err.message : "Could not update the account.");
     }
   };
 
   return (
-    <Shell
-      allow={["admin"]}
-      title="Users and roles"
-      description="Change a role or deactivate an account."
-    >
-      {isLoading ? <LoadingRows rows={4} /> : null}
-      {isError ? <ErrorState message="We couldn't load users." onRetry={() => refetch()} /> : null}
-      {data ? (
-        <Card className="overflow-hidden p-0 shadow-card">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {COLUMNS.map((c) => (
-                  <TableHead key={c}>{c}</TableHead>
+    <Shell allow={["superadmin"]}>
+      <main className="users">
+        <div className="users__intro">
+          <h1 className="users__intro-title">Users</h1>
+          <p className="users__intro-text">
+            Every account on the platform. Roles and company membership are set at signup — you can
+            deactivate an account here.
+          </p>
+        </div>
+
+        {isLoading ? <LoadingRows rows={4} /> : null}
+        {isError ? <ErrorState message="We couldn't load users." onRetry={() => refetch()} /> : null}
+
+        {data ? (
+          <div className="users__table-wrap">
+            <table className="users__table">
+              <thead>
+                <tr>
+                  {COLUMNS.map((c) => (
+                    <th key={c}>{c}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {data.map((u) => (
+                  <tr key={u.id}>
+                    <td className="users__cell--name">{u.name}</td>
+                    <td className="users__cell--muted">{u.email}</td>
+                    <td>
+                      <span className="users__role">{roleLabels[u.role]}</span>
+                    </td>
+                    <td className="users__cell--muted">{u.companyName ?? "—"}</td>
+                    <td className="users__cell--muted">{u.createdAt}</td>
+                    <td>
+                      <label className="users__toggle">
+                        <input
+                          type="checkbox"
+                          className="users__switch"
+                          checked={u.active}
+                          onChange={(e) => setActive(u.id, e.target.checked)}
+                        />
+                        <span className="users__pill">{u.active ? "active" : "inactive"}</span>
+                      </label>
+                    </td>
+                  </tr>
                 ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((u) => (
-                <TableRow key={u.id}>
-                  <TableCell className="font-medium">{u.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{u.email}</TableCell>
-                  <TableCell>
-                    <Select value={u.role} onValueChange={(v) => save(u.id, { role: v as Role })}>
-                      <SelectTrigger className="w-44">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {(Object.keys(roleLabels) as Role[]).map((r) => (
-                          <SelectItem key={r} value={r}>
-                            {roleLabels[r]}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{u.createdAt}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={u.active}
-                        onCheckedChange={(v) => save(u.id, { active: v })}
-                      />
-                      <Badge variant="outline" className="font-normal">
-                        {u.active ? "active" : "inactive"}
-                      </Badge>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
-      ) : null}
+              </tbody>
+            </table>
+          </div>
+        ) : null}
+      </main>
     </Shell>
   );
 }

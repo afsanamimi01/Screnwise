@@ -7,18 +7,17 @@ import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
 import "./Shell.css";
 
+/**
+ * Super-admin console skeleton — sidebar + (navbar / page / footer) + the
+ * sign-in gate. Owns no page content: every page under admin/pages renders its
+ * own heading and body with its own stylesheet.
+ */
 export function Shell({
   children,
-  allow = ["admin"],
-  title,
-  description,
-  actions,
+  allow = ["superadmin"],
 }: {
   children: ReactNode;
   allow?: Role[];
-  title: string;
-  description?: string;
-  actions?: ReactNode;
 }) {
   const { user, ready } = useAuth();
   const navigate = useNavigate();
@@ -39,18 +38,7 @@ export function Shell({
 
       <div className="admin-shell__main">
         <Navbar />
-
-        <main className="admin-shell__content">
-          <div className="admin-shell__page-head">
-            <div>
-              <h1 className="admin-shell__title">{title}</h1>
-              {description ? <p className="admin-shell__desc">{description}</p> : null}
-            </div>
-            {actions}
-          </div>
-          {children}
-        </main>
-
+        {children}
         <Footer />
       </div>
     </div>

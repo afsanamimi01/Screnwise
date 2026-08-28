@@ -1,0 +1,109 @@
+/* Super-admin "Users" page — self-contained. */
+
+.users {
+  flex: 1;
+  width: 100%;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 1.75rem 1.25rem;
+}
+
+/* --- page heading --------------------------------------------------- */
+.users__intro {
+  margin-bottom: 1.5rem;
+}
+
+.users__intro-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.users__intro-text {
+  margin-top: 0.25rem;
+  max-width: 42rem;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+/* --- table --------------------------------------------------- */
+.users__table-wrap {
+  overflow-x: auto;
+  border: 1px solid #dee4e7;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 1px 2px #04191f0f, 0 8px 24px #04191f0d;
+}
+
+.users__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.users__table th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 500;
+  color: #5e6b73;
+  border-bottom: 1px solid #dee4e7;
+  white-space: nowrap;
+}
+
+.users__table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #dee4e7;
+  vertical-align: middle;
+}
+
+.users__table tr:last-child td {
+  border-bottom: 0;
+}
+
+.users__cell--name {
+  font-weight: 500;
+}
+
+.users__cell--muted {
+  color: #5e6b73;
+}
+
+/* --- role tag ---------------------------------------------- */
+.users__role {
+  padding: 0.0625rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  background: #ebf1f4;
+  color: #1e313a;
+  white-space: nowrap;
+}
+
+/* --- active toggle --------------------------------------- */
+.users__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.users__switch {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  accent-color: #006b79;
+  cursor: pointer;
+}
+
+.users__pill {
+  padding: 0.0625rem 0.5rem;
+  border: 1px solid #dee4e7;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  color: #5e6b73;
+}
+
+@media (min-width: 768px) {
+  .users {
+    padding: 1.75rem 2rem;
+  }
+}

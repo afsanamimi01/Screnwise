@@ -1,24 +1,28 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
+  Building2,
   ChevronLeft,
-  ClipboardList,
   LayoutDashboard,
+  LogOut,
   ScrollText,
   ShieldCheck,
   Sparkles,
-  UserCog,
+  Tags,
+  Users,
 } from "lucide-react";
+import { roleLabels, useAuth } from "@/shared/lib/auth";
 import "./Sidebar.css";
 
 type NavItem = { to: string; label: string; icon: typeof LayoutDashboard };
 
-/** Sidebar links for the admin console. Reorder / add / remove here. */
+/** Sidebar links for the super-admin console. Reorder / add / remove here. */
 const NAV_ITEMS: NavItem[] = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/jobs", label: "Jobs", icon: ClipboardList },
-  { to: "/admin/users", label: "Users & roles", icon: UserCog },
+  { to: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/admin/companies", label: "Companies", icon: Building2 },
+  { to: "/admin/users", label: "Users", icon: Users },
   { to: "/admin/audit", label: "Audit log", icon: ScrollText },
+  { to: "/admin/pricing", label: "Pricing", icon: Tags },
 ];
 
 const STORAGE_KEY = "admin.sidebar.collapsed";
@@ -33,6 +37,8 @@ function readCollapsed() {
 
 export function Sidebar() {
   const pathname = useLocation().pathname;
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [collapsed, setCollapsed] = useState(readCollapsed);
 
   useEffect(() => {
@@ -54,7 +60,10 @@ export function Sidebar() {
 
       <nav className="admin-sidebar__nav">
         {NAV_ITEMS.map((item) => {
-          const active = pathname === item.to || pathname.startsWith(item.to + "/");
+          const active =
+            item.to === "/admin"
+              ? pathname === "/admin"
+              : pathname === item.to || pathname.startsWith(item.to + "/");
           return (
             <Link
               key={item.to}
@@ -77,16 +86,36 @@ export function Sidebar() {
         </span>
       </div>
 
-      <button
-        type="button"
-        className="admin-sidebar__toggle"
-        onClick={() => setCollapsed((v) => !v)}
-        aria-pressed={collapsed}
-        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-      >
-        <ChevronLeft className="admin-sidebar__toggle-icon" size={16} />
-        <span className="admin-sidebar__toggle-label">Collapse</span>
-      </button>
+      {/* One pinned footer block: collapse toggle on top, account + sign-out below. */}
+      <div className="admin-sidebar__account">
+        <button
+          type="button"
+          className="admin-sidebar__toggle"
+          onClick={() => setCollapsed((v) => !v)}
+          aria-pressed={collapsed}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          <ChevronLeft className="admin-sidebar__toggle-icon" size={16} />
+          <span className="admin-sidebar__toggle-label">Collapse</span>
+        </button>
+        <span className="admin-sidebar__account-label">Signed in as</span>
+        <span className="admin-sidebar__account-name">
+          {user ? roleLabels[user.role] : "—"}
+        </span>
+        <button
+          type="button"
+          className="admin-sidebar__account-logout"
+          onClick={() => {
+            logout();
+            navigate("/login", { replace: true });
+          }}
+          title="Sign out"
+          aria-label="Sign out"
+        >
+          <LogOut size={16} />
+          <span className="admin-sidebar__account-logout-label">Sign out</span>
+        </button>
+      </div>
     </aside>
   );
 }

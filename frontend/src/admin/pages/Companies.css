@@ -1,0 +1,148 @@
+/* Super-admin "Companies" page — self-contained. */
+
+.companies {
+  flex: 1;
+  width: 100%;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 1.75rem 1.25rem;
+}
+
+/* --- page heading --------------------------------------------------- */
+.companies__intro {
+  margin-bottom: 1.5rem;
+}
+
+.companies__intro-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.companies__intro-text {
+  margin-top: 0.25rem;
+  max-width: 42rem;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+/* --- table --------------------------------------------------- */
+.companies__table-wrap {
+  overflow-x: auto;
+  border: 1px solid #dee4e7;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 1px 2px #04191f0f, 0 8px 24px #04191f0d;
+}
+
+.companies__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.companies__table th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 500;
+  color: #5e6b73;
+  border-bottom: 1px solid #dee4e7;
+  white-space: nowrap;
+}
+
+.companies__table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #dee4e7;
+  vertical-align: middle;
+}
+
+.companies__table tr:last-child td {
+  border-bottom: 0;
+}
+
+.companies__cell--name {
+  font-weight: 500;
+}
+
+.companies__cell--muted {
+  color: #5e6b73;
+}
+
+.companies__cell--cap {
+  text-transform: capitalize;
+}
+
+.companies__cell--right {
+  text-align: right;
+}
+
+.companies__num {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+/* --- status pill ------------------------------------------- */
+.companies__pill {
+  padding: 0.0625rem 0.5rem;
+  border: 1px solid #dee4e7;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  color: #5e6b73;
+  white-space: nowrap;
+}
+
+.companies__pill--ok {
+  color: #14874e;
+}
+
+.companies__pill--muted {
+  color: #5e6b73;
+}
+
+/* --- row actions ------------------------------------------ */
+.companies__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.companies__btn {
+  padding: 0.3125rem 0.75rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  font: inherit;
+  font-size: 0.8125rem;
+  color: #0b1d27;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.companies__btn:hover:not(:disabled) {
+  background: #d5f2f3;
+}
+
+.companies__btn:focus-visible {
+  outline: 2px solid #006b79;
+  outline-offset: 2px;
+}
+
+.companies__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.companies__btn--danger {
+  color: #c92f33;
+}
+
+.companies__btn--danger:hover:not(:disabled) {
+  background: #ffe5e1;
+}
+
+@media (min-width: 768px) {
+  .companies {
+    padding: 1.75rem 2rem;
+  }
+}

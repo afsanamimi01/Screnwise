@@ -1,0 +1,178 @@
+/* Super-admin "Platform overview" page — self-contained. */
+
+.dashboard {
+  flex: 1;
+  width: 100%;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 1.75rem 1.25rem;
+}
+
+/* --- page heading --------------------------------------------------- */
+.dashboard__intro {
+  margin-bottom: 1.5rem;
+}
+
+.dashboard__intro-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.dashboard__intro-text {
+  margin-top: 0.25rem;
+  max-width: 42rem;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+/* --- KPI tiles --------------------------------------------------- */
+.dashboard__kpis {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.dashboard__kpi {
+  padding: 1.5rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 1px 2px #04191f0f, 0 8px 24px #04191f0d;
+}
+
+.dashboard__kpi-icon {
+  margin-bottom: 0.5rem;
+  color: #5e6b73;
+}
+
+.dashboard__kpi-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.dashboard__kpi-label {
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+/* --- panels: expiring + recent -------------------------------- */
+.dashboard__panels {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.dashboard__panel {
+  border: 1px solid #dee4e7;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 1px 2px #04191f0f, 0 8px 24px #04191f0d;
+}
+
+.dashboard__panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem 0.75rem;
+}
+
+.dashboard__panel-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.dashboard__panel-icon {
+  color: #ca8a10;
+}
+
+.dashboard__link {
+  font-size: 0.875rem;
+  color: #006b79;
+  text-decoration: none;
+}
+
+.dashboard__link:hover {
+  text-decoration: underline;
+}
+
+.dashboard__rows {
+  padding: 0 1.5rem 0.75rem;
+}
+
+.dashboard__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  font-size: 0.875rem;
+  border-top: 1px solid #dee4e7;
+}
+
+.dashboard__row:first-child {
+  border-top: 0;
+}
+
+.dashboard__row-name {
+  font-weight: 500;
+}
+
+.dashboard__row-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #5e6b73;
+}
+
+.dashboard__num {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.dashboard__empty {
+  padding: 0.75rem 0;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+/* --- status / plan pills ------------------------------------- */
+.dashboard__pill {
+  padding: 0.0625rem 0.5rem;
+  border: 1px solid #dee4e7;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  text-transform: capitalize;
+  color: #5e6b73;
+}
+
+.dashboard__pill--ok {
+  color: #14874e;
+}
+
+.dashboard__pill--muted {
+  color: #5e6b73;
+}
+
+/* --- breakpoints -------------------------------------------- */
+@media (min-width: 900px) {
+  .dashboard__kpis {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .dashboard__panels {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 768px) {
+  .dashboard {
+    padding: 1.75rem 2rem;
+  }
+}

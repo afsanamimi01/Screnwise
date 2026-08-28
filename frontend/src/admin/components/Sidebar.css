@@ -12,8 +12,8 @@
   width: var(--admin-sidebar-width);
   flex-shrink: 0;
   flex-direction: column;
-  background: var(--sidebar);
-  color: var(--sidebar-foreground);
+  background: #0d2734;
+  color: #d8dfe3;
   transition: width 0.2s ease;
 }
 
@@ -40,8 +40,8 @@
   justify-content: center;
   padding: 0.375rem;
   border-radius: 0.5rem;
-  background: var(--sidebar-primary);
-  color: var(--sidebar-primary-foreground);
+  background: #00a099;
+  color: #000d15;
 }
 
 .admin-sidebar__wordmark {
@@ -75,19 +75,19 @@
   border-radius: 0.5rem;
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
-  color: color-mix(in srgb, var(--sidebar-foreground) 80%, transparent);
+  color: #d8dfe3cc;
   text-decoration: none;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .admin-sidebar__link:hover {
-  background: color-mix(in srgb, var(--sidebar-accent) 60%, transparent);
-  color: var(--sidebar-foreground);
+  background: #1a3a4899;
+  color: #d8dfe3;
 }
 
 .admin-sidebar__link--active {
-  background: var(--sidebar-accent);
-  color: var(--sidebar-accent-foreground);
+  background: #1a3a48;
+  color: #f5f9fb;
   font-weight: 500;
 }
 
@@ -111,33 +111,104 @@
   margin: 0.75rem;
   padding: 0.75rem;
   border-radius: 0.5rem;
-  background: color-mix(in srgb, var(--sidebar-accent) 50%, transparent);
+  background: #1a3a4880;
   font-size: 0.75rem;
   line-height: 1.5;
-  color: color-mix(in srgb, var(--sidebar-foreground) 80%, transparent);
+  color: #d8dfe3cc;
 }
 
 .admin-sidebar__note-icon {
   flex-shrink: 0;
-  color: var(--sidebar-primary);
+  color: #00a099;
 }
 
 .admin-sidebar--collapsed .admin-sidebar__note {
   display: none;
 }
 
-/* --- collapse toggle -------------------------------------------------- */
+/* --- account / sign out (pinned to the very bottom, under the collapse toggle) --- */
+.admin-sidebar__account {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin: 0 0.75rem 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #213c49;
+}
+
+.admin-sidebar__account-label {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #d8dfe38c;
+}
+
+.admin-sidebar__account-name {
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #d8dfe3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-sidebar__account-logout {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.4375rem 0.75rem;
+  border: 1px solid #213c49;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: #d8dfe3d9;
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.admin-sidebar__account-logout:hover {
+  background: #1a3a4899;
+  color: #d8dfe3;
+}
+
+.admin-sidebar__account-logout:focus-visible {
+  outline: 2px solid #00a099;
+  outline-offset: 2px;
+}
+
+/* Collapsed: icon-only. Note card is hidden, so restore the block's top margin. */
+.admin-sidebar--collapsed .admin-sidebar__account {
+  align-items: center;
+  margin: 0.75rem 0.5rem;
+}
+
+.admin-sidebar--collapsed .admin-sidebar__account-label,
+.admin-sidebar--collapsed .admin-sidebar__account-name,
+.admin-sidebar--collapsed .admin-sidebar__account-logout-label {
+  display: none;
+}
+
+.admin-sidebar--collapsed .admin-sidebar__account-logout {
+  width: auto;
+  padding: 0.4375rem;
+}
+
+/* --- collapse toggle (first row inside the account footer block) ------ */
 .admin-sidebar__toggle {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  width: calc(100% - 1.5rem);
-  margin: 0 0.75rem 0.75rem;
+  width: 100%;
+  margin-bottom: 0.5rem;
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--sidebar-border);
+  border: 1px solid #213c49;
   border-radius: 0.5rem;
   background: transparent;
-  color: color-mix(in srgb, var(--sidebar-foreground) 85%, transparent);
+  color: #d8dfe3d9;
   font: inherit;
   font-size: 0.8125rem;
   cursor: pointer;
@@ -145,12 +216,12 @@
 }
 
 .admin-sidebar__toggle:hover {
-  background: color-mix(in srgb, var(--sidebar-accent) 60%, transparent);
-  color: var(--sidebar-foreground);
+  background: #1a3a4899;
+  color: #d8dfe3;
 }
 
 .admin-sidebar__toggle:focus-visible {
-  outline: 2px solid var(--sidebar-ring);
+  outline: 2px solid #00a099;
   outline-offset: 2px;
 }
 
@@ -161,9 +232,9 @@
 
 .admin-sidebar--collapsed .admin-sidebar__toggle {
   justify-content: center;
-  width: calc(100% - 1rem);
-  margin: 0 0.5rem 0.75rem;
-  padding: 0.5rem 0;
+  width: auto;
+  margin-bottom: 0.5rem;
+  padding: 0.4375rem;
 }
 
 .admin-sidebar--collapsed .admin-sidebar__toggle-label {

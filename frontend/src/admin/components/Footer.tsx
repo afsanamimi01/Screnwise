@@ -3,40 +3,46 @@ import { Sparkles } from "lucide-react";
 import { homeForRole, useAuth } from "@/shared/lib/auth";
 import "./Footer.css";
 
-type FooterColumn = { heading: string; links: { label: string; to: string }[] };
+type FooterLink = { label: string; to?: string; href?: string };
+type FooterColumn = { heading: string; links: FooterLink[] };
 
-/** Link columns for the admin footer. Every `to` is a real route. */
+/**
+ * Footer for the admin actor. Independent of the shared SiteFooter — edit the
+ * columns freely; the "Contact" details are hard-coded here.
+ */
 const COLUMNS: FooterColumn[] = [
+  {
+    heading: "Console",
+    links: [
+      { label: "Overview", to: "/admin" },
+      { label: "Companies", to: "/admin/companies" },
+      { label: "Users", to: "/admin/users" },
+    ],
+  },
   {
     heading: "Platform",
     links: [
-      { label: "Browse open roles", to: "/" },
-      { label: "How screening ", to: "/" },
-      { label: "Create account", to: "/register" },
+      { label: "Audit log", to: "/admin/audit" },
+      { label: "Pricing", to: "/admin/pricing" },
+      { label: "Public site", to: "/" },
     ],
   },
   {
-    heading: "For recruiters",
+    heading: "Reference",
     links: [
-      { label: "Recruiter dashboard", to: "/dashboard" },
-      { label: "Jobs", to: "/jobs" },
-      { label: "Review shortlists", to: "/manager" },
+      { label: "Open roles", to: "/" },
+      { label: "Sign out", to: "/login" },
     ],
   },
   {
-    heading: "For candidates",
+    heading: "Contact",
     links: [
-      { label: "Apply to a role", to: "/" },
-      { label: "My applications", to: "/my-applications" },
-      { label: "Sign in", to: "/login" },
+      { label: "hello@screenwise.io", href: "mailto:hello@screenwise.io" },
+      { label: "+880 1700-000000", href: "tel:+8801700000000" },
     ],
   },
 ];
 
-/**
- * Footer for the admin actor. Independent of the shared SiteFooter so it can
- * be customised separately — edit the columns and copy here freely.
- */
 export function Footer() {
   const { user } = useAuth();
   const workspace = user ? homeForRole(user.role) : "/dashboard";
@@ -68,9 +74,15 @@ export function Footer() {
               <ul className="admin-footer__col-list">
                 {col.links.map((link) => (
                   <li key={link.label}>
-                    <Link to={link.to} className="admin-footer__link">
-                      {link.label}
-                    </Link>
+                    {link.href ? (
+                      <a href={link.href} className="admin-footer__link">
+                        {link.label}
+                      </a>
+                    ) : (
+                      <Link to={link.to!} className="admin-footer__link">
+                        {link.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
