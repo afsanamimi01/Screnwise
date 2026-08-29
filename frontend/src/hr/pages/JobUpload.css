@@ -1,0 +1,144 @@
+/* HR "Upload CVs" page — self-contained (frame + width live in
+   hr/components/Shell.css). */
+
+.hr-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* --- heading ------------------------------------------------- */
+.hr-upload__intro-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.hr-upload__intro-text {
+  margin-top: 0.25rem;
+  max-width: 42rem;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+/* --- drop zone -------------------------------------------- */
+.hr-upload__drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3.5rem 1.5rem;
+  border: 2px dashed #dee4e7;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.hr-upload__drop--active {
+  border-color: #006b79;
+  background: #dcf4f8;
+}
+
+.hr-upload__drop-icon {
+  margin-bottom: 0.75rem;
+  color: #006b79;
+}
+
+.hr-upload__drop-title {
+  font-weight: 500;
+}
+
+.hr-upload__drop-hint {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+.hr-upload__file {
+  display: none;
+}
+
+/* --- progress panel ------------------------------------- */
+.hr-upload__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 1px 2px #04191f0f, 0 8px 24px #04191f0d;
+}
+
+.hr-upload__track {
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: #edf2f4;
+  overflow: hidden;
+}
+
+.hr-upload__bar {
+  height: 100%;
+  border-radius: 9999px;
+  background: #006b79;
+  transition: width 0.3s ease;
+}
+
+.hr-upload__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.hr-upload__row-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.hr-upload__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  background: #ebf1f4;
+  font-size: 0.75rem;
+  text-transform: capitalize;
+  color: #1e313a;
+}
+
+.hr-upload__tag--review {
+  background: #fbeecf;
+  color: #7a5a12;
+}
+
+.hr-upload__tag--scored {
+  background: #d2f6dd;
+  color: #14874e;
+}
+
+/* --- button --------------------------------------------- */
+.hr-upload__btn {
+  width: 100%;
+  padding: 0.5rem 0.875rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: #006b79;
+  color: #f8fdfe;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.hr-upload__btn:hover {
+  background: #00606d;
+}

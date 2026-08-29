@@ -3,29 +3,16 @@ import { useParams } from "react-router-dom";
 import { AlertTriangle, ChevronDown, Copy, EyeOff, Info, Lock } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { HrShell } from "@/hr/components/HrShell";
+import { Shell } from "@/hr/components/Shell";
 import { JobTabs } from "@/hr/components/JobTabs";
-import { ScoreBadge } from "@/shared/components/ScoreBadge";
+import { scoreBand } from "@/shared/components/ScoreBadge";
 import { ScoreExplainDrawer } from "@/hr/components/ScoreExplainDrawer";
 import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
-import { Badge } from "@/shared/components/ui/badge";
-import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent } from "@/shared/components/ui/card";
-import { Checkbox } from "@/shared/components/ui/checkbox";
-import { Input } from "@/shared/components/ui/input";
-import { Label } from "@/shared/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/components/ui/select";
-import { Slider } from "@/shared/components/ui/slider";
 import { getApplicationsForJob, getJob, shortlistCandidate } from "@/shared/lib/api";
 import { canViewBoard, useAuth } from "@/shared/lib/auth";
 import { SCORE_THRESHOLD, type Application, type Job } from "@/shared/lib/types";
 import { usePageTitle } from "@/shared/lib/use-page-title";
+import "./JobBoard.css";
 
 /** Options for the "Source" filter dropdown. */
 const SOURCE_OPTIONS = [
@@ -71,7 +58,7 @@ export default function JobBoard() {
   const queryClient = useQueryClient();
 
   const jobQuery = useQuery({ queryKey: ["job", jobId], queryFn: () => getJob(jobId) });
-  const canView = canViewBoard(user, jobQuery.data?.createdBy ?? "");
+  const canView = canViewBoard(user, jobQuery.data?.companyId ?? "");
   const appsQuery = useQuery({
     queryKey: ["applications", jobId],
     queryFn: () => getApplicationsForJob(jobId),
@@ -123,211 +110,215 @@ export default function JobBoard() {
   const denied = job && !canView;
 
   return (
-    <HrShell
-      allow={["hr", "admin"]}
-      title={job ? job.title : "Rank board"}
-      description="Screening is blind: identity stays hidden until you shortlist."
-    >
-      <JobTabs jobId={jobId} />
+    <Shell allow={["hr", "manager"]}>
+      <div className="hr-board">
+        <div className="hr-board__intro">
+          <h1 className="hr-board__intro-title">{job ? job.title : "Rank board"}</h1>
+          <p className="hr-board__intro-text">
+            Screening is blind: identity stays hidden until you shortlist.
+          </p>
+        </div>
 
-      {jobQuery.isLoading || appsQuery.isLoading ? <LoadingRows rows={6} /> : null}
-      {jobQuery.isError || appsQuery.isError ? (
-        <ErrorState
-          message="We couldn't load this rank board."
-          onRetry={() => {
-            jobQuery.refetch();
-            appsQuery.refetch();
-          }}
-        />
-      ) : null}
+        <JobTabs jobId={jobId} />
 
-      {denied ? (
-        <Card className="shadow-card">
-          <CardContent className="flex flex-col items-center gap-3 py-14 text-center">
-            <Lock className="h-6 w-6 text-muted-foreground" />
-            <h3 className="text-base font-semibold">This board isn't yours</h3>
-            <p className="max-w-sm text-sm text-muted-foreground">
-              A job's rank board is visible only to the recruiter who created it, and to admins.
+        {jobQuery.isLoading || appsQuery.isLoading ? <LoadingRows rows={6} /> : null}
+        {jobQuery.isError || appsQuery.isError ? (
+          <ErrorState
+            message="We couldn't load this rank board."
+            onRetry={() => {
+              jobQuery.refetch();
+              appsQuery.refetch();
+            }}
+          />
+        ) : null}
+
+        {denied ? (
+          <div className="hr-board__denied">
+            <Lock size={24} />
+            <h3 className="hr-board__denied-title">This board isn't yours</h3>
+            <p className="hr-board__denied-text">
+              A job's rank board is visible only to members of the company that owns it.
             </p>
-          </CardContent>
-        </Card>
-      ) : null}
+          </div>
+        ) : null}
 
-      {job && !denied ? (
-        <div className="space-y-5">
-          <SummaryStrip apps={apps} />
+        {job && !denied ? (
+          <div className="hr-board__main">
+            <div className="hr-board__tiles">
+              {SUMMARY_TILES.map((tile) => (
+                <div key={tile.key} className="hr-board__tile">
+                  <div className="hr-board__tile-value">{tile.value(apps)}</div>
+                  <div className="hr-board__tile-label">{tile.label}</div>
+                </div>
+              ))}
+            </div>
 
-          <Card className="shadow-card">
-            <CardContent className="grid gap-4 pt-6 md:grid-cols-4">
-              <div>
-                <Label className="text-xs">
-                  Minimum score: <span className="num">{minScore}%</span>
-                </Label>
-                <Slider
-                  className="mt-3"
-                  value={[minScore]}
+            <div className="hr-board__filters">
+              <div className="hr-board__filter">
+                <span className="hr-board__filter-label">
+                  Minimum score: <span className="hr-board__num">{minScore}%</span>
+                </span>
+                <input
+                  type="range"
+                  className="hr-board__range"
+                  value={minScore}
                   max={100}
                   step={5}
-                  onValueChange={([v]) => setMinScore(v ?? 0)}
+                  onChange={(e) => setMinScore(Number(e.target.value))}
                 />
               </div>
-              <div>
-                <Label className="text-xs">Source</Label>
-                <Select value={source} onValueChange={setSource}>
-                  <SelectTrigger className="mt-1.5">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SOURCE_OPTIONS.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>
-                        {o.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="hr-board__filter">
+                <span className="hr-board__filter-label">Source</span>
+                <select
+                  className="hr-board__select"
+                  value={source}
+                  onChange={(e) => setSource(e.target.value)}
+                >
+                  {SOURCE_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <div>
-                <Label className="text-xs" htmlFor="skill">
+              <div className="hr-board__filter">
+                <label className="hr-board__filter-label" htmlFor="skill">
                   Skill
-                </Label>
-                <Input
+                </label>
+                <input
                   id="skill"
+                  className="hr-board__input"
                   value={skill}
                   onChange={(e) => setSkill(e.target.value)}
                   placeholder="e.g. Docker"
-                  className="mt-1.5"
                 />
               </div>
-              <div>
-                <Label className="text-xs">Sort by</Label>
-                <Select value={sort} onValueChange={setSort}>
-                  <SelectTrigger className="mt-1.5">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SORT_OPTIONS.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>
-                        {o.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-
-          {selected.length > 0 ? (
-            <div className="sticky top-16 z-10 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary-soft px-4 py-3">
-              <span className="text-sm font-medium text-primary">{selected.length} selected</span>
-              <div className="flex gap-2">
-                <Button variant="ghost" size="sm" onClick={() => setSelected([])}>
-                  Clear
-                </Button>
-                <Button size="sm" onClick={() => shortlist(selected)}>
-                  Shortlist selected
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                <EyeOff className="h-4 w-4" /> Names, photos, age, address, nationality and
-                university are hidden while screening.
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => shortlist(above.slice(0, 20).map((a) => a.id))}
-              >
-                Shortlist top 20
-              </Button>
-            </div>
-          )}
-
-          {above.length === 0 && below.length === 0 ? (
-            <EmptyState
-              title="No candidates match these filters"
-              description="Loosen the minimum score or clear the skill filter — nobody has been removed from the board."
-            />
-          ) : null}
-
-          <div className="space-y-2">
-            {above.map((app, i) => (
-              <CandidateRow
-                key={app.id}
-                app={app}
-                job={job}
-                rank={i + 1}
-                selected={selected.includes(app.id)}
-                onToggle={() => toggle(app.id)}
-                onExplain={() => setDrawerApp(app)}
-                onShortlist={() => shortlist([app.id])}
-              />
-            ))}
-          </div>
-
-          {below.length > 0 ? (
-            <div className="rounded-xl border bg-card">
-              <button
-                onClick={() => setShowBelow((s) => !s)}
-                className="flex w-full items-center justify-between gap-3 px-4 py-3 text-sm"
-              >
-                <span className="flex items-center gap-2">
-                  <Info className="h-4 w-4 text-muted-foreground" />
-                  {showBelow ? "Hide" : "Show"} below-threshold candidates
-                  <Badge variant="secondary" className="num font-normal">
-                    {below.length}
-                  </Badge>
-                </span>
-                <ChevronDown
-                  className={`h-4 w-4 transition-transform ${showBelow ? "rotate-180" : ""}`}
-                />
-              </button>
-              {showBelow ? (
-                <div className="space-y-2 border-t p-3">
-                  <p className="px-1 pb-1 text-xs text-muted-foreground">
-                    These candidates scored under {SCORE_THRESHOLD}%. They are collapsed, never
-                    removed — you can shortlist any of them.
-                  </p>
-                  {below.map((app, i) => (
-                    <CandidateRow
-                      key={app.id}
-                      app={app}
-                      job={job}
-                      rank={above.length + i + 1}
-                      selected={selected.includes(app.id)}
-                      onToggle={() => toggle(app.id)}
-                      onExplain={() => setDrawerApp(app)}
-                      onShortlist={() => shortlist([app.id])}
-                    />
+              <div className="hr-board__filter">
+                <span className="hr-board__filter-label">Sort by</span>
+                <select
+                  className="hr-board__select"
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value)}
+                >
+                  {SORT_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
                   ))}
-                </div>
-              ) : null}
+                </select>
+              </div>
             </div>
-          ) : null}
-        </div>
-      ) : null}
 
-      <ScoreExplainDrawer
-        application={drawerApp}
-        job={job}
-        open={Boolean(drawerApp)}
-        onOpenChange={(o) => !o && setDrawerApp(null)}
-      />
-    </HrShell>
-  );
-}
+            {selected.length > 0 ? (
+              <div className="hr-board__bulkbar">
+                <span className="hr-board__bulkbar-count">{selected.length} selected</span>
+                <div className="hr-board__bulkbar-actions">
+                  <button
+                    type="button"
+                    className="hr-board__btn hr-board__btn--ghost"
+                    onClick={() => setSelected([])}
+                  >
+                    Clear
+                  </button>
+                  <button
+                    type="button"
+                    className="hr-board__btn"
+                    onClick={() => shortlist(selected)}
+                  >
+                    Shortlist selected
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="hr-board__hintbar">
+                <p className="hr-board__hintbar-text">
+                  <EyeOff size={16} /> Names, photos, age, address, nationality and university are
+                  hidden while screening.
+                </p>
+                <button
+                  type="button"
+                  className="hr-board__btn hr-board__btn--ghost"
+                  onClick={() => shortlist(above.slice(0, 20).map((a) => a.id))}
+                >
+                  Shortlist top 20
+                </button>
+              </div>
+            )}
 
-function SummaryStrip({ apps }: { apps: Application[] }) {
-  return (
-    <div className="grid gap-3 sm:grid-cols-4">
-      {SUMMARY_TILES.map((tile) => (
-        <div key={tile.key} className="rounded-xl border bg-card px-4 py-3">
-          <div className="num text-xl font-semibold">{tile.value(apps)}</div>
-          <div className="text-xs text-muted-foreground">{tile.label}</div>
-        </div>
-      ))}
-    </div>
+            {above.length === 0 && below.length === 0 ? (
+              <EmptyState
+                title="No candidates match these filters"
+                description="Loosen the minimum score or clear the skill filter — nobody has been removed from the board."
+              />
+            ) : null}
+
+            <div className="hr-board__rows">
+              {above.map((app, i) => (
+                <CandidateRow
+                  key={app.id}
+                  app={app}
+                  job={job}
+                  rank={i + 1}
+                  selected={selected.includes(app.id)}
+                  onToggle={() => toggle(app.id)}
+                  onExplain={() => setDrawerApp(app)}
+                  onShortlist={() => shortlist([app.id])}
+                />
+              ))}
+            </div>
+
+            {below.length > 0 ? (
+              <div className="hr-board__below">
+                <button
+                  type="button"
+                  className="hr-board__below-toggle"
+                  onClick={() => setShowBelow((s) => !s)}
+                >
+                  <span className="hr-board__below-label">
+                    <Info size={16} />
+                    {showBelow ? "Hide" : "Show"} below-threshold candidates
+                    <span className="hr-board__below-count">{below.length}</span>
+                  </span>
+                  <ChevronDown
+                    size={16}
+                    className={
+                      "hr-board__below-chev" + (showBelow ? " hr-board__below-chev--open" : "")
+                    }
+                  />
+                </button>
+                {showBelow ? (
+                  <div className="hr-board__below-body">
+                    <p className="hr-board__below-note">
+                      These candidates scored under {SCORE_THRESHOLD}%. They are collapsed, never
+                      removed — you can shortlist any of them.
+                    </p>
+                    {below.map((app, i) => (
+                      <CandidateRow
+                        key={app.id}
+                        app={app}
+                        job={job}
+                        rank={above.length + i + 1}
+                        selected={selected.includes(app.id)}
+                        onToggle={() => toggle(app.id)}
+                        onExplain={() => setDrawerApp(app)}
+                        onShortlist={() => shortlist([app.id])}
+                      />
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
+        <ScoreExplainDrawer
+          application={drawerApp}
+          job={job}
+          open={Boolean(drawerApp)}
+          onOpenChange={(o) => !o && setDrawerApp(null)}
+        />
+      </div>
+    </Shell>
   );
 }
 
@@ -349,58 +340,67 @@ function CandidateRow({
   onShortlist: () => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-4 rounded-xl border bg-card p-4 shadow-card transition-colors hover:border-primary/30">
-      <Checkbox checked={selected} onCheckedChange={onToggle} aria-label={`Select ${app.alias}`} />
-      <span className="num w-6 text-sm text-muted-foreground">{rank}</span>
+    <div className="hr-board__row">
+      <input
+        type="checkbox"
+        className="hr-board__row-check"
+        checked={selected}
+        onChange={onToggle}
+        aria-label={`Select ${app.alias}`}
+      />
+      <span className="hr-board__row-rank">{rank}</span>
       {app.needsManualReview ? (
-        <span className="num inline-flex min-w-14 items-center justify-center rounded-lg border border-warning/40 bg-warning-soft px-2.5 py-1 text-xs font-semibold text-warning-foreground">
-          n/a
-        </span>
+        <span className="hr-board__score hr-board__score--na">n/a</span>
       ) : (
-        <ScoreBadge score={app.score} />
+        <span className={`hr-board__score hr-board__score--${scoreBand(app.score)}`}>
+          {app.score}%
+        </span>
       )}
 
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="font-medium">{app.alias}</span>
-          <Badge variant="outline" className="font-normal text-muted-foreground">
-            {app.source}
-          </Badge>
+      <div className="hr-board__row-body">
+        <div className="hr-board__row-head">
+          <span className="hr-board__row-name">{app.alias}</span>
+          <span className="hr-board__chip">{app.source}</span>
           {app.needsManualReview ? (
-            <Badge className="gap-1 bg-warning-soft font-normal text-warning-foreground">
-              <AlertTriangle className="h-3 w-3" /> Needs manual review
-            </Badge>
+            <span className="hr-board__chip hr-board__chip--warn">
+              <AlertTriangle size={12} /> Needs manual review
+            </span>
           ) : null}
           {app.duplicateOf ? (
-            <Badge variant="secondary" className="gap-1 font-normal">
-              <Copy className="h-3 w-3" /> Possible duplicate
-            </Badge>
+            <span className="hr-board__chip">
+              <Copy size={12} /> Possible duplicate
+            </span>
           ) : null}
           {app.status === "shortlisted" ? (
-            <Badge className="bg-success-soft font-normal text-success">Shortlisted</Badge>
+            <span className="hr-board__chip hr-board__chip--ok">Shortlisted</span>
           ) : null}
         </div>
-        <div className="mt-1 text-sm text-muted-foreground">
-          {app.currentTitle} · <span className="num">{app.yearsExperience}</span> yrs experience ·{" "}
-          <span className="num">{app.matchedSkills.length}</span>/
-          <span className="num">{job.requiredSkills.length}</span> required skills
+        <div className="hr-board__row-meta">
+          {app.currentTitle} · <span className="hr-board__num">{app.yearsExperience}</span> yrs
+          experience · <span className="hr-board__num">{app.matchedSkills.length}</span>/
+          <span className="hr-board__num">{job.requiredSkills.length}</span> required skills
         </div>
-        <div className="mt-2 flex flex-wrap gap-1.5">
+        <div className="hr-board__row-skills">
           {app.matchedSkills.slice(0, 5).map((s) => (
-            <Badge key={s} variant="secondary" className="font-normal">
+            <span key={s} className="hr-board__skill">
               {s}
-            </Badge>
+            </span>
           ))}
         </div>
       </div>
 
-      <div className="flex gap-2">
-        <Button variant="outline" size="sm" onClick={onExplain}>
+      <div className="hr-board__row-actions">
+        <button type="button" className="hr-board__btn hr-board__btn--ghost" onClick={onExplain}>
           Why this score
-        </Button>
-        <Button size="sm" onClick={onShortlist} disabled={app.status === "shortlisted"}>
+        </button>
+        <button
+          type="button"
+          className="hr-board__btn"
+          onClick={onShortlist}
+          disabled={app.status === "shortlisted"}
+        >
           {app.status === "shortlisted" ? "On shortlist" : "Shortlist"}
-        </Button>
+        </button>
       </div>
     </div>
   );

@@ -1,0 +1,40 @@
+/* HR / recruiter top bar — the white strip beside the sidebar. Context line on
+   the left, signed-in name on the right. Nothing else (brand lives in the sidebar). */
+
+.hr-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  height: 4rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 1.25rem;
+  border-bottom: 1px solid #dee4e7;
+  background: #ffffff;
+  backdrop-filter: blur(8px);
+}
+
+.hr-navbar__subtitle {
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+.hr-navbar__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1875rem 0.75rem;
+  border: 1px solid #dee4e7;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #0b1d27;
+  white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+  .hr-navbar {
+    padding: 0 2rem;
+  }
+}

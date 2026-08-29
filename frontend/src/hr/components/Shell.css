@@ -1,0 +1,36 @@
+/* Layout skeleton for the HR / recruiter workspace: sidebar + (navbar / page /
+   footer). Keeps a content frame; each page renders its own heading. */
+
+.hr-shell {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  background: #f5f8fa;
+  color: #0b1d27;
+}
+
+.hr-shell__blank {
+  min-height: 100vh;
+  background: #f5f8fa;
+}
+
+.hr-shell__main {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.hr-shell__content {
+  width: 100%;
+  max-width: 80rem;
+  flex: 1;
+  margin: 0 auto;
+  padding: 1.75rem 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .hr-shell__content {
+    padding: 1.75rem 2rem;
+  }
+}

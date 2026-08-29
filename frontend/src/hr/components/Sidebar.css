@@ -1,0 +1,207 @@
+/* HR / recruiter sidebar. Independent styles — no shared or utility classes.
+   Collapsible: `.hr-sidebar--collapsed` shrinks it to an icon rail. */
+
+.hr-sidebar {
+  --hr-sidebar-width: 16rem;
+  --hr-sidebar-width-collapsed: 4.25rem;
+
+  position: sticky;
+  top: 0;
+  display: flex;
+  height: 100vh;
+  width: var(--hr-sidebar-width);
+  flex-shrink: 0;
+  flex-direction: column;
+  background: #0d2734;
+  color: #d8dfe3;
+  transition: width 0.2s ease;
+}
+
+.hr-sidebar--collapsed {
+  width: var(--hr-sidebar-width-collapsed);
+}
+
+/* --- brand ----------------------------------------------------------- */
+.hr-sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.25rem;
+}
+
+.hr-sidebar--collapsed .hr-sidebar__brand {
+  justify-content: center;
+  padding: 1.25rem 0;
+}
+
+.hr-sidebar__logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem;
+  border-radius: 0.5rem;
+  background: #00a099;
+  color: #000d15;
+}
+
+.hr-sidebar__wordmark {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+}
+
+.hr-sidebar--collapsed .hr-sidebar__wordmark {
+  display: none;
+}
+
+/* --- nav ----------------------------------------------------------- */
+.hr-sidebar__nav {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0 0.75rem;
+}
+
+.hr-sidebar--collapsed .hr-sidebar__nav {
+  padding: 0 0.5rem;
+}
+
+.hr-sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: #d8dfe3cc;
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.hr-sidebar__link:hover {
+  background: #1a3a4899;
+  color: #d8dfe3;
+}
+
+.hr-sidebar__link--active {
+  background: #1a3a48;
+  color: #f5f9fb;
+  font-weight: 500;
+}
+
+.hr-sidebar__link-icon {
+  flex-shrink: 0;
+}
+
+.hr-sidebar--collapsed .hr-sidebar__link {
+  justify-content: center;
+  padding: 0.5rem 0;
+}
+
+.hr-sidebar--collapsed .hr-sidebar__link-label {
+  display: none;
+}
+
+/* --- footer block: collapse toggle + account, pinned to the bottom --- */
+.hr-sidebar__footer {
+  border-top: 1px solid #213c49;
+  padding: 0.75rem;
+}
+
+.hr-sidebar--collapsed .hr-sidebar__footer {
+  padding: 0.5rem;
+}
+
+.hr-sidebar__toggle,
+.hr-sidebar__logout {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4375rem 0.75rem;
+  border: 1px solid #213c49;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: #d8dfe3d9;
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.hr-sidebar__toggle {
+  margin-bottom: 0.75rem;
+  gap: 0.75rem;
+}
+
+.hr-sidebar__toggle:hover,
+.hr-sidebar__logout:hover {
+  background: #1a3a4899;
+  color: #d8dfe3;
+}
+
+.hr-sidebar__toggle:focus-visible,
+.hr-sidebar__logout:focus-visible {
+  outline: 2px solid #00a099;
+  outline-offset: 2px;
+}
+
+.hr-sidebar__toggle-icon {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.hr-sidebar--collapsed .hr-sidebar__toggle,
+.hr-sidebar--collapsed .hr-sidebar__logout {
+  justify-content: center;
+  width: auto;
+  padding: 0.4375rem;
+}
+
+.hr-sidebar--collapsed .hr-sidebar__toggle-icon {
+  transform: rotate(180deg);
+}
+
+/* --- account ----------------------------------------------------------- */
+.hr-sidebar__account {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.hr-sidebar--collapsed .hr-sidebar__account {
+  align-items: center;
+}
+
+.hr-sidebar__account-label {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #d8dfe38c;
+}
+
+.hr-sidebar__account-name {
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #d8dfe3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hr-sidebar--collapsed .hr-sidebar__account-label,
+.hr-sidebar--collapsed .hr-sidebar__account-name,
+.hr-sidebar--collapsed .hr-sidebar__toggle-label,
+.hr-sidebar--collapsed .hr-sidebar__logout-label {
+  display: none;
+}
+
+/* Desktop-only, matching the other actor sidebars. */
+@media (max-width: 767px) {
+  .hr-sidebar {
+    display: none;
+  }
+}

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Briefcase, Clock, Plus, TrendingUp, Users } from "lucide-react";
+import { Briefcase, Clock, Plus, TrendingUp, UploadCloud, Users } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -11,20 +11,16 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { HrShell } from "@/hr/components/HrShell";
+import { Shell } from "@/hr/components/Shell";
 import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
-import { Badge } from "@/shared/components/ui/badge";
-import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { getDashboard } from "@/shared/lib/api";
 import { useAuth } from "@/shared/lib/auth";
 import type { Application, Job } from "@/shared/lib/types";
 import { usePageTitle } from "@/shared/lib/use-page-title";
+import { useWorkspaceBase } from "@/shared/lib/workspace";
+import "./Dashboard.css";
 
-/**
- * The four KPI cards across the top of the dashboard, in display order.
- * Reorder / add / remove entries here — `value` receives the loaded data.
- */
+/** KPI cards across the top, in display order — reorder the array to reorder. */
 const KPI_CARDS: {
   key: string;
   label: string;
@@ -37,32 +33,23 @@ const KPI_CARDS: {
     icon: Briefcase,
     value: ({ jobs }) => jobs.filter((j) => j.status === "open").length,
   },
-  {
-    key: "applicants",
-    label: "Total applicants",
-    icon: Users,
-    value: ({ apps }) => apps.length,
-  },
+  { key: "applicants", label: "Total applicants", icon: Users, value: ({ apps }) => apps.length },
   {
     key: "shortlistRate",
     label: "Shortlist rate",
     icon: TrendingUp,
     value: ({ apps }) => {
-      const shortlisted = apps.filter((a) => a.status === "shortlisted").length;
-      return `${apps.length ? Math.round((shortlisted / apps.length) * 100) : 0}%`;
+      const s = apps.filter((a) => a.status === "shortlisted").length;
+      return `${apps.length ? Math.round((s / apps.length) * 100) : 0}%`;
     },
   },
-  {
-    key: "timeToScreen",
-    label: "Avg. time to screen",
-    icon: Clock,
-    value: () => "1.8 days",
-  },
+  { key: "timeToScreen", label: "Avg. time to screen", icon: Clock, value: () => "1.8 days" },
 ];
 
 export default function Dashboard() {
   usePageTitle("Dashboard — Screenwise");
   const { user } = useAuth();
+  const base = useWorkspaceBase();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["dashboard", user?.id],
     enabled: Boolean(user),
@@ -70,28 +57,37 @@ export default function Dashboard() {
   });
 
   return (
-    <HrShell
-      allow={["hr", "admin"]}
-      title={`Welcome back${user ? `, ${user.name.split(" ")[0]}` : ""}`}
-      description="Here's where your open roles stand today."
-      actions={
-        <Button asChild>
-          <Link to="/jobs/new">
-            <Plus className="mr-2 h-4 w-4" /> New job
-          </Link>
-        </Button>
-      }
-    >
-      {isLoading ? <LoadingRows rows={4} /> : null}
-      {isError ? (
-        <ErrorState message="We couldn't load your dashboard." onRetry={() => refetch()} />
-      ) : null}
-      {data ? <DashboardBody jobs={data.jobs} apps={data.apps} /> : null}
-    </HrShell>
+    <Shell>
+      <div className="hr-dashboard">
+        <div className="hr-dashboard__intro">
+          <div>
+            <h1 className="hr-dashboard__intro-title">
+              Welcome back{user ? `, ${user.name.split(" ")[0]}` : ""}
+            </h1>
+            <p className="hr-dashboard__intro-text">Here's where your open roles stand today.</p>
+          </div>
+          <div className="hr-dashboard__actions">
+            <Link to="/screen" className="hr-dashboard__btn hr-dashboard__btn--ghost">
+              <UploadCloud size={16} /> Upload CVs
+            </Link>
+            <Link to={`${base}/new`} className="hr-dashboard__btn">
+              <Plus size={16} /> New job
+            </Link>
+          </div>
+        </div>
+
+        {isLoading ? <LoadingRows rows={4} /> : null}
+        {isError ? (
+          <ErrorState message="We couldn't load your dashboard." onRetry={() => refetch()} />
+        ) : null}
+        {data ? <Body jobs={data.jobs} apps={data.apps} /> : null}
+      </div>
+    </Shell>
   );
 }
 
-function DashboardBody({ jobs, apps }: { jobs: Job[]; apps: Application[] }) {
+function Body({ jobs, apps }: { jobs: Job[]; apps: Application[] }) {
+  const base = useWorkspaceBase();
   const chartData = jobs.map((job) => {
     const jobApps = apps.filter((a) => a.jobId === job.id);
     return {
@@ -102,118 +98,99 @@ function DashboardBody({ jobs, apps }: { jobs: Job[]; apps: Application[] }) {
   });
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <>
+      <div className="hr-dashboard__kpis">
         {KPI_CARDS.map((card) => (
-          <Card key={card.key} className="shadow-card">
-            <CardContent className="flex items-center gap-4 pt-6">
-              <div className="rounded-lg bg-primary-soft p-2.5 text-primary">
-                <card.icon className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="num text-2xl font-semibold">{card.value({ jobs, apps })}</div>
-                <div className="text-sm text-muted-foreground">{card.label}</div>
-              </div>
-            </CardContent>
-          </Card>
+          <div key={card.key} className="hr-dashboard__kpi">
+            <span className="hr-dashboard__kpi-icon">
+              <card.icon size={20} />
+            </span>
+            <div>
+              <div className="hr-dashboard__kpi-value">{card.value({ jobs, apps })}</div>
+              <div className="hr-dashboard__kpi-label">{card.label}</div>
+            </div>
+          </div>
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="shadow-card lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-base">Your active job postings</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {jobs.length === 0 ? (
-              <EmptyState
-                title="No jobs yet"
-                description="Create your first job posting to start collecting and screening CVs."
-                action={
-                  <Button asChild>
-                    <Link to="/jobs/new">Create a job</Link>
-                  </Button>
-                }
-              />
-            ) : (
-              <div className="space-y-3">
-                {jobs.map((job) => {
-                  const jobApps = apps.filter((a) => a.jobId === job.id);
-                  return (
-                    <Link
-                      key={job.id}
-                      to={`/jobs/${job.id}/board`}
-                      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4 transition-colors hover:border-primary/40"
-                    >
+      <div className="hr-dashboard__panels">
+        <section className="hr-dashboard__panel">
+          <div className="hr-dashboard__panel-title">Your active job postings</div>
+          {jobs.length === 0 ? (
+            <EmptyState
+              title="No jobs yet"
+              description="Create your first job posting to start collecting and screening CVs."
+            />
+          ) : (
+            <div className="hr-dashboard__jobs">
+              {jobs.map((job) => {
+                const jobApps = apps.filter((a) => a.jobId === job.id);
+                return (
+                  <Link key={job.id} to={`${base}/${job.id}/board`} className="hr-dashboard__job">
+                    <div>
+                      <div className="hr-dashboard__job-title-row">
+                        <span className="hr-dashboard__job-title">{job.title}</span>
+                        {job.newSinceLastVisit > 0 ? (
+                          <span className="hr-dashboard__new">
+                            {job.newSinceLastVisit} new since last visit
+                          </span>
+                        ) : null}
+                      </div>
+                      <div className="hr-dashboard__job-meta">
+                        {job.department} · {job.location}
+                      </div>
+                    </div>
+                    <div className="hr-dashboard__job-stats">
                       <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{job.title}</span>
-                          {job.newSinceLastVisit > 0 ? (
-                            <Badge className="bg-success-soft font-normal text-success">
-                              {job.newSinceLastVisit} new since last visit
-                            </Badge>
-                          ) : null}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {job.department} · {job.location}
-                        </div>
+                        <div className="hr-dashboard__stat-value">{jobApps.length}</div>
+                        <div className="hr-dashboard__stat-label">applicants</div>
                       </div>
-                      <div className="flex gap-6 text-sm">
-                        <div>
-                          <div className="num font-semibold">{jobApps.length}</div>
-                          <div className="text-xs text-muted-foreground">applicants</div>
+                      <div>
+                        <div className="hr-dashboard__stat-value">
+                          {jobApps.filter((a) => a.status === "shortlisted").length}
                         </div>
-                        <div>
-                          <div className="num font-semibold">
-                            {jobApps.filter((a) => a.status === "shortlisted").length}
-                          </div>
-                          <div className="text-xs text-muted-foreground">shortlisted</div>
-                        </div>
+                        <div className="hr-dashboard__stat-label">shortlisted</div>
                       </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </section>
 
-        <Card className="shadow-card">
-          <CardHeader>
-            <CardTitle className="text-base">Applicant source</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ left: -20 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
-                  <Tooltip />
-                  <Bar dataKey="selfApplied" name="Self-applied" radius={[4, 4, 0, 0]}>
-                    {chartData.map((_, i) => (
-                      <Cell key={i} fill="var(--chart-1)" />
-                    ))}
-                  </Bar>
-                  <Bar dataKey="hrUploaded" name="HR-uploaded" radius={[4, 4, 0, 0]}>
-                    {chartData.map((_, i) => (
-                      <Cell key={i} fill="var(--chart-2)" />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="mt-2 flex gap-4 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-chart-1" /> Self-applied
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-chart-2" /> HR-uploaded
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+        <section className="hr-dashboard__panel">
+          <div className="hr-dashboard__panel-title">Applicant source</div>
+          <div className="hr-dashboard__chart">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} margin={{ left: -20 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                <Tooltip />
+                <Bar dataKey="selfApplied" name="Self-applied" radius={[4, 4, 0, 0]}>
+                  {chartData.map((_, i) => (
+                    <Cell key={i} fill="#006b79" />
+                  ))}
+                </Bar>
+                <Bar dataKey="hrUploaded" name="HR-uploaded" radius={[4, 4, 0, 0]}>
+                  {chartData.map((_, i) => (
+                    <Cell key={i} fill="#00a093" />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="hr-dashboard__legend">
+            <span>
+              <span className="hr-dashboard__dot" style={{ background: "#006b79" }} /> Self-applied
+            </span>
+            <span>
+              <span className="hr-dashboard__dot" style={{ background: "#00a093" }} /> HR-uploaded
+            </span>
+          </div>
+        </section>
       </div>
-    </div>
+    </>
   );
 }

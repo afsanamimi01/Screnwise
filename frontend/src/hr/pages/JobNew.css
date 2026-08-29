@@ -1,0 +1,21 @@
+/* HR "Create a job" / "New screening" page shell — the form owns its own styles
+   (hr/components/JobForm.css). */
+
+.hr-job-new {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.hr-job-new__intro-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.hr-job-new__intro-text {
+  margin-top: 0.25rem;
+  max-width: 42rem;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
