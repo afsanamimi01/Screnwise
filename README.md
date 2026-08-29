@@ -1,74 +1,27 @@
-# ScanWise
+# Screenwise
 
-A MERN rebuild of the Screenwise CV-screening app, organized by actor
-(admin, hr, manager, candidate) so any piece of frontend/backend code can be
-found by role. See `Frontend from loveable/` (sibling folder) for the
-original Lovable-generated reference this was rebuilt from.
+A MERN, **multi-tenant** rebuild of the Screenwise CV-screening app,
+organized by actor so any piece of frontend/backend code can be found by role.
 
-Currently implemented: the **candidate** actor, full-stack (public job
-browsing, sign in/register, apply with CV, track application status), backed
-by a real Express + MongoDB Atlas API. Other actors (hr/manager/admin) are
-scaffolded but not yet built.
+## Actors
 
-## Setup on a new device (after `git pull` / `git clone`)
+- **Candidate** — global, free forever. Register/login, browse every open job
+  from every company, apply with a CV, track application status.
+- **Company** — a paying organisation on a plan (Basic / Advance / Custom).
+  Registering a company creates its single **Manager**.
+  - **Manager** — company owner. Full recruiter powers **plus** add/deactivate
+    HR (bounded by the plan's seat limit) and switch plan.
+  - **HR** — belongs to one company, created by its Manager. Posts jobs,
+    screens the blind rank board, shortlists, emails. Everything is scoped to
+    the company; all company members share visibility of the company's jobs.
+- **Super admin** — platform operator (seeded only). Dashboard, all companies
+  with plan / seat usage / expiry / access state, renew or revoke a company's
+  access, edit the plan cards a manager sees when choosing a plan, global
+  users list, audit log.
 
-You need [Bun](https://bun.sh) and Node.js installed. The database is
-MongoDB Atlas (cloud) — no local database install needed.
+A company whose subscription has **expired** or been **revoked** has its
+Manager + HR blocked at login until a super admin renews it; candidates and
+public job listings are unaffected.
 
-### 1. Backend
-
-```
-cd backend
-bun install
-cp .env.example .env
-```
-
-Edit `.env`:
-- `MONGODB_URI` — get this from the Atlas dashboard (Database → Connect →
-  Drivers → Node.js). Ask a project owner for the connection string, or see
-  `.env.example` for the format and Windows TLS-troubleshooting notes.
-- `JWT_SECRET` — any random string works per-device; it doesn't need to
-  match other devices unless you want tokens to be portable between them.
-  Generate one with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.
-
-Then run it:
-```
-bun run dev
-```
-On first run it auto-seeds the database with demo users and jobs (only if
-the `jobs` collection is empty — safe to run repeatedly). Demo login for any
-seeded account: password `demo1234` (see `backend/shared/seed.js` for the
-email list).
-
-Should print:
-```
-MongoDB connected: scanwise
-ScanWise backend listening on http://localhost:5000
-```
-
-### 2. Frontend
-
-```
-cd frontend
-bun install
-cp .env.example .env
-bun run dev
-```
-Opens on `http://localhost:8080` (or the next free port if that's taken).
-
-### 3. Verify
-
-Visit the frontend, sign in with a seeded demo account (e.g.
-`jordan@example.com` / `demo1234`), browse the "Open roles" list on the home
-page, apply to one, and confirm it shows up under "My applications" — even
-after a page refresh (proves it's hitting the real database, not mock data).
-
-## Notes for whoever's setting this up
-
-- The Atlas project's **Network Access** list must include `0.0.0.0/0`
-  ("allow access from anywhere") — without it, only whichever IP was
-  whitelisted at setup time can connect, which breaks this exact
-  "works on any device" goal. Check under Atlas → Network Access → IP
-  Access List.
-- `.env` files are gitignored on purpose (they hold real credentials) — each
-  device needs its own copy made from `.env.example`.
+Billing is a plan *selection* only — there is no payment integration, and
+outgoing candidate emails are simulated (logged, never delivered).
