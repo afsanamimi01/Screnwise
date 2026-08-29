@@ -19,9 +19,3 @@ organized by actor so any piece of frontend/backend code can be found by role.
   access, edit the plan cards a manager sees when choosing a plan, global
   users list, audit log.
 
-A company whose subscription has **expired** or been **revoked** has its
-Manager + HR blocked at login until a super admin renews it; candidates and
-public job listings are unaffected.
-
-Billing is a plan *selection* only — there is no payment integration, and
-outgoing candidate emails are simulated (logged, never delivered).
