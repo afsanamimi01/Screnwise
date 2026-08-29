@@ -3,6 +3,41 @@
 A MERN, **multi-tenant** rebuild of the Screenwise CV-screening app,
 organized by actor so any piece of frontend/backend code can be found by role.
 
+## Repository layout
+
+Bun-workspaces monorepo — two apps, shared tooling at the root.
+
+```
+screenwise/
+├── frontend/          scanwise-frontend — React + Vite SPA        (:8080)
+├── backend/           scanwise-backend  — Express + Mongoose API   (:5000)
+├── docs/              architecture notes
+├── package.json       workspaces + top-level scripts
+├── .env.example       how to set up each workspace's .env
+└── .editorconfig · .nvmrc · .gitignore
+```
+
+Each workspace owns its own `package.json` (and the frontend its own
+`tsconfig.json` / `vite.config.ts`) — those resolve paths relative to their
+folder and stay there.
+
+## Getting started
+
+Prerequisites: [Node.js](https://nodejs.org) 22 and [Bun](https://bun.sh) 1.4+.
+
+```bash
+bun install                          # installs both workspaces
+
+cp frontend/.env.example frontend/.env
+cp backend/.env.example  backend/.env
+# fill in backend/.env (MONGODB_URI, JWT_SECRET)
+
+bun run dev                          # frontend + backend together
+```
+
+Other scripts: `bun run dev:frontend`, `bun run dev:backend`,
+`bun run build`, `bun run seed`. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Actors
 
 - **Candidate** — global, free forever. Register/login, browse every open job
@@ -19,3 +54,7 @@ organized by actor so any piece of frontend/backend code can be found by role.
   access, edit the plan cards a manager sees when choosing a plan, global
   users list, audit log.
 
+## Documentation
+
+- [docs/architecture.md](docs/architecture.md) — workspaces, actor model, API surface
+- [CONTRIBUTING.md](CONTRIBUTING.md) — setup, scripts, conventions

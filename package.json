@@ -1,0 +1,23 @@
+{
+  "name": "screenwise",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Multi-tenant MERN CV-screening platform, organized by actor.",
+  "packageManager": "bun@1.4.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "bun run --parallel dev:frontend dev:backend",
+    "dev:frontend": "cd frontend && bun run dev",
+    "dev:backend": "cd backend && bun run dev",
+    "build": "cd frontend && bun run build",
+    "preview": "cd frontend && bun run preview",
+    "start": "cd backend && bun run start",
+    "seed": "cd backend && bun run seed"
+  }
+}
