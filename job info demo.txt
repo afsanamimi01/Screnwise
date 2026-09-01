@@ -1,0 +1,288 @@
+
+1) Senior Backend Engineer — Software Engineering
+Job title: Senior Backend Engineer
+Department: Engineering
+Location: Dhaka, Bangladesh (Hybrid)
+Employment type: Full-time
+Required education level: Bachelor's degree
+
+Description:
+About the role
+We are looking for a Senior Backend Engineer to own the services that power our recruitment platform. You will design APIs, model data, and keep our Node.js/TypeScript services fast and reliable under load, while helping raise the engineering bar across the team.
+
+What you'll do
+
+Design and build REST APIs and relational data models in PostgreSQL
+Lead technical design reviews and mentor two to three mid-level engineers
+Containerise services with Docker, deploy on AWS, and tune caching with Redis
+Add logging, metrics and alerting so problems are caught before customers notice
+What we're looking for
+
+5+ years building and operating production backend systems
+Strong Node.js and TypeScript, confident with SQL and query optimisation
+Experience with microservices, message queues and CI/CD pipelines
+Someone who can own a service end to end, from design through on-call
+Required skills: Node.js, TypeScript, PostgreSQL, REST API design, Docker, AWS, Redis, Microservices
+Nice-to-have skills: GraphQL, Kubernetes, Kafka, GitHub Actions, Terraform, Jest
+Minimum years of experience: 5
+Certifications: AWS Certified Developer - Associate
+
+Hard filters
+
+Must hold a valid work permit: No
+Absolute minimum years of experience: 3
+Must-have skills: Node.js, SQL
+Scoring weights: Skills match 45 | Experience 25 | Education 10 | Certifications 5 | Keyword match 15
+Let candidates apply themselves: On
+
+2) Data Analyst — Data & Analytics
+Job title: Data Analyst
+Department: Data & Analytics
+Location: Remote (Bangladesh)
+Employment type: Full-time
+Required education level: Bachelor's degree
+
+Description:
+About the role
+As our first dedicated Data Analyst, you will turn raw product, marketing and hiring data into decisions the leadership team can act on. You will own reporting end to end and partner with every function to define the metrics that matter.
+
+What you'll do
+
+Build and maintain dashboards in Power BI or Tableau
+Write and optimise SQL against our data warehouse
+Run funnel, cohort and retention analyses and size the impact of proposed changes
+Present findings in plain language to non-technical stakeholders
+What we're looking for
+
+3+ years in an analytics or business intelligence role
+Advanced SQL and strong spreadsheet modelling
+Experience with a BI tool and with cleaning and documenting messy data
+Clear communication and a habit of tying analysis back to business outcomes
+Required skills: SQL, Power BI, Excel, Data visualization, Statistics, Dashboard design, Data cleaning
+Nice-to-have skills: Python, pandas, dbt, Google BigQuery, Looker, A/B testing
+Minimum years of experience: 3
+Certifications: Microsoft Certified: Power BI Data Analyst Associate, Google Data Analytics Certificate
+
+Hard filters
+
+Must hold a valid work permit: No
+Absolute minimum years of experience: 2
+Must-have skills: SQL, Excel
+Scoring weights: Skills match 40 | Experience 20 | Education 20 | Certifications 5 | Keyword match 15
+Let candidates apply themselves: On
+
+3) Product Designer (UX/UI) — Design
+Job title: Product Designer (UX/UI)
+Department: Product Design
+Location: Dhaka, Bangladesh (Hybrid)
+Employment type: Full-time
+Required education level: Bachelor's degree
+
+Description:
+About the role
+We are hiring a Product Designer to shape how recruiters and hiring managers experience our platform. You will own flows from research through polished UI and engineering hand-off, embedded in a squad with a product manager and engineers.
+
+What you'll do
+
+Run discovery: user interviews, journey mapping and problem framing
+Produce wireframes, high-fidelity UI and interactive prototypes in Figma
+Maintain and extend our design system and accessibility standards
+Run lightweight usability tests and iterate on real feedback
+What we're looking for
+
+4+ years designing digital products, with a portfolio of shipped B2B or SaaS work
+Fluency in Figma and modern prototyping techniques
+Ability to explain and defend design decisions with reasoning and evidence
+Strong visual craft alongside solid interaction and information design
+Required skills: Figma, User research, Wireframing, Prototyping, Design systems, Interaction design, Accessibility (WCAG), Usability testing
+Nice-to-have skills: Design tokens, HTML/CSS, Motion design, FigJam, Analytics (GA4, Hotjar)
+Minimum years of experience: 4
+Certifications: Nielsen Norman Group UX Certification
+
+Hard filters
+
+Must hold a valid work permit: No
+Absolute minimum years of experience: 2
+Must-have skills: Figma
+Scoring weights: Skills match 45 | Experience 25 | Education 10 | Certifications 0 | Keyword match 20
+Let candidates apply themselves: On
+
+4) Digital Marketing Manager — Marketing
+Job title: Digital Marketing Manager
+Department: Marketing
+Location: Dhaka, Bangladesh (Hybrid)
+Employment type: Full-time
+Required education level: Bachelor's degree
+
+Description:
+About the role
+We are looking for a Digital Marketing Manager to own demand generation across paid and organic channels. You will carry a pipeline target, not just manage activity, and move comfortably between strategy and hands-on execution.
+
+What you'll do
+
+Plan and run campaigns on Google Ads, LinkedIn and Meta
+Own the SEO and content roadmap and grow the email programme
+Track CAC, MQLs, pipeline contribution and ROI in GA4 and the CRM
+Manage freelancers and an agency, and run A/B tests on landing pages
+What we're looking for
+
+5+ years in B2B or SaaS digital marketing, including paid acquisition
+Hands-on with Google Ads, GA4 and a marketing automation or CRM tool
+Comfortable owning a number and reporting results to leadership
+Strong copy judgement and analytical rigour
+Required skills: Google Ads, SEO, Google Analytics (GA4), Content marketing, Email marketing, Marketing automation, Campaign reporting, Copywriting
+Nice-to-have skills: HubSpot, LinkedIn Ads, Meta Ads, Webflow, Marketing attribution, SQL basics
+Minimum years of experience: 5
+Certifications: Google Ads Search Certification, HubSpot Inbound Marketing
+
+Hard filters
+
+Must hold a valid work permit: No
+Absolute minimum years of experience: 3
+Must-have skills: Google Ads, Google Analytics (GA4)
+Scoring weights: Skills match 40 | Experience 30 | Education 10 | Certifications 5 | Keyword match 15
+Let candidates apply themselves: On
+
+5) Financial Accountant — Finance & Accounting
+Job title: Financial Accountant
+Department: Finance
+Location: Chattogram, Bangladesh (On-site)
+Employment type: Full-time
+Required education level: Bachelor's degree
+
+Description:
+About the role
+We need a Financial Accountant to run the day-to-day books and own the month-end close. You will work largely unsupervised and be the person who can explain the numbers to non-finance colleagues.
+
+What you'll do
+
+Own accounts payable, accounts receivable and bank reconciliations
+Prepare month-end journals, accruals and balance-sheet reconciliations
+Produce monthly management accounts with commentary and support the annual audit
+Handle VAT and tax filings and help tighten internal controls
+What we're looking for
+
+3+ years in a similar role, part- or fully-qualified (ACCA, CIMA or CA)
+Strong double-entry fundamentals and confident month-end ownership
+Working knowledge of Xero or QuickBooks and advanced Excel
+Accuracy, discretion and clear written explanations
+Required skills: Financial accounting, Month-end close, Bank reconciliation, Management accounts, Accounts payable, Accounts receivable, VAT returns, Excel
+Nice-to-have skills: Xero, QuickBooks, Payroll, Cash-flow forecasting, IFRS, Power Query
+Minimum years of experience: 3
+Certifications: ACCA (part-qualified), CIMA, CA
+
+Hard filters
+
+Must hold a valid work permit: Yes
+Absolute minimum years of experience: 2
+Must-have skills: Double-entry bookkeeping, Excel
+Scoring weights: Skills match 35 | Experience 25 | Education 20 | Certifications 15 | Keyword match 5
+Let candidates apply themselves: On
+
+6) HR Business Partner — Human Resources
+Job title: HR Business Partner
+Department: People & Culture
+Location: Dhaka, Bangladesh (On-site)
+Employment type: Full-time
+Required education level: Bachelor's degree
+
+Description:
+About the role
+We are hiring an HR Business Partner to support two departments through the full employee lifecycle. The role mixes strategic partnering with hands-on casework, from restructures to individual grievances.
+
+What you'll do
+
+Coach line managers on performance, progression and difficult conversations
+Run the review and compensation cycles and workforce planning with talent acquisition
+Lead onboarding, retention and engagement initiatives using people data
+Keep the business compliant with local labour law and internal policy
+What we're looking for
+
+6+ years in HR, with at least 2 as a partner to line managers
+Solid grounding in employment legislation and ER casework
+Confident with an HRIS and with turning engagement data into action
+Balances employee advocacy with commercial needs
+Required skills: Employee relations, Performance management, Employment law, HRIS, Onboarding, Compensation and benefits, Stakeholder management, People analytics
+Nice-to-have skills: Workday, Bamboo HR, Change management, L&D program design, Job evaluation, Mediation
+Minimum years of experience: 6
+Certifications: CIPD Level 5, SHRM-CP
+
+Hard filters
+
+Must hold a valid work permit: Yes
+Absolute minimum years of experience: 4
+Must-have skills: Employment law, HRIS
+Scoring weights: Skills match 35 | Experience 30 | Education 15 | Certifications 10 | Keyword match 10
+Let candidates apply themselves: On
+
+7) DevOps Engineer — Cloud & Infrastructure
+Job title: DevOps Engineer
+Department: Platform Engineering
+Location: Remote (GMT+6, ±3 hours)
+Employment type: Contract
+Required education level: Bachelor's degree
+
+Description:
+About the role
+We are looking for a DevOps Engineer to own our cloud infrastructure and delivery pipelines on an initial 12-month contract. You will treat reliability, security and developer experience as one problem.
+
+What you'll do
+
+Manage AWS across multiple environments with Terraform
+Operate Kubernetes clusters and keep GitHub Actions pipelines fast and dependable
+Build monitoring and alerting with Prometheus and Grafana
+Lead incident response and write blameless post-mortems
+What we're looking for
+
+4+ years running infrastructure as code in production
+Strong Linux, networking and AWS fundamentals
+Hands-on Kubernetes and CI/CD experience
+A bias for automating toil and reducing cloud spend
+Required skills: AWS, Terraform, Kubernetes, Docker, Linux, CI/CD, GitHub Actions, Prometheus, Grafana
+Nice-to-have skills: Helm, ArgoCD, Ansible, Python, ELK stack, Cloudflare, PostgreSQL operations
+Minimum years of experience: 4
+Certifications: AWS Certified Solutions Architect - Associate, Certified Kubernetes Administrator (CKA)
+
+Hard filters
+
+Must hold a valid work permit: No
+Absolute minimum years of experience: 3
+Must-have skills: AWS, Linux
+Scoring weights: Skills match 45 | Experience 25 | Education 10 | Certifications 10 | Keyword match 10
+Let candidates apply themselves: Off
+
+8) Junior QA Engineer (Intern) — Quality Assurance
+Job title: Junior QA Engineer (Intern)
+Department: Engineering - Quality
+Location: Dhaka, Bangladesh (On-site)
+Employment type: Internship
+Required education level: Bachelor's degree
+
+Description:
+About the role
+A six-month internship for someone starting a career in software quality. You will be paired with a senior engineer, given real features to test, and expected to grow into owning a product area by the end.
+
+What you'll do
+
+Write and run test cases from product requirements and log clear bug reports
+Help maintain the manual regression suite inside an agile team
+Learn to automate UI tests with Playwright or Cypress
+Test REST APIs with Postman and basic SQL checks against test data
+What we're looking for
+
+Final-year student or recent graduate in Computer Science or a related field
+Strong attention to detail and a genuine interest in how software breaks
+Basic understanding of the software development lifecycle and Git
+Clear written English for bug reports
+Required skills: Manual testing, Test case design, Bug reporting, SQL basics, Git, Agile/Scrum
+Nice-to-have skills: Playwright, Cypress, Postman, JavaScript, JIRA, API testing
+Minimum years of experience: 0
+Certifications: ISTQB Foundation Level
+
+Hard filters
+
+Must hold a valid work permit: No
+Absolute minimum years of experience: 0
+Must-have skills: Manual testing
+Scoring weights: Skills match 35 | Experience 10 | Education 25 | Certifications 5 | Keyword match 25
+Let candidates apply themselves: On
