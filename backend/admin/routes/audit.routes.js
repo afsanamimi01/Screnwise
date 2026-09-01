@@ -4,7 +4,7 @@ import { listAuditLog } from "../controllers/audit.controller.js";
 
 const router = Router();
 
-router.use(verifyToken, requireRole("admin"));
+router.use(verifyToken, requireRole("superadmin"));
 
 router.get("/", listAuditLog);
 

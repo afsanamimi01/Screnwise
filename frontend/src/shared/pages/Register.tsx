@@ -1,30 +1,28 @@
-import { Link, useNavigate } from "react-router-dom";
-import { Sparkles } from "lucide-react";
 import { useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Briefcase, Building2, Sparkles } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/shared/components/ui/radio-group";
 import { SiteFooter } from "@/shared/components/SiteFooter";
 import { homeForRole, useAuth } from "@/shared/lib/auth";
-import type { Role } from "@/shared/lib/types";
 import { usePageTitle } from "@/shared/lib/use-page-title";
+import { cn } from "@/shared/lib/utils";
 
-const roles: { value: Role; label: string; hint: string }[] = [
-  { value: "hr", label: "HR / recruiter", hint: "Post jobs, screen CVs, shortlist and email." },
-  { value: "manager", label: "Hiring manager", hint: "Review shortlists and leave feedback." },
-  { value: "candidate", label: "Candidate", hint: "Apply to roles and track your status." },
-];
+type Mode = "candidate" | "company";
 
 export default function Register() {
   usePageTitle("Create an account — Screenwise");
-  const { register } = useAuth();
+  const { register, registerCompany } = useAuth();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+
+  const [mode, setMode] = useState<Mode>(params.get("type") === "company" ? "company" : "candidate");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<Role>("hr");
+  const [companyName, setCompanyName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -33,7 +31,13 @@ export default function Register() {
     setError(null);
     setSubmitting(true);
     try {
-      const user = await register(name || email.split("@")[0] || "New user", email, password, role);
+      if (mode === "company") {
+        await registerCompany({ companyName, name, email, password });
+        // No plan yet — send them straight to the plan chooser.
+        navigate("/billing");
+        return;
+      }
+      const user = await register(name || email.split("@")[0] || "New user", email, password);
       navigate(homeForRole(user.role));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not create the account");
@@ -51,23 +55,67 @@ export default function Register() {
             </div>
             <span className="font-semibold tracking-tight">Screenwise</span>
           </Link>
+
+          <div className="mb-4 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setMode("candidate")}
+              className={cn(
+                "flex items-center justify-center gap-2 rounded-lg border p-3 text-sm transition-colors",
+                mode === "candidate"
+                  ? "border-primary bg-primary-soft/50 font-medium"
+                  : "text-muted-foreground hover:bg-accent",
+              )}
+            >
+              <Briefcase className="h-4 w-4" /> I'm looking for a job
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("company")}
+              className={cn(
+                "flex items-center justify-center gap-2 rounded-lg border p-3 text-sm transition-colors",
+                mode === "company"
+                  ? "border-primary bg-primary-soft/50 font-medium"
+                  : "text-muted-foreground hover:bg-accent",
+              )}
+            >
+              <Building2 className="h-4 w-4" /> I'm hiring
+            </button>
+          </div>
+
           <Card className="shadow-card">
             <CardHeader>
-              <CardTitle>Create your account</CardTitle>
+              <CardTitle>
+                {mode === "company" ? "Register your company" : "Create your account"}
+              </CardTitle>
               <CardDescription>
-                Pick the role you want to explore. Admin accounts are seeded, not self-registered.
+                {mode === "company"
+                  ? "You'll be the company manager. Pick a plan and add HR recruiters right after signing up."
+                  : "One account to browse every open role and track your applications. Always free."}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={submit} className="space-y-4">
+                {mode === "company" ? (
+                  <div>
+                    <Label htmlFor="companyName">Company name</Label>
+                    <Input
+                      id="companyName"
+                      required
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      className="mt-1.5"
+                    />
+                  </div>
+                ) : null}
                 <div>
-                  <Label htmlFor="name">Full name</Label>
+                  <Label htmlFor="name">{mode === "company" ? "Your name" : "Full name"}</Label>
                   <Input
                     id="name"
+                    required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="mt-1.5"
-                    required
                   />
                 </div>
                 <div>
@@ -75,10 +123,10 @@ export default function Register() {
                   <Input
                     id="email"
                     type="email"
+                    required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="mt-1.5"
-                    required
                   />
                 </div>
                 <div>
@@ -86,41 +134,25 @@ export default function Register() {
                   <Input
                     id="password"
                     type="password"
+                    required
+                    minLength={6}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="mt-1.5"
-                    minLength={6}
-                    required
                   />
                 </div>
-                <div>
-                  <Label>Role</Label>
-                  <RadioGroup
-                    value={role}
-                    onValueChange={(v) => setRole(v as Role)}
-                    className="mt-2 space-y-2"
-                  >
-                    {roles.map((r) => (
-                      <label
-                        key={r.value}
-                        className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 text-sm has-[button[data-state=checked]]:border-primary has-[button[data-state=checked]]:bg-primary-soft/50"
-                      >
-                        <RadioGroupItem value={r.value} className="mt-0.5" />
-                        <span>
-                          <span className="font-medium">{r.label}</span>
-                          <span className="block text-xs text-muted-foreground">{r.hint}</span>
-                        </span>
-                      </label>
-                    ))}
-                  </RadioGroup>
-                </div>
+
                 {error ? (
                   <p className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-destructive">
                     {error}
                   </p>
                 ) : null}
                 <Button type="submit" className="w-full" disabled={submitting}>
-                  {submitting ? "Creating…" : "Create account"}
+                  {submitting
+                    ? "Creating…"
+                    : mode === "company"
+                      ? "Register & choose a plan"
+                      : "Create account"}
                 </Button>
               </form>
               <p className="mt-6 text-center text-sm text-muted-foreground">

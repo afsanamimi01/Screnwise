@@ -1,5 +1,6 @@
 import Job from "../../shared/models/Job.model.js";
 import { logAudit } from "../../shared/utils/audit.js";
+import { tenantFilter } from "../../shared/middleware/auth.middleware.js";
 
 const EDITABLE_FIELDS = [
   "title",
@@ -16,7 +17,6 @@ const EDITABLE_FIELDS = [
   "weights",
   "publicApplyEnabled",
   "status",
-  "managerIds",
 ];
 
 function pickEditableFields(body) {
@@ -27,10 +27,16 @@ function pickEditableFields(body) {
   return out;
 }
 
+/**
+ * Every job/screening owned by the caller's company (all members share
+ * visibility). `?kind=screening` returns the internal screening batches;
+ * anything else returns real job postings only.
+ */
 export async function listJobs(req, res, next) {
   try {
-    const filter = req.user.role === "admin" ? {} : { createdBy: req.user._id };
-    const jobs = await Job.find(filter).sort({ createdAt: -1 });
+    const kindFilter =
+      req.query.kind === "screening" ? { kind: "screening" } : { kind: { $ne: "screening" } };
+    const jobs = await Job.find({ ...tenantFilter(req), ...kindFilter }).sort({ createdAt: -1 });
     res.json(jobs);
   } catch (err) {
     next(err);
@@ -39,11 +45,20 @@ export async function listJobs(req, res, next) {
 
 export async function createJob(req, res, next) {
   try {
+    const isScreening = req.body.kind === "screening";
     const job = await Job.create({
       ...pickEditableFields(req.body),
+      kind: isScreening ? "screening" : "job",
+      publicApplyEnabled: isScreening ? false : req.body.publicApplyEnabled,
+      companyId: req.user.companyId,
       createdBy: req.user._id,
     });
-    await logAudit(req.user.name, "Job created", job.title);
+    await logAudit(
+      req.user.name,
+      isScreening ? "Screening created" : "Job created",
+      job.title,
+      req.user.companyId,
+    );
     res.status(201).json(job);
   } catch (err) {
     next(err);
@@ -52,7 +67,7 @@ export async function createJob(req, res, next) {
 
 export async function getJobById(req, res, next) {
   try {
-    const job = await Job.findById(req.params.id);
+    const job = await Job.findOne({ _id: req.params.id, ...tenantFilter(req) });
     if (!job) return res.status(404).json({ message: "Job not found" });
     res.json(job);
   } catch (err) {
@@ -62,14 +77,11 @@ export async function getJobById(req, res, next) {
 
 export async function updateJob(req, res, next) {
   try {
-    const job = await Job.findById(req.params.id);
+    const job = await Job.findOne({ _id: req.params.id, ...tenantFilter(req) });
     if (!job) return res.status(404).json({ message: "Job not found" });
-    if (req.user.role !== "admin" && job.createdBy?.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "Only the job's creator can edit it" });
-    }
     Object.assign(job, pickEditableFields(req.body));
     await job.save();
-    await logAudit(req.user.name, "Job updated", job.title);
+    await logAudit(req.user.name, "Job updated", job.title, req.user.companyId);
     res.json(job);
   } catch (err) {
     next(err);

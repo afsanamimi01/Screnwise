@@ -5,6 +5,6 @@ import { uploadCvs } from "../controllers/upload.controller.js";
 const router = Router();
 
 router.use(verifyToken);
-router.post("/:jobId", requireRole("hr", "admin"), uploadCvs);
+router.post("/:jobId", requireRole("hr", "manager"), uploadCvs);
 
 export default router;

@@ -1,7 +1,7 @@
 import { Component, useState, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { AuthProvider } from "@/shared/lib/auth";
+import { AuthProvider, useAuth } from "@/shared/lib/auth";
 import { Toaster } from "@/shared/components/ui/sonner";
 import Landing from "@/shared/pages/Landing";
 import Login from "@/shared/pages/Login";
@@ -18,9 +18,21 @@ import JobBoard from "@/hr/pages/JobBoard";
 import JobShortlist from "@/hr/pages/JobShortlist";
 import JobUpload from "@/hr/pages/JobUpload";
 import JobEmail from "@/hr/pages/JobEmail";
-import ReviewShortlists from "@/manager/pages/ReviewShortlists";
-import Users from "@/admin/pages/Users";
-import AuditLog from "@/admin/pages/AuditLog";
+import Team from "@/manager/pages/Team";
+import Billing from "@/manager/pages/Billing";
+import ManagerDashboard from "@/manager/pages/Dashboard";
+import ManagerJobs from "@/manager/pages/Jobs";
+import ManagerJobNew from "@/manager/pages/JobNew";
+import ManagerJobEdit from "@/manager/pages/JobEdit";
+import ManagerJobBoard from "@/manager/pages/JobBoard";
+import ManagerJobShortlist from "@/manager/pages/JobShortlist";
+import ManagerJobUpload from "@/manager/pages/JobUpload";
+import ManagerJobEmail from "@/manager/pages/JobEmail";
+import AdminDashboard from "@/admin/pages/Dashboard";
+import AdminCompanies from "@/admin/pages/Companies";
+import AdminUsers from "@/admin/pages/Users";
+import AdminAuditLog from "@/admin/pages/AuditLog";
+import AdminPricing from "@/admin/pages/Pricing";
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
   override state = { error: null as Error | null };
@@ -64,6 +76,12 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
   }
 }
 
+/** Recruiter pages: managers get their own copy, HR keeps theirs. */
+function Recruiter({ hr, manager }: { hr: ReactNode; manager: ReactNode }) {
+  const { user } = useAuth();
+  return <>{user?.role === "manager" ? manager : hr}</>;
+}
+
 export default function App() {
   const [queryClient] = useState(() => new QueryClient());
 
@@ -83,22 +101,81 @@ export default function App() {
               <Route path="/my-applications" element={<MyApplications />} />
               <Route path="/open-roles" element={<OpenRoles />} />
 
-              {/* hr / recruiter */}
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/jobs" element={<Jobs />} />
-              <Route path="/jobs/new" element={<JobNew />} />
-              <Route path="/jobs/:jobId/edit" element={<JobEdit />} />
-              <Route path="/jobs/:jobId/board" element={<JobBoard />} />
-              <Route path="/jobs/:jobId/shortlist" element={<JobShortlist />} />
-              <Route path="/jobs/:jobId/upload" element={<JobUpload />} />
-              <Route path="/jobs/:jobId/email" element={<JobEmail />} />
+              {/* recruiter workspace — hr and manager have their own page copies */}
+              <Route
+                path="/dashboard"
+                element={<Recruiter hr={<Dashboard />} manager={<ManagerDashboard />} />}
+              />
 
-              {/* manager */}
-              <Route path="/manager" element={<ReviewShortlists />} />
+              <Route
+                path="/jobs"
+                element={<Recruiter hr={<Jobs />} manager={<ManagerJobs />} />}
+              />
+              <Route
+                path="/jobs/new"
+                element={<Recruiter hr={<JobNew />} manager={<ManagerJobNew />} />}
+              />
+              <Route
+                path="/jobs/:jobId/edit"
+                element={<Recruiter hr={<JobEdit />} manager={<ManagerJobEdit />} />}
+              />
+              <Route
+                path="/jobs/:jobId/board"
+                element={<Recruiter hr={<JobBoard />} manager={<ManagerJobBoard />} />}
+              />
+              <Route
+                path="/jobs/:jobId/shortlist"
+                element={<Recruiter hr={<JobShortlist />} manager={<ManagerJobShortlist />} />}
+              />
+              <Route
+                path="/jobs/:jobId/upload"
+                element={<Recruiter hr={<JobUpload />} manager={<ManagerJobUpload />} />}
+              />
+              <Route
+                path="/jobs/:jobId/email"
+                element={<Recruiter hr={<JobEmail />} manager={<ManagerJobEmail />} />}
+              />
 
-              {/* admin */}
-              <Route path="/admin/users" element={<Users />} />
-              <Route path="/admin/audit" element={<AuditLog />} />
+              {/* independent CV screening — same pages, kind: "screening" */}
+              <Route
+                path="/screen"
+                element={<Recruiter hr={<Jobs />} manager={<ManagerJobs />} />}
+              />
+              <Route
+                path="/screen/new"
+                element={<Recruiter hr={<JobNew />} manager={<ManagerJobNew />} />}
+              />
+              <Route
+                path="/screen/:jobId/edit"
+                element={<Recruiter hr={<JobEdit />} manager={<ManagerJobEdit />} />}
+              />
+              <Route
+                path="/screen/:jobId/board"
+                element={<Recruiter hr={<JobBoard />} manager={<ManagerJobBoard />} />}
+              />
+              <Route
+                path="/screen/:jobId/shortlist"
+                element={<Recruiter hr={<JobShortlist />} manager={<ManagerJobShortlist />} />}
+              />
+              <Route
+                path="/screen/:jobId/upload"
+                element={<Recruiter hr={<JobUpload />} manager={<ManagerJobUpload />} />}
+              />
+              <Route
+                path="/screen/:jobId/email"
+                element={<Recruiter hr={<JobEmail />} manager={<ManagerJobEmail />} />}
+              />
+
+              {/* company manager only */}
+              <Route path="/team" element={<Team />} />
+              <Route path="/billing" element={<Billing />} />
+
+              {/* super admin */}
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/companies" element={<AdminCompanies />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/audit" element={<AdminAuditLog />} />
+              <Route path="/admin/pricing" element={<AdminPricing />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>

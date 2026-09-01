@@ -1,5 +1,5 @@
 /**
- * REST client for the ScanWise backend (Express + MongoDB).
+ * REST client for the Screenwise backend (Express + MongoDB).
  *
  * Every call goes to `VITE_API_BASE_URL` (see `.env`) with the signed-in
  * user's JWT attached. Shapes returned here match the `types.ts` models the
@@ -11,8 +11,10 @@ import type {
   ApplicationStatus,
   AuditEntry,
   Candidate,
+  Company,
   Job,
-  Role,
+  Plan,
+  PlanKey,
   SentEmail,
   User,
 } from "./types";
@@ -59,14 +61,32 @@ export function authLogin(email: string, password: string) {
   });
 }
 
-export function authRegister(name: string, email: string, password: string, role: Role) {
+/** Public self-serve signup — always a candidate. */
+export function authRegisterCandidate(name: string, email: string, password: string) {
   return request<{ token: string; user: User }>("/auth/register", {
     method: "POST",
-    body: body({ name, email, password, role }),
+    body: body({ name, email, password }),
+  });
+}
+
+/** Organisation signup — creates a plan-less company plus its manager account. */
+export function authRegisterCompany(payload: {
+  companyName: string;
+  name: string;
+  email: string;
+  password: string;
+}) {
+  return request<{ token: string; user: User; company: Company }>("/auth/register-company", {
+    method: "POST",
+    body: body(payload),
   });
 }
 
 /* --------------------------------- public -------------------------------- */
+
+export function getPlans(): Promise<Plan[]> {
+  return request<Plan[]>("/plans");
+}
 
 export function getPublicJobs(): Promise<Job[]> {
   return request<Job[]>("/candidate/jobs");
@@ -105,12 +125,21 @@ export function getJobs(): Promise<Job[]> {
   return request<Job[]>("/hr/jobs");
 }
 
+/** The independent CV-screening batches (kind: "screening"). */
+export function getScreenings(): Promise<Job[]> {
+  return request<Job[]>("/hr/jobs?kind=screening");
+}
+
 export function getJob(jobId: string): Promise<Job> {
   return request<Job>(`/hr/jobs/${jobId}`);
 }
 
 export function createJob(job: Job): Promise<Job> {
-  return request<Job>("/hr/jobs", { method: "POST", body: body(job) });
+  return request<Job>("/hr/jobs", { method: "POST", body: body({ ...job, kind: "job" }) });
+}
+
+export function createScreening(job: Job): Promise<Job> {
+  return request<Job>("/hr/jobs", { method: "POST", body: body({ ...job, kind: "screening" }) });
 }
 
 export function updateJob(job: Job): Promise<Job> {
@@ -133,6 +162,7 @@ export function shortlistCandidate(applicationIds: string[]): Promise<{ shortlis
   return request("/hr/shortlist", { method: "POST", body: body({ applicationIds }) });
 }
 
+/** Upload CVs for one job/screening and get them scored against it. */
 export function uploadCvs(jobId: string, fileNames: string[]): Promise<Application[]> {
   return request<Application[]>(`/hr/upload/${jobId}`, {
     method: "POST",
@@ -155,35 +185,112 @@ export function getSentEmails(jobId: string): Promise<SentEmail[]> {
   return request<SentEmail[]>(`/hr/email/${jobId}`);
 }
 
-/* -------------------------------- manager ------------------------------- */
+/* ------------------------ company (manager console) --------------------- */
 
-export function getManagerShortlists(): Promise<
-  { job: Job; entries: { app: Application; candidate: Candidate }[] }[]
-> {
-  return request("/manager/shortlists");
+export type CompanyOverview = Company & {
+  hrSeatsUsed: number;
+  hrCount: number;
+  /** Full plan card for the current plan; `plan` (inherited) stays the key. */
+  planDetail: Plan | null;
+};
+
+export function getMyCompany(): Promise<CompanyOverview> {
+  return request<CompanyOverview>("/company");
 }
 
-export function sendManagerFeedback(jobId: string, note: string): Promise<{ ok: true }> {
-  return request("/manager/feedback", { method: "POST", body: body({ jobId, note }) });
+export function getCompanyHr(): Promise<User[]> {
+  return request<User[]>("/company/hr");
 }
 
-/* --------------------------------- admin -------------------------------- */
+export function createHr(payload: {
+  name: string;
+  email: string;
+  password: string;
+}): Promise<User> {
+  return request<User>("/company/hr", { method: "POST", body: body(payload) });
+}
+
+export function updateHr(id: string, patch: { active?: boolean; name?: string }): Promise<User> {
+  return request<User>(`/company/hr/${id}`, { method: "PATCH", body: body(patch) });
+}
+
+export function changePlan(plan: PlanKey): Promise<Company> {
+  return request<Company>("/company/plan", { method: "PATCH", body: body({ plan }) });
+}
+
+/* ----------------------- admin (super-admin console) ------------------- */
+
+export type AdminDashboard = {
+  totals: {
+    companies: number;
+    activeCompanies: number;
+    candidates: number;
+    jobs: number;
+    applications: number;
+  };
+  planMix: Record<string, number>;
+  expiringSoon: {
+    id: string;
+    name: string;
+    plan: PlanKey | null;
+    status: string;
+    subscriptionExpiresAt: string | null;
+  }[];
+  recentCompanies: {
+    id: string;
+    name: string;
+    plan: PlanKey | null;
+    status: string;
+    accessible: boolean;
+    subscriptionExpiresAt: string | null;
+  }[];
+};
+
+export type CompanyRow = Company & {
+  manager: { name: string; email: string } | null;
+  hrSeatsUsed: number;
+  hrCount: number;
+  jobCount: number;
+};
+
+export function getAdminDashboard(): Promise<AdminDashboard> {
+  return request<AdminDashboard>("/admin/dashboard");
+}
+
+export function getCompanies(): Promise<CompanyRow[]> {
+  return request<CompanyRow[]>("/admin/companies");
+}
+
+export function updateCompanyAccess(id: string, action: "renew" | "revoke"): Promise<Company> {
+  return request<Company>(`/admin/companies/${id}`, {
+    method: "PATCH",
+    body: body({ action }),
+  });
+}
 
 export function getUsers(): Promise<User[]> {
   return request<User[]>("/admin/users");
 }
 
 export function updateUser(
-  user: Pick<User, "id"> & Partial<Pick<User, "role" | "active" | "name">>,
+  user: Pick<User, "id"> & Partial<Pick<User, "active" | "name">>,
 ): Promise<User> {
   return request<User>(`/admin/users/${user.id}`, {
     method: "PATCH",
-    body: body({ role: user.role, active: user.active, name: user.name }),
+    body: body({ active: user.active, name: user.name }),
   });
 }
 
 export function getAuditLog(): Promise<AuditEntry[]> {
   return request<AuditEntry[]>("/admin/audit");
+}
+
+export function getAdminPlans(): Promise<Plan[]> {
+  return request<Plan[]>("/admin/plans");
+}
+
+export function updatePlan(key: PlanKey, patch: Partial<Plan>): Promise<Plan> {
+  return request<Plan>(`/admin/plans/${key}`, { method: "PATCH", body: body(patch) });
 }
 
 export type { ApplicationStatus };

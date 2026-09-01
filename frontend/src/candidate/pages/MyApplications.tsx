@@ -9,7 +9,7 @@ import { usePageTitle } from "@/shared/lib/use-page-title";
 import "./MyApplications.css";
 
 export default function MyApplications() {
-  usePageTitle("My applications — Screenwise");
+  usePageTitle("My applications");
   const { user } = useAuth();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["my-apps", user?.id],

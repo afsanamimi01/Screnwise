@@ -1,14 +1,24 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { authLogin, authRegister } from "./api";
+import { authLogin, authRegisterCandidate, authRegisterCompany } from "./api";
 import { clearStoredAuth, getStoredAuth, setStoredAuth } from "./auth-storage";
 import type { Role, User } from "./types";
+
+type CompanySignup = {
+  companyName: string;
+  name: string;
+  email: string;
+  password: string;
+};
 
 type AuthValue = {
   user: User | null;
   token: string | null;
   ready: boolean;
   login: (email: string, password: string) => Promise<User>;
-  register: (name: string, email: string, password: string, role: Role) => Promise<User>;
+  /** Public self-serve signup — always a candidate. */
+  register: (name: string, email: string, password: string) => Promise<User>;
+  /** Organisation signup — creates a company + its manager account. */
+  registerCompany: (payload: CompanySignup) => Promise<User>;
   logout: () => void;
 };
 
@@ -50,9 +60,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         persist(result);
         return result.user;
       },
-      register: async (name, email, password, role) => {
-        const result = await authRegister(name, email, password, role);
+      register: async (name, email, password) => {
+        const result = await authRegisterCandidate(name, email, password);
         persist(result);
+        return result.user;
+      },
+      registerCompany: async (payload) => {
+        const result = await authRegisterCompany(payload);
+        persist({ token: result.token, user: result.user });
         return result.user;
       },
       logout: () => persist(null),
@@ -70,19 +85,24 @@ export function useAuth() {
 
 export const roleLabels: Record<Role, string> = {
   hr: "HR / recruiter",
-  manager: "Hiring manager",
+  manager: "Company manager",
   candidate: "Candidate",
-  admin: "Admin",
+  superadmin: "Super admin",
 };
 
 export function homeForRole(role: Role) {
   if (role === "candidate") return "/my-applications";
-  if (role === "manager") return "/manager";
+  if (role === "superadmin") return "/admin";
+  // manager and hr share the recruiter workspace
   return "/dashboard";
 }
 
-/** Access rule: a job's rank board is visible only to its creator and admins. */
-export function canViewBoard(user: User | null, createdBy: string) {
+/**
+ * Access rule: a job's rank board is visible to the super admin and to any
+ * member of the company that owns the job. The server enforces this too.
+ */
+export function canViewBoard(user: User | null, companyId: string) {
   if (!user) return false;
-  return user.role === "admin" || user.id === createdBy;
+  if (user.role === "superadmin") return true;
+  return !!user.companyId && user.companyId === companyId;
 }

@@ -5,7 +5,7 @@ import { listSentEmails, sendShortlistEmail } from "../controllers/email.control
 const router = Router();
 
 router.use(verifyToken);
-router.post("/:jobId", requireRole("hr", "admin"), sendShortlistEmail);
-router.get("/:jobId", requireRole("hr", "admin"), listSentEmails);
+router.post("/:jobId", requireRole("hr", "manager"), sendShortlistEmail);
+router.get("/:jobId", requireRole("hr", "manager"), listSentEmails);
 
 export default router;

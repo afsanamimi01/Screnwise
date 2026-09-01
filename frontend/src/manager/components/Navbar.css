@@ -1,0 +1,40 @@
+/* Company-manager top bar — the white strip beside the sidebar. Context line on
+   the left, signed-in name on the right. Nothing else (brand lives in the sidebar). */
+
+.manager-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  height: 4rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 1.25rem;
+  border-bottom: 1px solid #dee4e7;
+  background: #ffffff;
+  backdrop-filter: blur(8px);
+}
+
+.manager-navbar__subtitle {
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+.manager-navbar__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1875rem 0.75rem;
+  border: 1px solid #dee4e7;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #0b1d27;
+  white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+  .manager-navbar {
+    padding: 0 2rem;
+  }
+}

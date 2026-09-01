@@ -1,6 +1,7 @@
 import Job from "../../shared/models/Job.model.js";
 import Application from "../../shared/models/Application.model.js";
 import { logAudit } from "../../shared/utils/audit.js";
+import { tenantFilter } from "../../shared/middleware/auth.middleware.js";
 
 const TITLES = [
   "Specialist",
@@ -86,7 +87,7 @@ function simulateApplication(job, fileName, index, existingCount) {
     jobId: job._id,
     name,
     email: emailFromName(name, index),
-    phone: `+1 555 ${String(1000 + existingCount + index).padStart(4, "0")}`,
+    phone: `+8801${String(700000000 + existingCount + index).padStart(9, "0")}`,
     alias: `Candidate #${String(existingCount + index + 1).padStart(3, "0")}`,
     source: "HR-uploaded",
     score,
@@ -109,18 +110,27 @@ export async function uploadCvs(req, res, next) {
     const { jobId } = req.params;
     const { fileNames = [] } = req.body;
 
-    const job = await Job.findById(jobId);
+    const job = await Job.findOne({ _id: jobId, ...tenantFilter(req) });
     if (!job) return res.status(404).json({ message: "Job not found" });
-    if (req.user.role !== "admin" && job.createdBy?.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "Only the job's creator can upload CVs to it" });
-    }
 
     const existingCount = await Application.countDocuments({ jobId });
     const docs = fileNames.map((fileName, i) => simulateApplication(job, fileName, i, existingCount));
     const created = await Application.insertMany(docs);
 
-    await logAudit(req.user.name, "CVs uploaded", `${fileNames.length} files to ${job.title}`);
-    res.status(201).json(created);
+    await logAudit(
+      req.user.name,
+      "CVs uploaded",
+      `${fileNames.length} files to ${job.title}`,
+      req.user.companyId,
+    );
+    const blind = created.map((a) => {
+      const json = a.toJSON();
+      delete json.name;
+      delete json.email;
+      delete json.phone;
+      return json;
+    });
+    res.status(201).json(blind);
   } catch (err) {
     next(err);
   }

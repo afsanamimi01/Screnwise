@@ -1,0 +1,141 @@
+/* Company-manager "Jobs" page — self-contained (frame + width live in
+   manager/components/Shell.css). */
+
+.manager-jobs {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* --- heading + new button ------------------------------------- */
+.manager-jobs__intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.manager-jobs__intro-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.manager-jobs__intro-text {
+  margin-top: 0.25rem;
+  max-width: 42rem;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+.manager-jobs__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  padding: 0.5rem 0.875rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: #006b79;
+  color: #f8fdfe;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+
+.manager-jobs__btn:hover {
+  background: #00606d;
+}
+
+/* --- table ------------------------------------------------- */
+.manager-jobs__table-wrap {
+  overflow-x: auto;
+  border: 1px solid #dee4e7;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 1px 2px #04191f0f, 0 8px 24px #04191f0d;
+}
+
+.manager-jobs__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.manager-jobs__table th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 500;
+  color: #5e6b73;
+  border-bottom: 1px solid #dee4e7;
+  white-space: nowrap;
+}
+
+.manager-jobs__table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #dee4e7;
+  vertical-align: middle;
+}
+
+.manager-jobs__table tr:last-child td {
+  border-bottom: 0;
+}
+
+.manager-jobs__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-weight: 500;
+  color: #5e6b73;
+  cursor: pointer;
+}
+
+.manager-jobs__sort:hover {
+  color: #0b1d27;
+}
+
+.manager-jobs__row {
+  cursor: pointer;
+}
+
+.manager-jobs__row:hover td {
+  background: #f5f8fa;
+}
+
+.manager-jobs__cell--name {
+  font-weight: 500;
+}
+
+.manager-jobs__cell--sub {
+  font-size: 0.75rem;
+  color: #5e6b73;
+}
+
+.manager-jobs__cell--muted {
+  color: #5e6b73;
+}
+
+.manager-jobs__num {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.manager-jobs__pill {
+  padding: 0.0625rem 0.5rem;
+  border: 1px solid #dee4e7;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  text-transform: capitalize;
+  color: #5e6b73;
+}
+
+.manager-jobs__pill--open {
+  border-color: #9be0b9;
+  background: #d2f6dd;
+  color: #14874e;
+}

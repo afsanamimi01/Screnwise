@@ -1,0 +1,277 @@
+/* Company-manager "HR team" page — self-contained (the page frame + width live
+   in manager/components/Shell.css). */
+
+.team {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* --- heading + add button ---------------------------------------- */
+.team__intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.team__intro-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.team__intro-text {
+  margin-top: 0.25rem;
+  max-width: 42rem;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+/* --- company summary ------------------------------------------- */
+.team__summary {
+  padding: 1.25rem 1.5rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 1px 2px #04191f0f, 0 8px 24px #04191f0d;
+}
+
+.team__summary-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.team__summary-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.team__cap {
+  text-transform: capitalize;
+}
+
+.team__muted {
+  color: #5e6b73;
+}
+
+.team__strong {
+  font-weight: 500;
+  color: #0b1d27;
+}
+
+.team__num {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.team__warn {
+  padding: 0.125rem 0.625rem;
+  border: 1px solid #dee4e7;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  color: #ca8a10;
+}
+
+/* --- table --------------------------------------------------- */
+.team__table-wrap {
+  overflow-x: auto;
+  border: 1px solid #dee4e7;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 1px 2px #04191f0f, 0 8px 24px #04191f0d;
+}
+
+.team__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.team__table th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 500;
+  color: #5e6b73;
+  border-bottom: 1px solid #dee4e7;
+  white-space: nowrap;
+}
+
+.team__table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #dee4e7;
+  vertical-align: middle;
+}
+
+.team__table tr:last-child td {
+  border-bottom: 0;
+}
+
+.team__cell--name {
+  font-weight: 500;
+}
+
+.team__empty {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: #5e6b73;
+}
+
+.team__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.team__switch {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  accent-color: #006b79;
+  cursor: pointer;
+}
+
+.team__pill {
+  padding: 0.0625rem 0.5rem;
+  border: 1px solid #dee4e7;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  color: #5e6b73;
+}
+
+/* --- buttons ---------------------------------------------- */
+.team__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: #006b79;
+  color: #f8fdfe;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.team__btn:hover:not(:disabled) {
+  background: #00606d;
+}
+
+.team__btn:focus-visible {
+  outline: 2px solid #006b79;
+  outline-offset: 2px;
+}
+
+.team__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.team__btn--full {
+  width: 100%;
+}
+
+/* --- add-HR modal --------------------------------------- */
+.team__modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.team__modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: #000000cc;
+}
+
+.team__modal-panel {
+  position: relative;
+  width: 100%;
+  max-width: 26rem;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 8px 24px #04191f26;
+}
+
+.team__modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.team__modal-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.team__modal-close {
+  display: inline-flex;
+  padding: 0.25rem;
+  border: none;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: #5e6b73;
+  cursor: pointer;
+}
+
+.team__modal-close:hover {
+  background: #edf2f4;
+}
+
+.team__modal-desc {
+  margin-top: 0.375rem;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+.team__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.team__field {
+  display: flex;
+  flex-direction: column;
+}
+
+.team__label {
+  margin-bottom: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.team__input {
+  height: 2.25rem;
+  padding: 0 0.75rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  font: inherit;
+  font-size: 0.875rem;
+  color: #0b1d27;
+}
+
+.team__input:focus-visible {
+  outline: 2px solid #006b79;
+  outline-offset: 1px;
+}

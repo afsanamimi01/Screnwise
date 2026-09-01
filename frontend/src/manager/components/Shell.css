@@ -1,0 +1,36 @@
+/* Layout skeleton for the company-manager console: sidebar + (navbar / page /
+   footer). Keeps a content frame; each page renders its own heading. */
+
+.manager-shell {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  background: #f5f8fa;
+  color: #0b1d27;
+}
+
+.manager-shell__blank {
+  min-height: 100vh;
+  background: #f5f8fa;
+}
+
+.manager-shell__main {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.manager-shell__content {
+  width: 100%;
+  max-width: 80rem;
+  flex: 1;
+  margin: 0 auto;
+  padding: 1.75rem 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .manager-shell__content {
+    padding: 1.75rem 2rem;
+  }
+}

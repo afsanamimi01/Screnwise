@@ -4,9 +4,13 @@ import { homeForRole } from "@/shared/lib/auth";
 import type { Role } from "@/shared/lib/types";
 import { cn } from "@/shared/lib/utils";
 
-type FooterColumn = { heading: string; links: { label: string; to: string }[] };
+const CONTACT_EMAIL = "hello@screenwise.io";
+const CONTACT_PHONE = "+880 1700-000000";
 
-/** Link columns. Every `to` is a real route, so nothing here dead-ends. */
+type FooterLink = { label: string; to?: string; href?: string };
+type FooterColumn = { heading: string; links: FooterLink[] };
+
+/** Link columns. Internal `to` routes never dead-end; `href` is used for contact. */
 const COLUMNS: FooterColumn[] = [
   {
     heading: "Platform",
@@ -17,11 +21,11 @@ const COLUMNS: FooterColumn[] = [
     ],
   },
   {
-    heading: "For recruiters",
+    heading: "For companies",
     links: [
+      { label: "Register your company", to: "/register?type=company" },
       { label: "Recruiter dashboard", to: "/dashboard" },
       { label: "Jobs", to: "/jobs" },
-      { label: "Review shortlists", to: "/manager" },
     ],
   },
   {
@@ -32,13 +36,20 @@ const COLUMNS: FooterColumn[] = [
       { label: "Sign in", to: "/login" },
     ],
   },
+  {
+    heading: "Contact",
+    links: [
+      { label: CONTACT_EMAIL, href: `mailto:${CONTACT_EMAIL}` },
+      { label: CONTACT_PHONE, href: `tel:${CONTACT_PHONE.replace(/[^\d+]/g, "")}` },
+    ],
+  },
 ];
 
 /** One-line reminder shown in the footer, tuned to what each role does here. */
 const ROLE_NOTE: Record<Role, string> = {
-  admin: "Every role change and identity reveal is written to the audit log.",
+  superadmin: "Every company, plan change and access action is written to the audit log.",
   hr: "The system suggests, you decide — nobody is ever auto-rejected.",
-  manager: "You review shortlists only. Scores and identities were decided blind.",
+  manager: "You manage HR seats and the plan; recruiters run the screening.",
   candidate: "Your CV is screened blind, alongside everyone else's.",
 };
 
@@ -54,7 +65,7 @@ export function SiteFooter({ role, className }: { role?: Role; className?: strin
   return (
     <footer className={cn("border-t bg-card/40", className)}>
       <div className="mx-auto w-full max-w-7xl px-5 py-10 md:px-8">
-        <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-[1.6fr_1fr_1fr_1fr]">
+        <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-[1.6fr_1fr_1fr_1fr_1fr]">
           <div>
             <div className="flex items-center gap-2">
               <div className="rounded-lg bg-primary p-1.5 text-primary-foreground">
@@ -83,12 +94,21 @@ export function SiteFooter({ role, className }: { role?: Role; className?: strin
               <ul className="mt-3 space-y-2">
                 {col.links.map((link) => (
                   <li key={link.label}>
-                    <Link
-                      to={link.to}
-                      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                    >
-                      {link.label}
-                    </Link>
+                    {link.href ? (
+                      <a
+                        href={link.href}
+                        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        {link.label}
+                      </a>
+                    ) : (
+                      <Link
+                        to={link.to!}
+                        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        {link.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -96,9 +116,9 @@ export function SiteFooter({ role, className }: { role?: Role; className?: strin
           ))}
         </div>
 
-        {/* Admin has a dedicated footer (admin/components/Footer.tsx), so this
-            role-note / meta bar is skipped for them. */}
-        {role !== "admin" ? (
+        {/* The super admin has a dedicated footer (admin/components/Footer.tsx),
+            so this role-note / meta bar is skipped for them. */}
+        {role !== "superadmin" ? (
           <div className="mt-10 flex flex-col gap-3 border-t pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
             <span className="inline-flex items-center gap-1.5">
               {role ? <ShieldCheck className="h-3.5 w-3.5 text-primary" /> : null}
@@ -107,10 +127,10 @@ export function SiteFooter({ role, className }: { role?: Role; className?: strin
             <div className="flex items-center gap-4">
               {role ? <span>© {year} Screenwise</span> : null}
               <a
-                href="mailto:hello@screenwise.io"
+                href={`mailto:${CONTACT_EMAIL}`}
                 className="inline-flex items-center gap-1.5 transition-colors hover:text-foreground"
               >
-                <Mail className="h-3.5 w-3.5" /> hello@screenwise.io
+                <Mail className="h-3.5 w-3.5" /> {CONTACT_EMAIL}
               </a>
               <button
                 type="button"

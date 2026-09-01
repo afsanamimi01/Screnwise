@@ -43,6 +43,7 @@
 .candidate-footer__wordmark {
   font-weight: 600;
   letter-spacing: -0.015em;
+  color: #010101;
 }
 /* wise colour */
 .candidate-footer__wordmark-accent {

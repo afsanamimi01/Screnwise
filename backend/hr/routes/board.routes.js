@@ -5,6 +5,6 @@ import { getBoard } from "../controllers/board.controller.js";
 const router = Router();
 
 router.use(verifyToken);
-router.get("/:jobId", requireRole("hr", "admin"), getBoard);
+router.get("/:jobId", requireRole("hr", "manager"), getBoard);
 
 export default router;

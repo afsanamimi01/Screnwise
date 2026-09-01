@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/shared/components/ui/card";
 import { SiteFooter } from "@/shared/components/SiteFooter";
 import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
 import { getPublicJobs } from "@/shared/lib/api";
+import { useAuth } from "@/shared/lib/auth";
 import { usePageTitle } from "@/shared/lib/use-page-title";
 
 const pillars = [
@@ -29,10 +30,15 @@ const pillars = [
 
 export default function Landing() {
   usePageTitle("Screenwise — blind, explainable CV screening");
+  const { user } = useAuth();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["public-jobs"],
     queryFn: () => getPublicJobs(),
   });
+
+  // Applying requires a candidate session — route guests to sign in first.
+  const applyHref = (jobId: string) =>
+    user ? `/apply/${jobId}` : `/login?next=${encodeURIComponent(`/apply/${jobId}`)}`;
 
   return (
     <div className="min-h-screen bg-background">
@@ -107,7 +113,7 @@ export default function Landing() {
             {data?.map((job) => (
               <Link
                 key={job.id}
-                to={`/apply/${job.id}`}
+                to={applyHref(job.id)}
                 className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-background p-4 transition-colors hover:border-primary/40"
               >
                 <div>
@@ -117,7 +123,7 @@ export default function Landing() {
                   </div>
                 </div>
                 <span className="flex items-center gap-1 text-sm font-medium text-primary">
-                  Apply <ArrowRight className="h-4 w-4" />
+                  {user ? "Apply" : "Sign in to apply"} <ArrowRight className="h-4 w-4" />
                 </span>
               </Link>
             ))}

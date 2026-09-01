@@ -1,6 +1,6 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Sparkles } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
@@ -11,31 +11,45 @@ import { usePageTitle } from "@/shared/lib/use-page-title";
 
 /** Seeded accounts (see backend `shared/seed.js`). Password for all: demo1234. */
 const DEMO_ACCOUNTS = [
-  { email: "admin@screenwise.io", role: "admin" },
-  { email: "nadia@screenwise.io", role: "hr" },
-  { email: "tomal@screenwise.io", role: "hr" },
-  { email: "priya@screenwise.io", role: "manager" },
-  { email: "kenji@screenwise.io", role: "manager" },
-  { email: "jordan@example.com", role: "candidate" },
-  { email: "amina@example.com", role: "candidate" },
+  { email: "admin@screenwise.io", role: "super admin" },
+  { email: "nusrat@bengalrecruitment.com", role: "manager · Bengal Recruitment (advance)" },
+  { email: "sadia@bengalrecruitment.com", role: "hr · Bengal Recruitment" },
+  { email: "imran@dhakatalent.com", role: "manager · Dhaka Talent Partners (basic)" },
+  { email: "farhana@dhakatalent.com", role: "hr · Dhaka Talent Partners" },
+  { email: "faruk@ctgstaffing.com", role: "manager · Chattogram Staffing (no plan yet)" },
+  { email: "mahmud@padmahr.com", role: "manager · Padma HR Solutions (expired)" },
+  { email: "tanjil@example.com", role: "candidate" },
+  { email: "nabila@example.com", role: "candidate" },
 ];
+
+/** Only follow an internal, single-segment-safe redirect target. */
+function safeNext(value: string | null): string | null {
+  return value && value.startsWith("/") && !value.startsWith("//") ? value : null;
+}
 
 export default function Login() {
   usePageTitle("Sign in — Screenwise");
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("nadia@screenwise.io");
+  const [params] = useSearchParams();
+  const next = safeNext(params.get("next"));
+  const [email, setEmail] = useState("sadia@bengalrecruitment.com");
   const [password, setPassword] = useState("demo1234");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Already signed in? Honour the redirect target (or go to the workspace).
+  useEffect(() => {
+    if (user) navigate(next ?? homeForRole(user.role), { replace: true });
+  }, [user, next, navigate]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
     try {
-      const user = await login(email, password);
-      navigate(homeForRole(user.role));
+      const signedIn = await login(email, password);
+      navigate(next ?? homeForRole(signedIn.role), { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not sign in");
       setSubmitting(false);

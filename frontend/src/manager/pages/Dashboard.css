@@ -1,0 +1,222 @@
+/* Company-manager "Dashboard" page — self-contained (frame + width live in
+   manager/components/Shell.css). */
+
+.manager-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* --- heading + actions ----------------------------------------- */
+.manager-dashboard__intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.manager-dashboard__intro-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.manager-dashboard__intro-text {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+.manager-dashboard__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.manager-dashboard__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  background: #006b79;
+  color: #f8fdfe;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+
+.manager-dashboard__btn:hover {
+  background: #00606d;
+}
+
+.manager-dashboard__btn--ghost {
+  background: #ffffff;
+  border-color: #dee4e7;
+  color: #0b1d27;
+}
+
+.manager-dashboard__btn--ghost:hover {
+  background: #d5f2f3;
+}
+
+/* --- KPI cards ------------------------------------------------- */
+.manager-dashboard__kpis {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.manager-dashboard__kpi {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 1px 2px #04191f0f, 0 8px 24px #04191f0d;
+}
+
+.manager-dashboard__kpi-icon {
+  display: inline-flex;
+  padding: 0.625rem;
+  border-radius: 0.5rem;
+  background: #dcf4f8;
+  color: #006b79;
+}
+
+.manager-dashboard__kpi-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.manager-dashboard__kpi-label {
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+/* --- panels ------------------------------------------------- */
+.manager-dashboard__panels {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.manager-dashboard__panel {
+  padding: 1.5rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 1px 2px #04191f0f, 0 8px 24px #04191f0d;
+}
+
+.manager-dashboard__panel-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.manager-dashboard__jobs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.manager-dashboard__job {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.75rem;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.manager-dashboard__job:hover {
+  border-color: #9bd9e2;
+}
+
+.manager-dashboard__job-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.manager-dashboard__job-title {
+  font-weight: 500;
+}
+
+.manager-dashboard__new {
+  padding: 0.0625rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  background: #d2f6dd;
+  color: #14874e;
+}
+
+.manager-dashboard__job-meta {
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+.manager-dashboard__job-stats {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.875rem;
+}
+
+.manager-dashboard__stat-value {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.manager-dashboard__stat-label {
+  font-size: 0.75rem;
+  color: #5e6b73;
+}
+
+/* --- chart ------------------------------------------------- */
+.manager-dashboard__chart {
+  height: 16rem;
+}
+
+.manager-dashboard__legend {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: #5e6b73;
+}
+
+.manager-dashboard__legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.manager-dashboard__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+}
+
+/* --- breakpoints ---------------------------------------- */
+@media (min-width: 640px) {
+  .manager-dashboard__kpis {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .manager-dashboard__panels {
+    grid-template-columns: 2fr 1fr;
+  }
+}

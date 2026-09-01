@@ -4,7 +4,7 @@ import { listUsers, updateUser } from "../controllers/users.controller.js";
 
 const router = Router();
 
-router.use(verifyToken, requireRole("admin"));
+router.use(verifyToken, requireRole("superadmin"));
 
 router.get("/", listUsers);
 router.patch("/:id", updateUser);

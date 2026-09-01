@@ -5,7 +5,7 @@ import { getShortlist, shortlistCandidates } from "../controllers/shortlist.cont
 const router = Router();
 
 router.use(verifyToken);
-router.get("/:jobId", requireRole("hr", "admin"), getShortlist);
-router.post("/", requireRole("hr", "admin"), shortlistCandidates);
+router.get("/:jobId", requireRole("hr", "manager"), getShortlist);
+router.post("/", requireRole("hr", "manager"), shortlistCandidates);
 
 export default router;

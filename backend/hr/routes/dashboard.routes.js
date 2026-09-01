@@ -5,6 +5,6 @@ import { getDashboard } from "../controllers/dashboard.controller.js";
 const router = Router();
 
 router.use(verifyToken);
-router.get("/", requireRole("hr", "admin"), getDashboard);
+router.get("/", requireRole("hr", "manager"), getDashboard);
 
 export default router;
