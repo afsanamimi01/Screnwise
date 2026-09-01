@@ -1,0 +1,296 @@
+/* Landing / marketing page — self-contained: no shared tokens or utilities. */
+
+.landing {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  background: #f5f8fa;
+  color: #0b1d27;
+}
+
+/* --- top bar --------------------------------------------------------- */
+.landing__header {
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem;
+}
+
+.landing__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.landing__logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem;
+  border-radius: 0.5rem;
+  background: #006b79;
+  color: #f8fdfe;
+}
+
+.landing__wordmark {
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.landing__nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.landing__nav-link {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1e313a;
+  text-decoration: none;
+}
+
+.landing__nav-link:hover {
+  background: #ebf1f4;
+}
+
+/* --- button (shared across hero + header) -------------------------- */
+.landing__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  background: #006b79;
+  color: #f8fdfe;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+
+.landing__btn:hover {
+  background: #00606d;
+}
+
+.landing__btn:focus-visible {
+  outline: 2px solid #006b79;
+  outline-offset: 2px;
+}
+
+.landing__btn--lg {
+  padding: 0.75rem 1.25rem;
+  font-size: 1rem;
+}
+
+/* --- hero --------------------------------------------------------- */
+.landing__hero {
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+.landing__eyebrow {
+  display: inline-block;
+  padding: 0.25rem 0.625rem;
+  border: 1px solid #dee4e7;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  color: #5e6b73;
+}
+
+.landing__title {
+  margin-top: 1rem;
+  max-width: 48rem;
+  font-size: 2.25rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.landing__lede {
+  margin-top: 1rem;
+  max-width: 36rem;
+  font-size: 1.125rem;
+  color: #5e6b73;
+}
+
+.landing__cta {
+  margin-top: 1.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* --- pillars ---------------------------------------------------- */
+.landing__pillars {
+  margin-top: 3.5rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.landing__pillar {
+  padding: 1.5rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 1px 2px #04191f0f, 0 8px 24px #04191f0d;
+}
+
+.landing__pillar-icon {
+  display: inline-flex;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  background: #dcf4f8;
+  color: #006b79;
+}
+
+.landing__pillar-title {
+  margin-top: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.landing__pillar-body {
+  margin-top: 0.375rem;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+/* --- open roles ----------------------------------------------- */
+.landing__roles {
+  border-top: 1px solid #dee4e7;
+  background: #ffffff;
+}
+
+.landing__roles-inner {
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 3.5rem 1.25rem;
+}
+
+.landing__roles-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.landing__roles-text {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+.landing__roles-list {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.landing__role {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.75rem;
+  background: #f5f8fa;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.landing__role:hover {
+  border-color: #006b79;
+}
+
+.landing__role-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.landing__role-title {
+  font-weight: 500;
+}
+
+.landing__role-meta {
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+.landing__role-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #006b79;
+}
+
+/* --- list states -------------------------------------------- */
+.landing__state {
+  padding: 1rem 1.25rem;
+  border: 1px dashed #dee4e7;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+.landing__state--error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  border-style: solid;
+  border-color: #f0b7b4;
+  background: #ffe5e1;
+  color: #c92f33;
+}
+
+.landing__retry {
+  padding: 0.375rem 0.75rem;
+  border: 1px solid #c92f33;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: #c92f33;
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.landing__retry:hover {
+  background: #c92f33;
+  color: #fffafa;
+}
+
+@media (min-width: 768px) {
+  .landing__header {
+    padding: 1.25rem 2rem;
+  }
+
+  .landing__hero {
+    padding: 2.5rem 2rem 4rem;
+  }
+
+  .landing__title {
+    font-size: 3rem;
+  }
+
+  .landing__pillars {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .landing__roles-inner {
+    padding: 3.5rem 2rem;
+  }
+}

@@ -1,14 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { ArrowRight, EyeOff, ListChecks, Scale, Sparkles } from "lucide-react";
-import { Badge } from "@/shared/components/ui/badge";
-import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { SiteFooter } from "@/shared/components/SiteFooter";
-import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
 import { getPublicJobs } from "@/shared/lib/api";
 import { useAuth } from "@/shared/lib/auth";
 import { usePageTitle } from "@/shared/lib/use-page-title";
+import "./Landing.css";
 
 const pillars = [
   {
@@ -41,89 +38,81 @@ export default function Landing() {
     user ? `/apply/${jobId}` : `/login?next=${encodeURIComponent(`/apply/${jobId}`)}`;
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
-        <div className="flex items-center gap-2">
-          <div className="rounded-lg bg-primary p-1.5 text-primary-foreground">
-            <Sparkles className="h-4 w-4" />
-          </div>
-          <span className="font-semibold tracking-tight">Screenwise</span>
+    <div className="landing">
+      <header className="landing__header">
+        <div className="landing__brand">
+          <span className="landing__logo">
+            <Sparkles size={16} />
+          </span>
+          <span className="landing__wordmark">Screenwise</span>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" asChild>
-            <Link to="/login">Sign in</Link>
-          </Button>
-          <Button asChild>
-            <Link to="/register">Create account</Link>
-          </Button>
+        <div className="landing__nav">
+          <Link to="/login" className="landing__nav-link">
+            Sign in
+          </Link>
+          <Link to="/register" className="landing__btn">
+            Create account
+          </Link>
         </div>
       </header>
 
-      <section className="mx-auto max-w-6xl px-5 pt-10 pb-16">
-        <Badge variant="outline" className="mb-4 font-normal">
-          Applicant screening, without the bias
-        </Badge>
-        <h1 className="max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
+      <section className="landing__hero">
+        <span className="landing__eyebrow">Applicant screening, without the bias</span>
+        <h1 className="landing__title">
           Screen hundreds of CVs fairly, and still make the call yourself.
         </h1>
-        <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
+        <p className="landing__lede">
           Screenwise parses every CV, scores it against the job you defined, and ranks candidates on
           a blind board. You shortlist. Only then does the platform show you who they are.
         </p>
-        <div className="mt-7 flex flex-wrap gap-3">
-          <Button size="lg" asChild>
-            <Link to="/login">
-              Open the demo dashboard <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
+        <div className="landing__cta">
+          <Link to="/login" className="landing__btn landing__btn--lg">
+            Open the demo dashboard <ArrowRight size={16} />
+          </Link>
         </div>
 
-        <div className="mt-14 grid gap-4 md:grid-cols-3">
+        <div className="landing__pillars">
           {pillars.map((p) => (
-            <Card key={p.title} className="shadow-card">
-              <CardContent className="pt-6">
-                <div className="mb-3 w-fit rounded-lg bg-primary-soft p-2 text-primary">
-                  <p.icon className="h-5 w-5" />
-                </div>
-                <h2 className="text-base font-semibold">{p.title}</h2>
-                <p className="mt-1.5 text-sm text-muted-foreground">{p.body}</p>
-              </CardContent>
-            </Card>
+            <article key={p.title} className="landing__pillar">
+              <span className="landing__pillar-icon">
+                <p.icon size={20} />
+              </span>
+              <h2 className="landing__pillar-title">{p.title}</h2>
+              <p className="landing__pillar-body">{p.body}</p>
+            </article>
           ))}
         </div>
       </section>
 
-      <section className="border-t bg-card">
-        <div className="mx-auto max-w-6xl px-5 py-14">
-          <h2 className="text-2xl font-semibold">Open roles</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+      <section className="landing__roles">
+        <div className="landing__roles-inner">
+          <h2 className="landing__roles-title">Open roles</h2>
+          <p className="landing__roles-text">
             Applying takes a couple of minutes and you can track your status afterwards.
           </p>
-          <div className="mt-6 space-y-3">
-            {isLoading ? <LoadingRows rows={2} /> : null}
+          <div className="landing__roles-list">
+            {isLoading ? <p className="landing__state">Loading open roles…</p> : null}
             {isError ? (
-              <ErrorState message="We couldn't load the open roles." onRetry={() => refetch()} />
+              <div className="landing__state landing__state--error">
+                <span>We couldn't load the open roles.</span>
+                <button type="button" className="landing__retry" onClick={() => refetch()}>
+                  Try again
+                </button>
+              </div>
             ) : null}
             {data && data.length === 0 ? (
-              <EmptyState
-                title="No public roles right now"
-                description="Check back soon — new roles are published regularly."
-              />
+              <p className="landing__state">No public roles right now — check back soon.</p>
             ) : null}
             {data?.map((job) => (
-              <Link
-                key={job.id}
-                to={applyHref(job.id)}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-background p-4 transition-colors hover:border-primary/40"
-              >
-                <div>
-                  <div className="font-medium">{job.title}</div>
-                  <div className="text-sm text-muted-foreground">
+              <Link key={job.id} to={applyHref(job.id)} className="landing__role">
+                <span className="landing__role-main">
+                  <span className="landing__role-title">{job.title}</span>
+                  <span className="landing__role-meta">
                     {job.department} · {job.location} · {job.employmentType}
-                  </div>
-                </div>
-                <span className="flex items-center gap-1 text-sm font-medium text-primary">
-                  {user ? "Apply" : "Sign in to apply"} <ArrowRight className="h-4 w-4" />
+                  </span>
+                </span>
+                <span className="landing__role-cta">
+                  {user ? "Apply" : "Sign in to apply"} <ArrowRight size={16} />
                 </span>
               </Link>
             ))}

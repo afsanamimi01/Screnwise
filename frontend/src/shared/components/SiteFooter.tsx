@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { ArrowUp, Mail, ShieldCheck, Sparkles } from "lucide-react";
 import { homeForRole } from "@/shared/lib/auth";
 import type { Role } from "@/shared/lib/types";
-import { cn } from "@/shared/lib/utils";
+import "./SiteFooter.css";
 
 const CONTACT_EMAIL = "hello@screenwise.io";
 const CONTACT_PHONE = "+880 1700-000000";
@@ -54,58 +54,49 @@ const ROLE_NOTE: Record<Role, string> = {
 };
 
 /**
- * App-wide footer. Pass `role` inside a signed-in workspace to surface a
- * shortcut back to that workspace and the role-relevant note; omit it on
- * public pages.
+ * App-wide footer for the public pages (Landing / Login / Register / 404).
+ * Pass `role` inside a signed-in workspace to surface a shortcut back to that
+ * workspace and the role-relevant note; omit it on public pages.
  */
 export function SiteFooter({ role, className }: { role?: Role; className?: string }) {
   const year = new Date().getFullYear();
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   return (
-    <footer className={cn("border-t bg-card/40", className)}>
-      <div className="mx-auto w-full max-w-7xl px-5 py-10 md:px-8">
-        <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-[1.6fr_1fr_1fr_1fr_1fr]">
-          <div>
-            <div className="flex items-center gap-2">
-              <div className="rounded-lg bg-primary p-1.5 text-primary-foreground">
-                <Sparkles className="h-4 w-4" />
-              </div>
-              <span className="font-semibold tracking-tight">
-                Screen<span className="text-primary">wise</span>
+    <footer className={["site-footer", className].filter(Boolean).join(" ")}>
+      <div className="site-footer__inner">
+        <div className="site-footer__grid">
+          <div className="site-footer__brand">
+            <div className="site-footer__brand-row">
+              <span className="site-footer__logo">
+                <Sparkles size={16} />
+              </span>
+              <span className="site-footer__wordmark">
+                Screen<span className="site-footer__wordmark-accent">wise</span>
               </span>
             </div>
-            <p className="mt-3 max-w-xs text-sm text-muted-foreground">
+            <p className="site-footer__tagline">
               Blind, explainable CV screening. The platform suggests — you always make the call.
             </p>
             {role ? (
-              <Link
-                to={homeForRole(role)}
-                className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
-              >
+              <Link to={homeForRole(role)} className="site-footer__workspace-link">
                 Go to your workspace
               </Link>
             ) : null}
           </div>
 
           {COLUMNS.map((col) => (
-            <div key={col.heading}>
-              <h3 className="text-sm font-semibold">{col.heading}</h3>
-              <ul className="mt-3 space-y-2">
+            <div key={col.heading} className="site-footer__column">
+              <h3 className="site-footer__col-title">{col.heading}</h3>
+              <ul className="site-footer__col-list">
                 {col.links.map((link) => (
                   <li key={link.label}>
                     {link.href ? (
-                      <a
-                        href={link.href}
-                        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                      >
+                      <a href={link.href} className="site-footer__link">
                         {link.label}
                       </a>
                     ) : (
-                      <Link
-                        to={link.to!}
-                        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                      >
+                      <Link to={link.to!} className="site-footer__link">
                         {link.label}
                       </Link>
                     )}
@@ -119,25 +110,22 @@ export function SiteFooter({ role, className }: { role?: Role; className?: strin
         {/* The super admin has a dedicated footer (admin/components/Footer.tsx),
             so this role-note / meta bar is skipped for them. */}
         {role !== "superadmin" ? (
-          <div className="mt-10 flex flex-col gap-3 border-t pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-            <span className="inline-flex items-center gap-1.5">
-              {role ? <ShieldCheck className="h-3.5 w-3.5 text-primary" /> : null}
-              {role ? ROLE_NOTE[role] : `© ${year} Screenwise · Portfolio project`}
+          <div className="site-footer__meta">
+            <span className="site-footer__note">
+              {role ? (
+                <span className="site-footer__note-icon">
+                  <ShieldCheck size={14} />
+                </span>
+              ) : null}
+              <span>{role ? ROLE_NOTE[role] : `© ${year} Screenwise · Portfolio project`}</span>
             </span>
-            <div className="flex items-center gap-4">
+            <div className="site-footer__meta-actions">
               {role ? <span>© {year} Screenwise</span> : null}
-              <a
-                href={`mailto:${CONTACT_EMAIL}`}
-                className="inline-flex items-center gap-1.5 transition-colors hover:text-foreground"
-              >
-                <Mail className="h-3.5 w-3.5" /> {CONTACT_EMAIL}
+              <a href={`mailto:${CONTACT_EMAIL}`} className="site-footer__meta-link">
+                <Mail size={14} /> {CONTACT_EMAIL}
               </a>
-              <button
-                type="button"
-                onClick={scrollToTop}
-                className="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 transition-colors hover:bg-accent hover:text-foreground"
-              >
-                <ArrowUp className="h-3.5 w-3.5" /> Back to top
+              <button type="button" onClick={scrollToTop} className="site-footer__top-btn">
+                <ArrowUp size={14} /> Back to top
               </button>
             </div>
           </div>

@@ -1,0 +1,188 @@
+/* Create-account page — self-contained: no shared tokens or utility classes. */
+
+.register {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  background: #f5f8fa;
+  color: #0b1d27;
+}
+
+.register__body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.25rem;
+}
+
+.register__card {
+  width: 100%;
+  max-width: 28rem;
+}
+
+.register__brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  text-decoration: none;
+  color: #0b1d27;
+}
+
+.register__logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem;
+  border-radius: 0.5rem;
+  background: #006b79;
+  color: #f8fdfe;
+}
+
+.register__wordmark {
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+/* --- candidate / company toggle -------------------------------- */
+.register__modes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.register__mode {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  font: inherit;
+  font-size: 0.875rem;
+  color: #5e6b73;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.register__mode:hover {
+  background: #d5f2f3;
+}
+
+.register__mode--active {
+  border-color: #006b79;
+  background: #dcf4f8;
+  font-weight: 500;
+  color: #03343c;
+}
+
+/* --- form panel ----------------------------------------------- */
+.register__panel {
+  padding: 1.5rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 1px 2px #04191f0f, 0 8px 24px #04191f0d;
+}
+
+.register__header {
+  margin-bottom: 1.25rem;
+}
+
+.register__title {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.register__subtitle {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+.register__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.register__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.register__label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.register__input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  font: inherit;
+  font-size: 0.875rem;
+  color: #0b1d27;
+}
+
+.register__input:focus {
+  outline: 2px solid #006b79;
+  outline-offset: 1px;
+  border-color: #006b79;
+}
+
+.register__error {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  background: #ffe5e1;
+  font-size: 0.875rem;
+  color: #c92f33;
+}
+
+.register__submit {
+  width: 100%;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  background: #006b79;
+  color: #f8fdfe;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.register__submit:hover {
+  background: #00606d;
+}
+
+.register__submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.register__foot {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+.register__foot-link {
+  font-weight: 500;
+  color: #006b79;
+  text-decoration: none;
+}
+
+.register__foot-link:hover {
+  text-decoration: underline;
+}

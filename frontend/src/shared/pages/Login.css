@@ -1,0 +1,206 @@
+/* Sign-in page — self-contained: no shared tokens or utility classes. */
+
+.login {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  background: #f5f8fa;
+  color: #0b1d27;
+}
+
+.login__body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.25rem;
+}
+
+.login__card {
+  width: 100%;
+  max-width: 28rem;
+}
+
+.login__brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  text-decoration: none;
+  color: #0b1d27;
+}
+
+.login__logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem;
+  border-radius: 0.5rem;
+  background: #006b79;
+  color: #f8fdfe;
+}
+
+.login__wordmark {
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.login__panel {
+  padding: 1.5rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 1px 2px #04191f0f, 0 8px 24px #04191f0d;
+}
+
+.login__header {
+  margin-bottom: 1.25rem;
+}
+
+.login__title {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.login__subtitle {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+/* --- form --------------------------------------------------------- */
+.login__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.login__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.login__label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.login__input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  font: inherit;
+  font-size: 0.875rem;
+  color: #0b1d27;
+}
+
+.login__input:focus {
+  outline: 2px solid #006b79;
+  outline-offset: 1px;
+  border-color: #006b79;
+}
+
+.login__error {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  background: #ffe5e1;
+  font-size: 0.875rem;
+  color: #c92f33;
+}
+
+.login__submit {
+  width: 100%;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  background: #006b79;
+  color: #f8fdfe;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.login__submit:hover {
+  background: #00606d;
+}
+
+.login__submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* --- demo accounts --------------------------------------------- */
+.login__demo {
+  margin-top: 1.5rem;
+  padding: 0.75rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.5rem;
+  background: #edf2f4;
+}
+
+.login__demo-title {
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #5e6b73;
+}
+
+.login__demo-password {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: #0b1d27;
+}
+
+.login__demo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.login__demo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.25rem 0.5rem;
+  border: none;
+  border-radius: 0.25rem;
+  background: transparent;
+  font: inherit;
+  font-size: 0.75rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.login__demo-item:hover {
+  background: #ffffff;
+}
+
+.login__demo-role {
+  color: #5e6b73;
+}
+
+/* --- create-account link ------------------------------------- */
+.login__foot {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+.login__foot-link {
+  font-weight: 500;
+  color: #006b79;
+  text-decoration: none;
+}
+
+.login__foot-link:hover {
+  text-decoration: underline;
+}
