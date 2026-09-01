@@ -6,6 +6,7 @@ import { Shell } from "@/manager/components/Shell";
 import { ErrorState, LoadingRows } from "@/shared/components/StateViews";
 import { createHr, getCompanyHr, getMyCompany, updateHr } from "@/shared/lib/api";
 import { usePageTitle } from "@/shared/lib/use-page-title";
+import { useManagerAccess } from "@/manager/lib/access";
 import "./Team.css";
 
 /** Table columns - reorder / rename here. */
@@ -14,6 +15,7 @@ const COLUMNS = ["Name", "Email", "Joined", "Active"] as const;
 export default function Team() {
   usePageTitle("HR team - Screenwise");
   const queryClient = useQueryClient();
+  const { locked } = useManagerAccess();
   const company = useQuery({ queryKey: ["company"], queryFn: getMyCompany });
   const hr = useQuery({ queryKey: ["company-hr"], queryFn: getCompanyHr });
 
@@ -73,7 +75,8 @@ export default function Team() {
           <button
             type="button"
             className="team__btn"
-            disabled={atCapacity}
+            disabled={atCapacity || locked}
+            title={locked ? "Activate a plan to add HR accounts" : undefined}
             onClick={() => setOpen(true)}
           >
             <UserPlus size={16} /> Add HR
@@ -141,6 +144,7 @@ export default function Team() {
                             type="checkbox"
                             className="team__switch"
                             checked={u.active}
+                            disabled={locked}
                             onChange={(e) => toggleActive(u.id, e.target.checked)}
                           />
                           <span className="team__pill">
@@ -220,7 +224,11 @@ export default function Team() {
                   onChange={field("password")}
                 />
               </div>
-              <button type="submit" className="team__btn team__btn--full" disabled={saving}>
+              <button
+                type="submit"
+                className="team__btn team__btn--full"
+                disabled={saving || locked}
+              >
                 {saving ? "Adding…" : "Add HR"}
               </button>
             </form>

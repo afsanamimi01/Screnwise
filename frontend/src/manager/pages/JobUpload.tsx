@@ -7,6 +7,7 @@ import { Shell } from "@/manager/components/Shell";
 import { getJob, uploadCvs } from "@/shared/lib/api";
 import { usePageTitle } from "@/shared/lib/use-page-title";
 import { useWorkspaceBase } from "@/shared/lib/workspace";
+import { useManagerAccess } from "@/manager/lib/access";
 import "./JobUpload.css";
 
 type Row = { name: string; status: "scoring" | "scored" | "review"; score?: number };
@@ -16,12 +17,13 @@ export default function JobUpload() {
   const { jobId = "" } = useParams();
   const navigate = useNavigate();
   const base = useWorkspaceBase();
+  const { locked } = useManagerAccess();
   const jobQuery = useQuery({ queryKey: ["job", jobId], queryFn: () => getJob(jobId) });
   const [rows, setRows] = useState<Row[]>([]);
   const [dragging, setDragging] = useState(false);
 
   const process = async (files: File[]) => {
-    if (!files.length) return;
+    if (!files.length || locked) return;
     const incoming: Row[] = files.map((f) => ({ name: f.name, status: "scoring" }));
     setRows((prev) => [...prev, ...incoming]);
     try {
@@ -66,7 +68,7 @@ export default function JobUpload() {
         <label
           onDragOver={(e) => {
             e.preventDefault();
-            setDragging(true);
+            if (!locked) setDragging(true);
           }}
           onDragLeave={() => setDragging(false)}
           onDrop={(e) => {
@@ -74,10 +76,16 @@ export default function JobUpload() {
             setDragging(false);
             process(Array.from(e.dataTransfer.files));
           }}
-          className={"manager-upload__drop" + (dragging ? " manager-upload__drop--active" : "")}
+          className={
+            "manager-upload__drop" +
+            (dragging ? " manager-upload__drop--active" : "") +
+            (locked ? " manager-upload__drop--disabled" : "")
+          }
         >
           <UploadCloud size={28} className="manager-upload__drop-icon" />
-          <span className="manager-upload__drop-title">Drag and drop CVs here</span>
+          <span className="manager-upload__drop-title">
+            {locked ? "Activate a plan to upload CVs" : "Drag and drop CVs here"}
+          </span>
           <span className="manager-upload__drop-hint">
             PDF and DOCX, as many files as you like
           </span>
@@ -86,6 +94,7 @@ export default function JobUpload() {
             multiple
             accept=".pdf,.docx"
             className="manager-upload__file"
+            disabled={locked}
             onChange={(e) => process(Array.from(e.target.files ?? []))}
           />
         </label>

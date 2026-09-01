@@ -49,6 +49,13 @@
   background: #00606d;
 }
 
+.manager-jobs__btn--disabled,
+.manager-jobs__btn--disabled:hover {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: #006b79;
+}
+
 /* --- table ------------------------------------------------- */
 .manager-jobs__table-wrap {
   overflow-x: auto;

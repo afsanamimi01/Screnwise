@@ -95,12 +95,19 @@
   flex-shrink: 0;
 }
 
+.manager-sidebar__link-lock {
+  flex-shrink: 0;
+  margin-left: auto;
+  color: #d8dfe380;
+}
+
 .manager-sidebar--collapsed .manager-sidebar__link {
   justify-content: center;
   padding: 0.5rem 0;
 }
 
-.manager-sidebar--collapsed .manager-sidebar__link-label {
+.manager-sidebar--collapsed .manager-sidebar__link-label,
+.manager-sidebar--collapsed .manager-sidebar__link-lock {
   display: none;
 }
 

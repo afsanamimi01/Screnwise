@@ -23,10 +23,13 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5000/api
 
 export class ApiError extends Error {
   status: number;
-  constructor(status: number, message: string) {
+  /** Machine-readable tag from the server, e.g. `PLAN_REQUIRED`. */
+  code?: string;
+  constructor(status: number, message: string, code?: string) {
     super(message);
     this.name = "ApiError";
     this.status = status;
+    this.code = code;
   }
 }
 
@@ -47,7 +50,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const data = text ? JSON.parse(text) : null;
 
   if (!res.ok) {
-    throw new ApiError(res.status, data?.message ?? `Request failed (${res.status})`);
+    throw new ApiError(res.status, data?.message ?? `Request failed (${res.status})`, data?.code);
   }
   return data as T;
 }

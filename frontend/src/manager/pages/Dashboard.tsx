@@ -15,6 +15,7 @@ import { Shell } from "@/manager/components/Shell";
 import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
 import { getDashboard } from "@/shared/lib/api";
 import { useAuth } from "@/shared/lib/auth";
+import { useManagerAccess } from "@/manager/lib/access";
 import type { Application, Job } from "@/shared/lib/types";
 import { usePageTitle } from "@/shared/lib/use-page-title";
 import { useWorkspaceBase } from "@/shared/lib/workspace";
@@ -50,6 +51,7 @@ export default function Dashboard() {
   usePageTitle("Dashboard - Screenwise");
   const { user } = useAuth();
   const base = useWorkspaceBase();
+  const { locked } = useManagerAccess();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["dashboard", user?.id],
     enabled: Boolean(user),
@@ -69,12 +71,33 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="manager-dashboard__actions">
-            <Link to="/screen" className="manager-dashboard__btn manager-dashboard__btn--ghost">
-              <UploadCloud size={16} /> Upload CVs
-            </Link>
-            <Link to={`${base}/new`} className="manager-dashboard__btn">
-              <Plus size={16} /> New job
-            </Link>
+            {locked ? (
+              <>
+                <span
+                  className="manager-dashboard__btn manager-dashboard__btn--ghost manager-dashboard__btn--disabled"
+                  aria-disabled="true"
+                  title="Activate a plan to upload CVs"
+                >
+                  <UploadCloud size={16} /> Upload CVs
+                </span>
+                <span
+                  className="manager-dashboard__btn manager-dashboard__btn--disabled"
+                  aria-disabled="true"
+                  title="Activate a plan to post a job"
+                >
+                  <Plus size={16} /> New job
+                </span>
+              </>
+            ) : (
+              <>
+                <Link to="/screen" className="manager-dashboard__btn manager-dashboard__btn--ghost">
+                  <UploadCloud size={16} /> Upload CVs
+                </Link>
+                <Link to={`${base}/new`} className="manager-dashboard__btn">
+                  <Plus size={16} /> New job
+                </Link>
+              </>
+            )}
           </div>
         </div>
 

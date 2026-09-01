@@ -12,6 +12,7 @@ import { getApplicationsForJob, getJob, shortlistCandidate } from "@/shared/lib/
 import { canViewBoard, useAuth } from "@/shared/lib/auth";
 import { SCORE_THRESHOLD, type Application, type Job } from "@/shared/lib/types";
 import { usePageTitle } from "@/shared/lib/use-page-title";
+import { useManagerAccess } from "@/manager/lib/access";
 import "./JobBoard.css";
 
 /** Options for the "Source" filter dropdown. */
@@ -55,6 +56,7 @@ export default function JobBoard() {
   usePageTitle("Rank board - Screenwise");
   const { jobId = "" } = useParams();
   const { user } = useAuth();
+  const { locked } = useManagerAccess();
   const queryClient = useQueryClient();
 
   const jobQuery = useQuery({ queryKey: ["job", jobId], queryFn: () => getJob(jobId) });
@@ -224,6 +226,8 @@ export default function JobBoard() {
                     type="button"
                     className="manager-board__btn"
                     onClick={() => shortlist(selected)}
+                    disabled={locked}
+                    title={locked ? "Activate a plan to shortlist" : undefined}
                   >
                     Shortlist selected
                   </button>
@@ -239,6 +243,8 @@ export default function JobBoard() {
                   type="button"
                   className="manager-board__btn manager-board__btn--ghost"
                   onClick={() => shortlist(above.slice(0, 20).map((a) => a.id))}
+                  disabled={locked}
+                  title={locked ? "Activate a plan to shortlist" : undefined}
                 >
                   Shortlist top 20
                 </button>
@@ -340,6 +346,7 @@ function CandidateRow({
   onExplain: () => void;
   onShortlist: () => void;
 }) {
+  const { locked } = useManagerAccess();
   return (
     <div className="manager-board__row">
       <input
@@ -402,7 +409,8 @@ function CandidateRow({
           type="button"
           className="manager-board__btn"
           onClick={onShortlist}
-          disabled={app.status === "shortlisted"}
+          disabled={app.status === "shortlisted" || locked}
+          title={locked ? "Activate a plan to shortlist" : undefined}
         >
           {app.status === "shortlisted" ? "On shortlist" : "Shortlist"}
         </button>

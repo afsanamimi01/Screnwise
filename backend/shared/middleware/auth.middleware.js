@@ -57,6 +57,29 @@ export function requireRole(...roles) {
   };
 }
 
+const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+
+/**
+ * "Preview mode" gate for company members whose company hasn't picked a plan
+ * yet. They may browse every screen (safe reads pass) but cannot change
+ * anything until a plan is active - the client turns the `PLAN_REQUIRED` code
+ * into a "pick a plan" prompt. Runs after `verifyToken`, which sets
+ * `req.company`. A manager whose plan has *expired* is already stopped in
+ * `verifyToken`; this only adds the no-plan-at-all case.
+ */
+export function requireActivePlan(req, res, next) {
+  if (SAFE_METHODS.has(req.method)) return next();
+  if (req.user?.role === "superadmin") return next();
+  if (req.company && !req.company.plan) {
+    return res.status(403).json({
+      code: "PLAN_REQUIRED",
+      message:
+        "Your company has no active plan yet. Activate one from Plan & billing to start using this.",
+    });
+  }
+  next();
+}
+
 /**
  * Mongo filter that scopes a company-owned collection to the caller.
  * Company members are pinned to their own company; a super admin sees all.

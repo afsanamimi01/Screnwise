@@ -8,6 +8,7 @@ import { JobTabs } from "@/manager/components/JobTabs";
 import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
 import { getJob, getSentEmails, getShortlist, sendShortlistEmails } from "@/shared/lib/api";
 import { usePageTitle } from "@/shared/lib/use-page-title";
+import { useManagerAccess } from "@/manager/lib/access";
 import "./JobEmail.css";
 
 const templates: Record<string, { subject: string; body: string }> = {
@@ -29,6 +30,7 @@ export default function JobEmail() {
   usePageTitle("Email composer - Screenwise");
   const { jobId = "" } = useParams();
   const queryClient = useQueryClient();
+  const { locked } = useManagerAccess();
   const jobQuery = useQuery({ queryKey: ["job", jobId], queryFn: () => getJob(jobId) });
   const query = useQuery({
     queryKey: ["shortlist", jobId],
@@ -60,6 +62,7 @@ export default function JobEmail() {
       .replaceAll("{{job_title}}", jobQuery.data?.title ?? "the role");
 
   const send = async () => {
+    if (locked) return;
     if (!selected.length) {
       toast.error("Pick at least one recipient.");
       return;
@@ -209,7 +212,8 @@ export default function JobEmail() {
                 type="button"
                 className="manager-email__btn"
                 onClick={send}
-                disabled={sending}
+                disabled={sending || locked}
+                title={locked ? "Activate a plan to send" : undefined}
               >
                 <Send size={16} />
                 {sending ? "Sending…" : "Send (simulated)"}

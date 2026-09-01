@@ -5,6 +5,7 @@ import {
   ClipboardList,
   CreditCard,
   LayoutDashboard,
+  Lock,
   LogOut,
   Sparkles,
   UploadCloud,
@@ -37,10 +38,11 @@ function readCollapsed() {
 
 /**
  * Company-manager sidebar - independent of the other actors. Brand, nav, and a
- * pinned footer block (collapse toggle + "signed in as" + sign out). When the
- * company has no plan yet, only "Plan & billing" is shown. Desktop only.
+ * pinned footer block (collapse toggle + "signed in as" + sign out). Every
+ * section stays visible in "preview mode" (`locked`) so a plan-less manager can
+ * see what the product does; a small lock marks the gated ones. Desktop only.
  */
-export function Sidebar({ needsPlan = false }: { needsPlan?: boolean }) {
+export function Sidebar({ locked = false }: { locked?: boolean }) {
   const pathname = useLocation().pathname;
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -53,8 +55,6 @@ export function Sidebar({ needsPlan = false }: { needsPlan?: boolean }) {
       /* storage unavailable - collapse state stays in memory only */
     }
   }, [collapsed]);
-
-  const items = needsPlan ? NAV_ITEMS.filter((i) => i.to === "/billing") : NAV_ITEMS;
 
   const signOut = () => {
     logout();
@@ -71,8 +71,9 @@ export function Sidebar({ needsPlan = false }: { needsPlan?: boolean }) {
       </div>
 
       <nav className="manager-sidebar__nav">
-        {items.map((item) => {
+        {NAV_ITEMS.map((item) => {
           const active = pathname === item.to || pathname.startsWith(item.to + "/");
+          const gated = locked && item.to !== "/billing";
           return (
             <Link
               key={item.to}
@@ -85,6 +86,9 @@ export function Sidebar({ needsPlan = false }: { needsPlan?: boolean }) {
             >
               <item.icon className="manager-sidebar__link-icon" size={16} />
               <span className="manager-sidebar__link-label">{item.label}</span>
+              {gated ? (
+                <Lock className="manager-sidebar__link-lock" size={12} aria-label="Needs a plan" />
+              ) : null}
             </Link>
           );
         })}

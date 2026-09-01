@@ -1,5 +1,9 @@
 import { Router } from "express";
-import { verifyToken, requireRole } from "../../shared/middleware/auth.middleware.js";
+import {
+  verifyToken,
+  requireRole,
+  requireActivePlan,
+} from "../../shared/middleware/auth.middleware.js";
 import {
   changePlan,
   createHr,
@@ -14,8 +18,10 @@ router.use(verifyToken, requireRole("manager"));
 
 router.get("/", getMyCompany);
 router.get("/hr", listHr);
-router.post("/hr", createHr);
-router.patch("/hr/:id", updateHr);
+// Reads above are open so a plan-less manager can preview the console. Writes
+// below need an active plan - except `changePlan`, which is how they get one.
+router.post("/hr", requireActivePlan, createHr);
+router.patch("/hr/:id", requireActivePlan, updateHr);
 router.patch("/plan", changePlan);
 
 export default router;

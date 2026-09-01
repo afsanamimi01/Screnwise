@@ -6,6 +6,7 @@ import { TagInput } from "@/shared/components/TagInput";
 import { createJob, createScreening, updateJob } from "@/shared/lib/api";
 import { DEFAULT_WEIGHTS, type Job, type ScoringWeights } from "@/shared/lib/types";
 import { useWorkspaceBase } from "@/shared/lib/workspace";
+import { useManagerAccess } from "@/manager/lib/access";
 import "./JobForm.css";
 
 /** Labels for the scoring-weight sliders. Reorder to reorder the sliders. */
@@ -66,6 +67,7 @@ export function JobForm({
 }) {
   const navigate = useNavigate();
   const base = useWorkspaceBase();
+  const { locked } = useManagerAccess();
   const [job, setJob] = useState<Job>(initial);
   const [saving, setSaving] = useState(false);
 
@@ -365,12 +367,19 @@ export function JobForm({
           </section>
         )}
 
+        {locked ? (
+          <p className="manager-job-form__hint">
+            <Info size={14} />
+            Activate a plan to save {isScreening ? "screenings" : "jobs"}.
+          </p>
+        ) : null}
+
         <div className="manager-job-form__actions">
           <button
             type="button"
             className="manager-job-form__btn"
             onClick={submit}
-            disabled={saving}
+            disabled={saving || locked}
           >
             {saving
               ? "Saving…"

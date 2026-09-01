@@ -1,6 +1,10 @@
 import { Router } from "express";
 import multer from "multer";
-import { verifyToken, requireRole } from "../../shared/middleware/auth.middleware.js";
+import {
+  verifyToken,
+  requireRole,
+  requireActivePlan,
+} from "../../shared/middleware/auth.middleware.js";
 import { uploadCvs } from "../controllers/upload.controller.js";
 
 // CVs are held in memory just long enough to be parsed and scored - nothing is
@@ -12,7 +16,7 @@ const upload = multer({
 
 const router = Router();
 
-router.use(verifyToken);
+router.use(verifyToken, requireActivePlan);
 router.post("/:jobId", requireRole("hr", "manager"), upload.array("cvs", 200), uploadCvs);
 
 export default router;
