@@ -16,16 +16,16 @@ loaded from its own folder.
 
 ## Actors
 
-- **Candidate** — global, free forever. Register/login, browse every open job
+- **Candidate** - global, free forever. Register/login, browse every open job
   from every company, apply with a CV, track application status.
-- **Company** — a paying organisation on a plan (Basic / Advance / Custom).
+- **Company** - a paying organisation on a plan (Basic / Advance / Custom).
   Registering a company creates its single **Manager**.
-  - **Manager** — company owner. Full recruiter powers **plus** add/deactivate
+  - **Manager** - company owner. Full recruiter powers **plus** add/deactivate
     HR (bounded by the plan's seat limit) and switch plan.
-  - **HR** — belongs to one company, created by its Manager. Posts jobs, screens
+  - **HR** - belongs to one company, created by its Manager. Posts jobs, screens
     the blind rank board, shortlists, emails. Everything is scoped to the
     company; all company members share visibility of the company's jobs.
-- **Super admin** — platform operator (seeded only). Dashboard, all companies
+- **Super admin** - platform operator (seeded only). Dashboard, all companies
   with plan / seat usage / expiry / access state, renew or revoke access, edit
   the plan cards a manager sees when choosing a plan, global users list, audit
   log.
@@ -34,8 +34,9 @@ loaded from its own folder.
 
 ```
 backend/
-  server.js      Express app — mounts every actor's routes under /api/*
+  server.js      Express app - mounts every actor's routes under /api/*
   shared/        config (db), middleware (auth, error), models, seed, utils
+  shared/engine/ free offline CV screening engine - see screening-engine.md
   auth/          register / login, JWT issuing
   candidate/     public job list, apply, my applications
   hr/            jobs, blind rank board, shortlist, upload, email, dashboard
@@ -43,6 +44,10 @@ backend/
   admin/         super admin: dashboard, companies, users, audit, plans
   scripts/       one-off scripts (seed)
 ```
+
+CV scoring for bulk HR upload runs through
+[`shared/engine/`](screening-engine.md): extract text → five weighted
+dimensions → hard filters. Dependency-light, offline, deterministic - no LLM.
 
 ### API surface
 

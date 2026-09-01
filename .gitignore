@@ -5,7 +5,7 @@ node_modules/
 dist/
 build/
 
-# Environment — each workspace keeps its own .env (see .env.example)
+# Environment - each workspace keeps its own .env (see .env.example)
 .env
 .env.local
 .env.*.local
@@ -19,6 +19,10 @@ yarn-error.log*
 # Caches / coverage
 .cache/
 coverage/
+
+# Test CV corpora - real resumes, never commit (see docs/screening-engine.md)
+/Resumes/
+backend/uploads-test/
 
 # Editor / OS
 .DS_Store

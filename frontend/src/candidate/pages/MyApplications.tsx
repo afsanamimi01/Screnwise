@@ -62,7 +62,7 @@ export default function MyApplications() {
                 </span>
               </div>
 
-              {/* Progress tracker — stages come from STATUS_PIPELINE, so reordering
+              {/* Progress tracker - stages come from STATUS_PIPELINE, so reordering
                   that array reorders the tracker. */}
               <ol className="my-applications__pipeline">
                 {STATUS_PIPELINE.map((stage, i) => {

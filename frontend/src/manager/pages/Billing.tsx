@@ -9,7 +9,7 @@ import type { PlanKey } from "@/shared/lib/types";
 import { usePageTitle } from "@/shared/lib/use-page-title";
 import "./Billing.css";
 
-/** Facts in the "current subscription" strip — reorder here. */
+/** Facts in the "current subscription" strip - reorder here. */
 const SUB_FACTS = [
   { key: "plan", label: "Plan" },
   { key: "status", label: "Status" },
@@ -17,7 +17,7 @@ const SUB_FACTS = [
 ] as const;
 
 export default function Billing() {
-  usePageTitle("Plan & billing — Screenwise");
+  usePageTitle("Plan & billing - Screenwise");
   const queryClient = useQueryClient();
   const company = useQuery({ queryKey: ["company"], queryFn: getMyCompany });
   const plans = useQuery({ queryKey: ["plans"], queryFn: getPlans });
@@ -47,7 +47,7 @@ export default function Billing() {
       : c.expired
         ? "expired"
         : "active"
-    : "—";
+    : "-";
 
   return (
     <Shell allow={["manager"]}>
@@ -90,7 +90,7 @@ export default function Billing() {
                         {subStatus}
                       </span>
                     ) : (
-                      <span className="billing__num">{c.subscriptionExpiresAt ?? "—"}</span>
+                      <span className="billing__num">{c.subscriptionExpiresAt ?? "-"}</span>
                     )}
                   </div>
                 </div>

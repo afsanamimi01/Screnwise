@@ -26,7 +26,7 @@ const applicationSchema = new mongoose.Schema(
     yearsExperience: { type: Number, default: 0 },
     currentTitle: String,
     pastTitles: { type: [String], default: [] },
-    educationLevel: { type: String, default: "—" },
+    educationLevel: { type: String, default: "-" },
     needsManualReview: { type: Boolean, default: true },
     duplicateOf: { type: mongoose.Schema.Types.ObjectId, ref: "Application" },
     status: {

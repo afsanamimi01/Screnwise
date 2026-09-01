@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - [Node.js](https://nodejs.org) 22 (see [`.nvmrc`](.nvmrc))
-- [Bun](https://bun.sh) 1.4+ — the package manager and script runner for this repo
+- [Bun](https://bun.sh) 1.4+ - the package manager and script runner for this repo
 - A MongoDB database (local or Atlas) for the backend
 
 ## Setup
@@ -36,7 +36,7 @@ This is a Bun-workspaces monorepo:
 | `backend/`  | `scanwise-backend`  | Express + Mongoose REST API      |
 
 Each workspace keeps its own `package.json`, and the frontend keeps its own
-`tsconfig.json` and `vite.config.ts` — those are resolved relative to the
+`tsconfig.json` and `vite.config.ts` - those are resolved relative to the
 workspace folder and must stay there. Only cross-cutting project files live at
 the repo root.
 

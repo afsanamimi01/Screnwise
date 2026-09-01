@@ -45,7 +45,7 @@ export function Sidebar() {
     try {
       localStorage.setItem(STORAGE_KEY, collapsed ? "1" : "0");
     } catch {
-      /* storage unavailable — collapse state stays in memory only */
+      /* storage unavailable - collapse state stays in memory only */
     }
   }, [collapsed]);
 
@@ -100,7 +100,7 @@ export function Sidebar() {
         </button>
         <span className="admin-sidebar__account-label">Signed in as</span>
         <span className="admin-sidebar__account-name">
-          {user ? roleLabels[user.role] : "—"}
+          {user ? roleLabels[user.role] : "-"}
         </span>
         <button
           type="button"

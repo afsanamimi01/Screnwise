@@ -81,9 +81,9 @@ const SEAT_BY_PLAN = Object.fromEntries(PLANS.map((p) => [p.key, p.hrSeatLimit])
 const COMPANIES = [
   { key: "bengal", name: "Bengal Recruitment", plan: "advance", status: "active", expiresInDays: 25 },
   { key: "dhaka", name: "Dhaka Talent Partners", plan: "basic", status: "active", expiresInDays: 6 },
-  // Subscription already lapsed — use it to test the super-admin "renew" action.
+  // Subscription already lapsed - use it to test the super-admin "renew" action.
   { key: "padma", name: "Padma HR Solutions", plan: "basic", status: "active", expiresInDays: -6 },
-  // Just registered, no plan yet — the manager lands on the plan chooser.
+  // Just registered, no plan yet - the manager lands on the plan chooser.
   { key: "chattogram", name: "Chattogram Staffing", plan: null, status: "active", expiresInDays: null },
 ];
 
@@ -264,8 +264,8 @@ const JOBS = [
     newSinceLastVisit: 0,
   },
   {
-    // Independent screening batch — never on the public board or the dashboard.
-    title: "Sourced — Senior React (LinkedIn + Wellfound)",
+    // Independent screening batch - never on the public board or the dashboard.
+    title: "Sourced - Senior React (LinkedIn + Wellfound)",
     department: "",
     location: "",
     employmentType: "Full-time",
@@ -287,7 +287,7 @@ const JOBS = [
     newSinceLastVisit: 0,
   },
 
-  /* ---- Bengal Recruitment — five more openings ---- */
+  /* ---- Bengal Recruitment - five more openings ---- */
   {
     title: "Mobile app developer (Flutter)",
     department: "Engineering",
@@ -394,7 +394,7 @@ const JOBS = [
     newSinceLastVisit: 4,
   },
 
-  /* ---- Dhaka Talent Partners — five more openings ---- */
+  /* ---- Dhaka Talent Partners - five more openings ---- */
   {
     title: "Accountant",
     department: "Finance",
@@ -676,7 +676,7 @@ const titlesByJobTitle = {
   "QA engineer": [
     "QA engineer", "Test engineer", "SDET", "QA analyst", "Automation engineer",
   ],
-  "Sourced — Senior React (LinkedIn + Wellfound)": [
+  "Sourced - Senior React (LinkedIn + Wellfound)": [
     "Frontend engineer", "React developer", "Senior frontend engineer", "UI engineer",
     "Full-stack developer",
   ],
@@ -798,7 +798,7 @@ function buildGeneratedApplicants(jobDoc) {
       email: `${fn.toLowerCase()}.${ln.toLowerCase()}.${salt}@example.com`,
       phone: `+8801${300000000 + ((salt * 137) % 600000000)}`,
       alias: `Candidate #${jobDoc.title.slice(0, 1)}${String.fromCharCode(65 + (i % 26))}${i + 1}`,
-      // A screening batch has no public apply page — every CV was uploaded by HR.
+      // A screening batch has no public apply page - every CV was uploaded by HR.
       source: jobDoc.kind === "screening" || i % 3 === 0 ? "HR-uploaded" : "self-applied",
       score,
       scoreBreakdown: needsManualReview ? [] : buildBreakdown(jobDoc, score, salt),
@@ -820,19 +820,19 @@ function buildGeneratedApplicants(jobDoc) {
 /* -------------------------------------------------------------- audit log --- */
 
 const AUDIT_SEED = [
-  { actor: "Nusrat Jahan", action: "Company registered", detail: "Bengal Recruitment — advance plan", companyKey: "bengal", daysAgo: 46 },
+  { actor: "Nusrat Jahan", action: "Company registered", detail: "Bengal Recruitment - advance plan", companyKey: "bengal", daysAgo: 46 },
   { actor: "Sadia Islam", action: "Job created", detail: "Senior backend engineer", companyKey: "bengal", daysAgo: 44 },
   { actor: "Sadia Islam", action: "CVs uploaded", detail: "12 files to Senior backend engineer", companyKey: "bengal", daysAgo: 42 },
   { actor: "Sadia Islam", action: "Candidate shortlisted", detail: "3 candidate(s) on Senior backend engineer", companyKey: "bengal", daysAgo: 39 },
-  { actor: "Sadia Islam", action: "Email sent", detail: "Invite to interview — 3 recipients", companyKey: "bengal", daysAgo: 38 },
+  { actor: "Sadia Islam", action: "Email sent", detail: "Invite to interview - 3 recipients", companyKey: "bengal", daysAgo: 38 },
   { actor: "Nusrat Jahan", action: "HR added", detail: "Tanvir Ahmed <tanvir@bengalrecruitment.com>", companyKey: "bengal", daysAgo: 36 },
-  { actor: "Imran Hossain", action: "Company registered", detail: "Dhaka Talent Partners — basic plan", companyKey: "dhaka", daysAgo: 34 },
+  { actor: "Imran Hossain", action: "Company registered", detail: "Dhaka Talent Partners - basic plan", companyKey: "dhaka", daysAgo: 34 },
   { actor: "Farhana Akter", action: "Job created", detail: "Data analyst", companyKey: "dhaka", daysAgo: 33 },
   { actor: "Sadia Islam", action: "Job created", detail: "Frontend engineer (React)", companyKey: "bengal", daysAgo: 30 },
-  { actor: "Afsana Mimi", action: "User updated", detail: "Rifat Chowdhury — hr, inactive", companyKey: null, daysAgo: 14 },
+  { actor: "Afsana Mimi", action: "User updated", detail: "Rifat Chowdhury - hr, inactive", companyKey: null, daysAgo: 14 },
   { actor: "Farhana Akter", action: "Job updated", detail: "Marketing manager", companyKey: "dhaka", daysAgo: 8 },
   { actor: "Sadia Islam", action: "Candidate shortlisted", detail: "2 candidate(s) on Frontend engineer (React)", companyKey: "bengal", daysAgo: 3 },
-  { actor: "Sadia Islam", action: "Email sent", detail: "Invite to interview — 4 recipients", companyKey: "bengal", daysAgo: 2 },
+  { actor: "Sadia Islam", action: "Email sent", detail: "Invite to interview - 4 recipients", companyKey: "bengal", daysAgo: 2 },
 ];
 
 /* ------------------------------------------------------------ seed runner --- */
@@ -949,7 +949,7 @@ export async function seedDatabase({ reset = false } = {}) {
     });
   }
 
-  // Applications tied to the demo candidate accounts — a full pipeline each.
+  // Applications tied to the demo candidate accounts - a full pipeline each.
   const candidateApps = CANDIDATE_APPS.map((c, i) => {
     const job = jobByTitle[c.jobTitle];
     const user = userByKey[c.candidateKey];
@@ -989,8 +989,8 @@ export async function seedDatabase({ reset = false } = {}) {
     if (!recipients.length) continue;
     await SentEmail.create({
       jobId: job._id,
-      subject: `Interview invitation — ${title}`,
-      body: `Hi,\n\nThank you for applying for ${title}. We'd love to talk further — could you share a few times that work for you next week?\n\nBest,\nThe hiring team`,
+      subject: `Interview invitation - ${title}`,
+      body: `Hi,\n\nThank you for applying for ${title}. We'd love to talk further - could you share a few times that work for you next week?\n\nBest,\nThe hiring team`,
       template: "Invite to interview",
       recipients,
       sentAt: new Date(Date.now() - 6 * DAY),

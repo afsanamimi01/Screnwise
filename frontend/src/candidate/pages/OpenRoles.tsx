@@ -11,7 +11,7 @@ import { usePageTitle } from "@/shared/lib/use-page-title";
 import "./OpenRoles.css";
 
 /**
- * Quick facts shown under a role's title. The array order is the display order —
+ * Quick facts shown under a role's title. The array order is the display order -
  * move an entry to rearrange. Each `render` returns `null` when it has nothing.
  */
 const JOB_FACTS: { key: string; render: (job: Job) => ReactNode }[] = [
@@ -39,13 +39,13 @@ const JOB_FACTS: { key: string; render: (job: Job) => ReactNode }[] = [
   { key: "department", render: (job) => job.department || null },
 ];
 
-/** Smaller stats at the foot of each card — same array-ordered idea. */
+/** Smaller stats at the foot of each card - same array-ordered idea. */
 const JOB_STATS: { key: string; render: (job: Job) => ReactNode }[] = [
   { key: "years", render: (job) => (job.minYears > 0 ? <span>{job.minYears}+ yrs experience</span> : null) },
   {
     key: "education",
     render: (job) =>
-      job.educationLevel && !["Any", "—"].includes(job.educationLevel) ? (
+      job.educationLevel && !["Any", "-"].includes(job.educationLevel) ? (
         <span>{job.educationLevel}</span>
       ) : null,
   },
@@ -59,7 +59,7 @@ const JOB_STATS: { key: string; render: (job: Job) => ReactNode }[] = [
 ];
 
 export default function OpenRoles() {
-  usePageTitle("Open roles — Screenwise");
+  usePageTitle("Open roles - Screenwise");
   const { user } = useAuth();
 
   const jobs = useQuery({ queryKey: ["public-jobs"], queryFn: () => getPublicJobs() });
@@ -91,7 +91,7 @@ export default function OpenRoles() {
         {jobs.data && jobs.data.length === 0 ? (
           <EmptyState
             title="No open roles right now"
-            description="Check back soon — new roles are published regularly."
+            description="Check back soon - new roles are published regularly."
           />
         ) : null}
 

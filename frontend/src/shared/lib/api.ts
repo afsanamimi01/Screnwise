@@ -32,10 +32,12 @@ export class ApiError extends Error {
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
+  // Let the browser set the multipart boundary for FormData bodies.
+  const isForm = options.body instanceof FormData;
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
     headers: {
-      "Content-Type": "application/json",
+      ...(isForm ? {} : { "Content-Type": "application/json" }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers ?? {}),
     },
@@ -61,7 +63,7 @@ export function authLogin(email: string, password: string) {
   });
 }
 
-/** Public self-serve signup — always a candidate. */
+/** Public self-serve signup - always a candidate. */
 export function authRegisterCandidate(name: string, email: string, password: string) {
   return request<{ token: string; user: User }>("/auth/register", {
     method: "POST",
@@ -69,7 +71,7 @@ export function authRegisterCandidate(name: string, email: string, password: str
   });
 }
 
-/** Organisation signup — creates a plan-less company plus its manager account. */
+/** Organisation signup - creates a plan-less company plus its manager account. */
 export function authRegisterCompany(payload: {
   companyName: string;
   name: string;
@@ -146,7 +148,7 @@ export function updateJob(job: Job): Promise<Job> {
   return request<Job>(`/hr/jobs/${job.id}`, { method: "PUT", body: body(job) });
 }
 
-/** Blind rank board — identity fields are stripped by the server. */
+/** Blind rank board - identity fields are stripped by the server. */
 export function getApplicationsForJob(jobId: string): Promise<Application[]> {
   return request<Application[]>(`/hr/board/${jobId}`);
 }
@@ -162,12 +164,14 @@ export function shortlistCandidate(applicationIds: string[]): Promise<{ shortlis
   return request("/hr/shortlist", { method: "POST", body: body({ applicationIds }) });
 }
 
-/** Upload CVs for one job/screening and get them scored against it. */
-export function uploadCvs(jobId: string, fileNames: string[]): Promise<Application[]> {
-  return request<Application[]>(`/hr/upload/${jobId}`, {
-    method: "POST",
-    body: body({ fileNames }),
-  });
+/**
+ * Upload CV files for one job/screening. The server parses and scores each one
+ * with the local screening engine and returns the (blind) ranked records.
+ */
+export function uploadCvs(jobId: string, files: File[]): Promise<Application[]> {
+  const form = new FormData();
+  for (const file of files) form.append("cvs", file);
+  return request<Application[]>(`/hr/upload/${jobId}`, { method: "POST", body: form });
 }
 
 export function sendShortlistEmails(payload: {

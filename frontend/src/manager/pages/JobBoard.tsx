@@ -52,7 +52,7 @@ const SUMMARY_TILES: { key: string; label: string; value: (apps: Application[]) 
 ];
 
 export default function JobBoard() {
-  usePageTitle("Rank board — Screenwise");
+  usePageTitle("Rank board - Screenwise");
   const { jobId = "" } = useParams();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -248,7 +248,7 @@ export default function JobBoard() {
             {above.length === 0 && below.length === 0 ? (
               <EmptyState
                 title="No candidates match these filters"
-                description="Loosen the minimum score or clear the skill filter — nobody has been removed from the board."
+                description="Loosen the minimum score or clear the skill filter - nobody has been removed from the board."
               />
             ) : null}
 
@@ -291,7 +291,7 @@ export default function JobBoard() {
                   <div className="manager-board__below-body">
                     <p className="manager-board__below-note">
                       These candidates scored under {SCORE_THRESHOLD}%. They are collapsed, never
-                      removed — you can shortlist any of them.
+                      removed - you can shortlist any of them.
                     </p>
                     {below.map((app, i) => (
                       <CandidateRow

@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 /**
  * Base path for the section the recruiter is in: `/screen` for the independent
  * CV-screening batches, `/jobs` for real job postings. Job pages (board,
- * shortlist, upload, email, edit, new) are shared between the two — prefix
+ * shortlist, upload, email, edit, new) are shared between the two - prefix
  * their links with this:
  *
  *   const base = useWorkspaceBase();

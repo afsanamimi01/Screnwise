@@ -21,7 +21,7 @@ export async function listUsers(req, res, next) {
   }
 }
 
-/** Super admin can rename or deactivate an account — not reassign its role/company. */
+/** Super admin can rename or deactivate an account - not reassign its role/company. */
 export async function updateUser(req, res, next) {
   try {
     const user = await User.findById(req.params.id);
@@ -35,7 +35,7 @@ export async function updateUser(req, res, next) {
     await logAudit(
       req.user.name,
       "User updated",
-      `${user.name} — ${user.role}, ${user.active ? "active" : "inactive"}`,
+      `${user.name} - ${user.role}, ${user.active ? "active" : "inactive"}`,
     );
     res.json(user.toJSON());
   } catch (err) {

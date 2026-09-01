@@ -12,8 +12,8 @@ import "./JobEmail.css";
 
 const templates: Record<string, { subject: string; body: string }> = {
   "Invite to interview": {
-    subject: "Interview invitation — {{job_title}}",
-    body: "Hi {{candidate_name}},\n\nThank you for applying for {{job_title}}. We'd love to talk further — could you share a few times that work for you next week?\n\nBest,\nThe hiring team",
+    subject: "Interview invitation - {{job_title}}",
+    body: "Hi {{candidate_name}},\n\nThank you for applying for {{job_title}}. We'd love to talk further - could you share a few times that work for you next week?\n\nBest,\nThe hiring team",
   },
   "Request more info": {
     subject: "A quick follow-up on your {{job_title}} application",
@@ -26,7 +26,7 @@ const templates: Record<string, { subject: string; body: string }> = {
 };
 
 export default function JobEmail() {
-  usePageTitle("Email composer — Screenwise");
+  usePageTitle("Email composer - Screenwise");
   const { jobId = "" } = useParams();
   const queryClient = useQueryClient();
   const jobQuery = useQuery({ queryKey: ["job", jobId], queryFn: () => getJob(jobId) });
@@ -77,7 +77,7 @@ export default function JobEmail() {
     setSending(false);
     setSelected([]);
     await queryClient.invalidateQueries({ queryKey: ["emails", jobId] });
-    toast.success("Simulated send complete — logged below, no real email was delivered.");
+    toast.success("Simulated send complete - logged below, no real email was delivered.");
   };
 
   return (
@@ -103,7 +103,7 @@ export default function JobEmail() {
         {query.data && rows.length === 0 ? (
           <EmptyState
             title="No shortlisted candidates"
-            description="Shortlist candidates on the rank board first — you can only email people you shortlisted."
+            description="Shortlist candidates on the rank board first - you can only email people you shortlisted."
           />
         ) : null}
 

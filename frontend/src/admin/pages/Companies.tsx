@@ -7,7 +7,7 @@ import { getCompanies, updateCompanyAccess } from "@/shared/lib/api";
 import { usePageTitle } from "@/shared/lib/use-page-title";
 import "./Companies.css";
 
-/** Table columns — reorder / rename here. Last one is the actions cell. */
+/** Table columns - reorder / rename here. Last one is the actions cell. */
 const COLUMNS = ["Company", "Manager", "Plan", "HR seats", "Jobs", "Expires", "Status", ""] as const;
 
 function accessState(c: { accessible: boolean; status: string; plan: string | null }) {
@@ -18,7 +18,7 @@ function accessState(c: { accessible: boolean; status: string; plan: string | nu
 }
 
 export default function Companies() {
-  usePageTitle("Companies — Screenwise");
+  usePageTitle("Companies - Screenwise");
   const queryClient = useQueryClient();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["admin-companies"],
@@ -77,16 +77,16 @@ export default function Companies() {
                 {data.map((c) => (
                   <tr key={c.id}>
                     <td className="companies__cell--name">{c.name}</td>
-                    <td className="companies__cell--muted">{c.manager ? c.manager.email : "—"}</td>
-                    <td className="companies__cell--cap">{c.plan ?? "—"}</td>
+                    <td className="companies__cell--muted">{c.manager ? c.manager.email : "-"}</td>
+                    <td className="companies__cell--cap">{c.plan ?? "-"}</td>
                     <td className="companies__num">
                       {c.plan
                         ? `${c.hrSeatsUsed}${c.hrSeatLimit != null ? ` / ${c.hrSeatLimit}` : ""}`
-                        : "—"}
+                        : "-"}
                     </td>
                     <td className="companies__num">{c.jobCount}</td>
                     <td className="companies__num companies__cell--muted">
-                      {c.subscriptionExpiresAt ?? "—"}
+                      {c.subscriptionExpiresAt ?? "-"}
                     </td>
                     <td>
                       <span

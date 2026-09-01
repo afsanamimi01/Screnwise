@@ -15,7 +15,7 @@ import "./Sidebar.css";
 type NavItem = { to: string; label: string; icon: LucideIcon };
 
 /**
- * Candidate workspace nav. The array order is the menu order — to rearrange the
+ * Candidate workspace nav. The array order is the menu order - to rearrange the
  * sidebar, just move an entry up or down here.
  */
 const NAV_ITEMS: NavItem[] = [
@@ -34,7 +34,7 @@ function readCollapsed() {
 }
 
 /**
- * Candidate sidebar — independent of the other actors. Brand, nav links, and a
+ * Candidate sidebar - independent of the other actors. Brand, nav links, and a
  * pinned footer block (collapse toggle, "signed in as", a link to the public
  * site, sign out). Collapses to an icon rail; the choice is remembered in
  * localStorage. Desktop only.
@@ -49,7 +49,7 @@ export function Sidebar() {
     try {
       localStorage.setItem(STORAGE_KEY, collapsed ? "1" : "0");
     } catch {
-      /* storage unavailable — collapse state stays in memory only */
+      /* storage unavailable - collapse state stays in memory only */
     }
   }, [collapsed]);
 
@@ -101,7 +101,7 @@ export function Sidebar() {
 
         <div className="candidate-sidebar__account">
           <span className="candidate-sidebar__account-label">Signed in as</span>
-          <span className="candidate-sidebar__account-name">{user?.name ?? "—"}</span>
+          <span className="candidate-sidebar__account-name">{user?.name ?? "-"}</span>
           <div className="candidate-sidebar__account-actions">
             <Link to="/" className="candidate-sidebar__site" title="Browse the public site">
               <Home size={16} />

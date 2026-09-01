@@ -2,7 +2,7 @@ import { useAuth } from "@/shared/lib/auth";
 import "./Navbar.css";
 
 /**
- * Company-manager top bar — the white strip beside the sidebar. Context line on
+ * Company-manager top bar - the white strip beside the sidebar. Context line on
  * the left, the signed-in name on the right. Brand and sign-out live in the
  * sidebar.
  */

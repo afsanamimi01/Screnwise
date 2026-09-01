@@ -11,7 +11,7 @@ import { useWorkspaceBase } from "@/shared/lib/workspace";
 import "./JobShortlist.css";
 
 export default function JobShortlist() {
-  usePageTitle("Shortlist — Screenwise");
+  usePageTitle("Shortlist - Screenwise");
   const { jobId = "" } = useParams();
   const base = useWorkspaceBase();
   const jobQuery = useQuery({ queryKey: ["job", jobId], queryFn: () => getJob(jobId) });
@@ -26,7 +26,7 @@ export default function JobShortlist() {
         <div className="manager-shortlist__intro">
           <div>
             <h1 className="manager-shortlist__intro-title">
-              {jobQuery.data ? `Shortlist — ${jobQuery.data.title}` : "Shortlist"}
+              {jobQuery.data ? `Shortlist - ${jobQuery.data.title}` : "Shortlist"}
             </h1>
             <p className="manager-shortlist__intro-text">
               Identities are revealed for shortlisted candidates so you can contact them.

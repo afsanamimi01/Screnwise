@@ -4,7 +4,7 @@ import { usePageTitle } from "@/shared/lib/use-page-title";
 import "./NotFound.css";
 
 export default function NotFound() {
-  usePageTitle("Page not found — Screenwise");
+  usePageTitle("Page not found - Screenwise");
 
   return (
     <div className="not-found">

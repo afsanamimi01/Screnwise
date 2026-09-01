@@ -1,5 +1,5 @@
 /* Layout skeleton for the super-admin console: sidebar + (navbar / page / footer).
-   No page-content styles here — each page owns its wrapper and heading. */
+   No page-content styles here - each page owns its wrapper and heading. */
 
 .admin-shell {
   display: flex;

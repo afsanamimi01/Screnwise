@@ -9,10 +9,10 @@ import { usePageTitle } from "@/shared/lib/use-page-title";
 import { useWorkspaceBase } from "@/shared/lib/workspace";
 import "./JobUpload.css";
 
-type Row = { name: string; status: "uploaded" | "parsing" | "scored" | "review" };
+type Row = { name: string; status: "scoring" | "scored" | "review"; score?: number };
 
 export default function JobUpload() {
-  usePageTitle("Bulk CV upload — Screenwise");
+  usePageTitle("Bulk CV upload - Screenwise");
   const { jobId = "" } = useParams();
   const navigate = useNavigate();
   const base = useWorkspaceBase();
@@ -22,28 +22,23 @@ export default function JobUpload() {
 
   const process = async (files: File[]) => {
     if (!files.length) return;
-    const incoming: Row[] = files.map((f) => ({ name: f.name, status: "uploaded" }));
+    const incoming: Row[] = files.map((f) => ({ name: f.name, status: "scoring" }));
     setRows((prev) => [...prev, ...incoming]);
-    await uploadCvs(jobId, files.map((f) => f.name));
-    incoming.forEach((row, i) => {
-      setTimeout(() => {
-        setRows((prev) =>
-          prev.map((r) => (r.name === row.name ? { ...r, status: "parsing" } : r)),
-        );
-      }, 400 + i * 200);
-      setTimeout(
-        () => {
-          setRows((prev) =>
-            prev.map((r) =>
-              r.name === row.name
-                ? { ...r, status: i % 7 === 6 ? "review" : "scored" }
-                : r,
-            ),
-          );
-        },
-        1200 + i * 250,
+    try {
+      const scored = await uploadCvs(jobId, files);
+      setRows((prev) =>
+        prev.map((r) => {
+          if (!incoming.some((x) => x.name === r.name)) return r;
+          const hit = scored.find((s) => s.cvFileName === r.name);
+          if (!hit) return r;
+          return { ...r, status: hit.needsManualReview ? "review" : "scored", score: hit.score };
+        }),
       );
-    });
+    } catch {
+      setRows((prev) =>
+        prev.map((r) => (incoming.some((x) => x.name === r.name) ? { ...r, status: "review" } : r)),
+      );
+    }
   };
 
   const done = rows.length > 0 && rows.every((r) => r.status === "scored" || r.status === "review");
@@ -59,7 +54,7 @@ export default function JobUpload() {
       <div className="manager-upload">
         <div className="manager-upload__intro">
           <h1 className="manager-upload__intro-title">
-            {jobQuery.data ? `Upload CVs — ${jobQuery.data.title}` : "Upload CVs"}
+            {jobQuery.data ? `Upload CVs - ${jobQuery.data.title}` : "Upload CVs"}
           </h1>
           <p className="manager-upload__intro-text">
             Every uploaded candidate is tagged as HR-uploaded and joins the same rank board.
@@ -110,6 +105,7 @@ export default function JobUpload() {
                 ) : r.status === "scored" ? (
                   <span className="manager-upload__tag manager-upload__tag--scored">
                     <CheckCircle2 size={12} /> Scored
+                    {typeof r.score === "number" ? ` · ${r.score}%` : ""}
                   </span>
                 ) : (
                   <span className="manager-upload__tag">{r.status}…</span>

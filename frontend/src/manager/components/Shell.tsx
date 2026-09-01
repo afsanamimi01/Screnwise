@@ -10,7 +10,7 @@ import { Footer } from "./Footer";
 import "./Shell.css";
 
 /**
- * Company-manager console skeleton — sidebar + (navbar / page / footer) + the
+ * Company-manager console skeleton - sidebar + (navbar / page / footer) + the
  * sign-in gate + the no-plan redirect. Every manager page renders its own
  * heading, so this is a bare frame.
  */

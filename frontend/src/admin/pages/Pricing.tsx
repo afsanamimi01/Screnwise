@@ -24,7 +24,7 @@ function textToFeatures(text: string): PlanFeature[] {
     );
 }
 
-/** Text fields, in render order — reorder the array to reorder the grid. */
+/** Text fields, in render order - reorder the array to reorder the grid. */
 type TextKey = "name" | "price" | "period" | "cta" | "tagline";
 const TEXT_FIELDS: { key: TextKey; label: string }[] = [
   { key: "name", label: "Name" },
@@ -115,7 +115,7 @@ function PlanEditor({ plan }: { plan: Plan }) {
 
       <div className="pricing__field">
         <label className="pricing__label">
-          Features — one per line, prefix with “- ” to show as excluded
+          Features - one per line, prefix with “- ” to show as excluded
         </label>
         <textarea
           className="pricing__textarea"
@@ -133,7 +133,7 @@ function PlanEditor({ plan }: { plan: Plan }) {
 }
 
 export default function Pricing() {
-  usePageTitle("Pricing — Screenwise");
+  usePageTitle("Pricing - Screenwise");
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["admin-plans"],
     queryFn: getAdminPlans,

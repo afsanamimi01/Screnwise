@@ -7,7 +7,7 @@ import "./ScoreExplainDrawer.css";
 /** Rows in the identity dl, in display order. */
 const DETAILS: { label: string; value: (a: Application) => string }[] = [
   { label: "Current title", value: (a) => a.currentTitle },
-  { label: "Past titles", value: (a) => a.pastTitles.join(", ") || "—" },
+  { label: "Past titles", value: (a) => a.pastTitles.join(", ") || "-" },
   { label: "Education", value: (a) => a.educationLevel },
   { label: "Source", value: (a) => a.source },
 ];
@@ -69,7 +69,7 @@ export function ScoreExplainDrawer({
                 <p className="manager-score-drawer__notice-title">Needs manual review</p>
                 <p className="manager-score-drawer__notice-text">
                   The CV ({application.cvFileName}) could not be parsed cleanly, so no score was
-                  produced. Open the file and review this candidate by hand — they have not been
+                  produced. Open the file and review this candidate by hand - they have not been
                   removed from consideration.
                 </p>
               </div>

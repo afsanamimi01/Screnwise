@@ -48,7 +48,7 @@ const COLUMNS: FooterColumn[] = [
 /** One-line reminder shown in the footer, tuned to what each role does here. */
 const ROLE_NOTE: Record<Role, string> = {
   superadmin: "Every company, plan change and access action is written to the audit log.",
-  hr: "The system suggests, you decide — nobody is ever auto-rejected.",
+  hr: "The system suggests, you decide - nobody is ever auto-rejected.",
   manager: "You manage HR seats and the plan; recruiters run the screening.",
   candidate: "Your CV is screened blind, alongside everyone else's.",
 };
@@ -76,7 +76,7 @@ export function SiteFooter({ role, className }: { role?: Role; className?: strin
               </span>
             </div>
             <p className="site-footer__tagline">
-              Blind, explainable CV screening. The platform suggests — you always make the call.
+              Blind, explainable CV screening. The platform suggests - you always make the call.
             </p>
             {role ? (
               <Link to={homeForRole(role)} className="site-footer__workspace-link">

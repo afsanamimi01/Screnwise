@@ -161,7 +161,7 @@ export const STATUS_PIPELINE: ApplicationStatus[] = ["applied", "screened", "sho
 /**
  * Map a status coming back from the API onto the current pipeline. Records
  * created before the `interview` / `hired` stages were removed still carry
- * those values — collapse them onto `shortlisted`, which is the final stage
+ * those values - collapse them onto `shortlisted`, which is the final stage
  * now, so the tracker renders them as fully progressed instead of unknown.
  */
 export function normalizeStatus(status: string): ApplicationStatus {

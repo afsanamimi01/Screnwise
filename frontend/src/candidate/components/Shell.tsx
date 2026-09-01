@@ -8,7 +8,7 @@ import { Footer } from "./Footer";
 import "./Shell.css";
 
 /**
- * Candidate workspace skeleton — sidebar + (navbar / page / footer) + the
+ * Candidate workspace skeleton - sidebar + (navbar / page / footer) + the
  * sign-in gate. It owns no page content: every page under candidate/pages
  * renders its own heading and body with its own stylesheet.
  */

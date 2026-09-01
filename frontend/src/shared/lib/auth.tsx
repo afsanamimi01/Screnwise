@@ -15,9 +15,9 @@ type AuthValue = {
   token: string | null;
   ready: boolean;
   login: (email: string, password: string) => Promise<User>;
-  /** Public self-serve signup — always a candidate. */
+  /** Public self-serve signup - always a candidate. */
   register: (name: string, email: string, password: string) => Promise<User>;
-  /** Organisation signup — creates a company + its manager account. */
+  /** Organisation signup - creates a company + its manager account. */
   registerCompany: (payload: CompanySignup) => Promise<User>;
   logout: () => void;
 };

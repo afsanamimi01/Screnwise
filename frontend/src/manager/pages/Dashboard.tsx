@@ -20,7 +20,7 @@ import { usePageTitle } from "@/shared/lib/use-page-title";
 import { useWorkspaceBase } from "@/shared/lib/workspace";
 import "./Dashboard.css";
 
-/** KPI cards across the top, in display order — reorder the array to reorder. */
+/** KPI cards across the top, in display order - reorder the array to reorder. */
 const KPI_CARDS: {
   key: string;
   label: string;
@@ -47,7 +47,7 @@ const KPI_CARDS: {
 ];
 
 export default function Dashboard() {
-  usePageTitle("Dashboard — Screenwise");
+  usePageTitle("Dashboard - Screenwise");
   const { user } = useAuth();
   const base = useWorkspaceBase();
   const { data, isLoading, isError, refetch } = useQuery({

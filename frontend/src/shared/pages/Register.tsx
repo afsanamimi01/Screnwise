@@ -9,7 +9,7 @@ import "./Register.css";
 type Mode = "candidate" | "company";
 
 export default function Register() {
-  usePageTitle("Create an account — Screenwise");
+  usePageTitle("Create an account - Screenwise");
   const { register, registerCompany } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -29,7 +29,7 @@ export default function Register() {
     try {
       if (mode === "company") {
         await registerCompany({ companyName, name, email, password });
-        // No plan yet — send them straight to the plan chooser.
+        // No plan yet - send them straight to the plan chooser.
         navigate("/billing");
         return;
       }

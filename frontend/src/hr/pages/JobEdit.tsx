@@ -8,7 +8,7 @@ import { usePageTitle } from "@/shared/lib/use-page-title";
 import "./JobEdit.css";
 
 export default function JobEdit() {
-  usePageTitle("Edit job — Screenwise");
+  usePageTitle("Edit job - Screenwise");
   const { jobId = "" } = useParams();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["job", jobId],

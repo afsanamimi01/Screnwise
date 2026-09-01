@@ -8,7 +8,7 @@ import { Footer } from "./Footer";
 import "./Shell.css";
 
 /**
- * HR / recruiter-workspace skeleton — sidebar + (navbar / page / footer) + the
+ * HR / recruiter-workspace skeleton - sidebar + (navbar / page / footer) + the
  * sign-in gate. Every HR page renders its own heading, so this is a bare frame.
  */
 export function Shell({

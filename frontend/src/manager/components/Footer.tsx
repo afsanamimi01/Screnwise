@@ -6,7 +6,7 @@ type FooterLink = { label: string; to?: string; href?: string };
 type FooterColumn = { heading: string; links: FooterLink[] };
 
 /**
- * Company-manager footer — independent of the other actors. Reorder columns or
+ * Company-manager footer - independent of the other actors. Reorder columns or
  * links by moving array entries; the "Contact" details are hard-coded here.
  */
 const COLUMNS: FooterColumn[] = [

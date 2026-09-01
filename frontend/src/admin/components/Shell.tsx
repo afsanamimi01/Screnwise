@@ -8,7 +8,7 @@ import { Footer } from "./Footer";
 import "./Shell.css";
 
 /**
- * Super-admin console skeleton — sidebar + (navbar / page / footer) + the
+ * Super-admin console skeleton - sidebar + (navbar / page / footer) + the
  * sign-in gate. Owns no page content: every page under admin/pages renders its
  * own heading and body with its own stylesheet.
  */

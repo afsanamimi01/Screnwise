@@ -101,7 +101,7 @@ export default function App() {
               <Route path="/my-applications" element={<MyApplications />} />
               <Route path="/open-roles" element={<OpenRoles />} />
 
-              {/* recruiter workspace — hr and manager have their own page copies */}
+              {/* recruiter workspace - hr and manager have their own page copies */}
               <Route
                 path="/dashboard"
                 element={<Recruiter hr={<Dashboard />} manager={<ManagerDashboard />} />}
@@ -136,7 +136,7 @@ export default function App() {
                 element={<Recruiter hr={<JobEmail />} manager={<ManagerJobEmail />} />}
               />
 
-              {/* independent CV screening — same pages, kind: "screening" */}
+              {/* independent CV screening - same pages, kind: "screening" */}
               <Route
                 path="/screen"
                 element={<Recruiter hr={<Jobs />} manager={<ManagerJobs />} />}

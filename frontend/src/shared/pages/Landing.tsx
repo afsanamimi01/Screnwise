@@ -26,14 +26,14 @@ const pillars = [
 ];
 
 export default function Landing() {
-  usePageTitle("Screenwise — blind, explainable CV screening");
+  usePageTitle("Screenwise - blind, explainable CV screening");
   const { user } = useAuth();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["public-jobs"],
     queryFn: () => getPublicJobs(),
   });
 
-  // Applying requires a candidate session — route guests to sign in first.
+  // Applying requires a candidate session - route guests to sign in first.
   const applyHref = (jobId: string) =>
     user ? `/apply/${jobId}` : `/login?next=${encodeURIComponent(`/apply/${jobId}`)}`;
 
@@ -101,7 +101,7 @@ export default function Landing() {
               </div>
             ) : null}
             {data && data.length === 0 ? (
-              <p className="landing__state">No public roles right now — check back soon.</p>
+              <p className="landing__state">No public roles right now - check back soon.</p>
             ) : null}
             {data?.map((job) => (
               <Link key={job.id} to={applyHref(job.id)} className="landing__role">

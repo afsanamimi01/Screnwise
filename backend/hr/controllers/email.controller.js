@@ -15,7 +15,7 @@ export async function sendShortlistEmail(req, res, next) {
     await logAudit(
       req.user.name,
       "Email sent",
-      `${template} — ${recipients.length} recipients`,
+      `${template} - ${recipients.length} recipients`,
       req.user.companyId,
     );
     res.status(201).json(email);

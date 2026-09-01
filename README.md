@@ -5,12 +5,12 @@ organized by actor so any piece of frontend/backend code can be found by role.
 
 ## Repository layout
 
-Bun-workspaces monorepo — two apps, shared tooling at the root.
+Bun-workspaces monorepo - two apps, shared tooling at the root.
 
 ```
 screenwise/
-├── frontend/          scanwise-frontend — React + Vite SPA        (:8080)
-├── backend/           scanwise-backend  — Express + Mongoose API   (:5000)
+├── frontend/          scanwise-frontend - React + Vite SPA        (:8080)
+├── backend/           scanwise-backend  - Express + Mongoose API   (:5000)
 ├── docs/              architecture notes
 ├── package.json       workspaces + top-level scripts
 ├── .env.example       how to set up each workspace's .env
@@ -18,7 +18,7 @@ screenwise/
 ```
 
 Each workspace owns its own `package.json` (and the frontend its own
-`tsconfig.json` / `vite.config.ts`) — those resolve paths relative to their
+`tsconfig.json` / `vite.config.ts`) - those resolve paths relative to their
 folder and stay there.
 
 ## Getting started
@@ -40,21 +40,21 @@ Other scripts: `bun run dev:frontend`, `bun run dev:backend`,
 
 ## Actors
 
-- **Candidate** — global, free forever. Register/login, browse every open job
+- **Candidate** - global, free forever. Register/login, browse every open job
   from every company, apply with a CV, track application status.
-- **Company** — a paying organisation on a plan (Basic / Advance / Custom).
+- **Company** - a paying organisation on a plan (Basic / Advance / Custom).
   Registering a company creates its single **Manager**.
-  - **Manager** — company owner. Full recruiter powers **plus** add/deactivate
+  - **Manager** - company owner. Full recruiter powers **plus** add/deactivate
     HR (bounded by the plan's seat limit) and switch plan.
-  - **HR** — belongs to one company, created by its Manager. Posts jobs,
+  - **HR** - belongs to one company, created by its Manager. Posts jobs,
     screens the blind rank board, shortlists, emails. Everything is scoped to
     the company; all company members share visibility of the company's jobs.
-- **Super admin** — platform operator (seeded only). Dashboard, all companies
+- **Super admin** - platform operator (seeded only). Dashboard, all companies
   with plan / seat usage / expiry / access state, renew or revoke a company's
   access, edit the plan cards a manager sees when choosing a plan, global
   users list, audit log.
 
 ## Documentation
 
-- [docs/architecture.md](docs/architecture.md) — workspaces, actor model, API surface
-- [CONTRIBUTING.md](CONTRIBUTING.md) — setup, scripts, conventions
+- [docs/architecture.md](docs/architecture.md) - workspaces, actor model, API surface
+- [CONTRIBUTING.md](CONTRIBUTING.md) - setup, scripts, conventions

@@ -7,7 +7,7 @@ type FooterLink = { label: string; to?: string; href?: string };
 type FooterColumn = { heading: string; links: FooterLink[] };
 
 /**
- * Footer for the admin actor. Independent of the shared SiteFooter — edit the
+ * Footer for the admin actor. Independent of the shared SiteFooter - edit the
  * columns freely; the "Contact" details are hard-coded here.
  */
 const COLUMNS: FooterColumn[] = [
@@ -61,7 +61,7 @@ export function Footer() {
               </span>
             </div>
             <p className="admin-footer__tagline">
-              Blind, explainable CV screening. The platform suggests — you always make the call.
+              Blind, explainable CV screening. The platform suggests - you always make the call.
             </p>
             <Link to={workspace} className="admin-footer__workspace">
               Go to your workspace

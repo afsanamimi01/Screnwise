@@ -17,7 +17,7 @@ export async function verifyToken(req, res, next) {
     }
 
     // Company members are gated on their organisation's subscription. A manager
-    // with no plan yet is still let through — so they can go and pick one.
+    // with no plan yet is still let through - so they can go and pick one.
     if (COMPANY_ROLES.has(user.role)) {
       const company = await Company.findById(user.companyId);
       if (!company) {

@@ -2,7 +2,7 @@ import { useAuth } from "@/shared/lib/auth";
 import "./Navbar.css";
 
 /**
- * Super-admin top bar — the white strip beside the sidebar. Context line on the
+ * Super-admin top bar - the white strip beside the sidebar. Context line on the
  * left, the signed-in name on the right. Brand and sign-out live in the sidebar.
  */
 export function Navbar() {

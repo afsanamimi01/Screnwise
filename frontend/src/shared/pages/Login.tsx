@@ -25,7 +25,7 @@ function safeNext(value: string | null): string | null {
 }
 
 export default function Login() {
-  usePageTitle("Sign in — Screenwise");
+  usePageTitle("Sign in - Screenwise");
   const { login, user } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -105,7 +105,7 @@ export default function Login() {
 
             <div className="login__demo">
               <p className="login__demo-title">
-                Demo accounts — password <span className="login__demo-password">demo1234</span>
+                Demo accounts - password <span className="login__demo-password">demo1234</span>
               </p>
               <div className="login__demo-list">
                 {DEMO_ACCOUNTS.map((u) => (

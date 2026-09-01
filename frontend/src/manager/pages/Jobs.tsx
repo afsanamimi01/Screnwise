@@ -17,12 +17,12 @@ export default function Jobs() {
   const navigate = useNavigate();
   const base = useWorkspaceBase();
   const isScreening = base === "/screen";
-  usePageTitle(isScreening ? "Screen CVs — Screenwise" : "Jobs — Screenwise");
+  usePageTitle(isScreening ? "Screen CVs - Screenwise" : "Jobs - Screenwise");
 
   const [sort, setSort] = useState<SortKey>("createdAt");
   const [asc, setAsc] = useState(false);
 
-  /** Column set — reorder / rename here; `sortKey` makes a header clickable. */
+  /** Column set - reorder / rename here; `sortKey` makes a header clickable. */
   const columns: { label: string; sortKey?: SortKey }[] = [
     { label: isScreening ? "Screening" : "Job title", sortKey: "title" },
     { label: "Status" },
@@ -70,7 +70,7 @@ export default function Jobs() {
             <h1 className="manager-jobs__intro-title">{isScreening ? "Screen CVs" : "Jobs"}</h1>
             <p className="manager-jobs__intro-text">
               {isScreening
-                ? "Independent CV screenings for roles sourced elsewhere. Open one to see its rank board, shortlist and emails — nothing here touches the public job board."
+                ? "Independent CV screenings for roles sourced elsewhere. Open one to see its rank board, shortlist and emails - nothing here touches the public job board."
                 : "Every member of your company can open a job's rank board."}
             </p>
           </div>

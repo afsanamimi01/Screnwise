@@ -3,7 +3,7 @@ import { logAudit } from "../../shared/utils/audit.js";
 
 const EDITABLE = ["name", "tagline", "price", "period", "cta", "featured", "hrSeatLimit", "features"];
 
-/** Public — feeds the marketing pricing page. */
+/** Public - feeds the marketing pricing page. */
 export async function listPlans(req, res, next) {
   try {
     const plans = await Plan.find().sort({ order: 1 });
@@ -13,7 +13,7 @@ export async function listPlans(req, res, next) {
   }
 }
 
-/** Super admin only — edit pricing-card content for one plan. */
+/** Super admin only - edit pricing-card content for one plan. */
 export async function updatePlan(req, res, next) {
   try {
     const plan = await Plan.findOne({ key: req.params.key });

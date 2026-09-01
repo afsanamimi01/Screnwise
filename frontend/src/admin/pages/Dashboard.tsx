@@ -7,7 +7,7 @@ import { getAdminDashboard } from "@/shared/lib/api";
 import { usePageTitle } from "@/shared/lib/use-page-title";
 import "./Dashboard.css";
 
-/** KPI tiles — reorder the array to reorder the row. */
+/** KPI tiles - reorder the array to reorder the row. */
 const KPIS = [
   { key: "companies", label: "Companies", icon: Building2 },
   { key: "activeCompanies", label: "Active now", icon: Building2 },
@@ -24,7 +24,7 @@ function companyState(c: { accessible?: boolean; status: string; plan: string | 
 }
 
 export default function Dashboard() {
-  usePageTitle("Super admin — Screenwise");
+  usePageTitle("Super admin - Screenwise");
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["admin-dashboard"],
     queryFn: getAdminDashboard,
@@ -76,8 +76,8 @@ export default function Dashboard() {
                       <div key={c.id} className="dashboard__row">
                         <span className="dashboard__row-name">{c.name}</span>
                         <span className="dashboard__row-meta">
-                          <span className="dashboard__pill">{c.plan ?? "—"}</span>
-                          <span className="dashboard__num">{c.subscriptionExpiresAt ?? "—"}</span>
+                          <span className="dashboard__pill">{c.plan ?? "-"}</span>
+                          <span className="dashboard__num">{c.subscriptionExpiresAt ?? "-"}</span>
                         </span>
                       </div>
                     ))
@@ -94,7 +94,7 @@ export default function Dashboard() {
                     <div key={c.id} className="dashboard__row">
                       <span className="dashboard__row-name">{c.name}</span>
                       <span className="dashboard__row-meta">
-                        <span className="dashboard__pill">{c.plan ?? "—"}</span>
+                        <span className="dashboard__pill">{c.plan ?? "-"}</span>
                         <span
                           className={
                             "dashboard__pill" +

@@ -95,7 +95,7 @@ export function JobForm({
         navigate(base);
       } else {
         const created = isScreening ? await createScreening(job) : await createJob(job);
-        toast.success(isScreening ? "Screening created — now add the CVs." : "Job posted.");
+        toast.success(isScreening ? "Screening created - now add the CVs." : "Job posted.");
         navigate(isScreening ? `${base}/${created.id}/upload` : base);
       }
     } catch (err) {
@@ -247,7 +247,7 @@ export function JobForm({
 
         <section className="manager-job-form__card manager-job-form__card--gate">
           <div className="manager-job-form__card-head">
-            <h2 className="manager-job-form__card-title">Hard filters — pass/fail gates</h2>
+            <h2 className="manager-job-form__card-title">Hard filters - pass/fail gates</h2>
             <p className="manager-job-form__card-desc">
               These remove a candidate from consideration. Use them sparingly: unlike scoring
               weights, they are not a spectrum.
@@ -330,7 +330,7 @@ export function JobForm({
                   : " manager-job-form__total--warn")
               }
             >
-              Total: {weightTotal}% {weightTotal === 100 ? "— ready" : "— must equal 100%"}
+              Total: {weightTotal}% {weightTotal === 100 ? "- ready" : "- must equal 100%"}
             </div>
           </div>
         </section>

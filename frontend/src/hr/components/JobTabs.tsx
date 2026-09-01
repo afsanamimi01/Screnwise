@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useWorkspaceBase } from "@/shared/lib/workspace";
 import "./JobTabs.css";
 
-/** Per-job tab strip — reorder the array to reorder the tabs. */
+/** Per-job tab strip - reorder the array to reorder the tabs. */
 const TABS = [
   { segment: "board", label: "Rank board" },
   { segment: "shortlist", label: "Shortlist" },

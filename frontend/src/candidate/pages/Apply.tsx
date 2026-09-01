@@ -19,7 +19,7 @@ export default function Apply() {
     enabled: Boolean(jobId),
   });
 
-  usePageTitle(`${data?.title ? `Apply · ${data.title}` : "Apply"} — Screenwise`);
+  usePageTitle(`${data?.title ? `Apply · ${data.title}` : "Apply"} - Screenwise`);
 
   const [form, setForm] = useState({
     name: "",

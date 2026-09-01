@@ -8,7 +8,7 @@ import "./JobNew.css";
 export default function JobNew() {
   const { user } = useAuth();
   const isScreening = useWorkspaceBase() === "/screen";
-  usePageTitle(isScreening ? "New CV screening — Screenwise" : "Create a job — Screenwise");
+  usePageTitle(isScreening ? "New CV screening - Screenwise" : "Create a job - Screenwise");
 
   return (
     <Shell allow={["manager"]}>
@@ -19,7 +19,7 @@ export default function JobNew() {
           </h1>
           <p className="manager-job-new__intro-text">
             {isScreening
-              ? "Define the role you're screening for — CVs you upload next are ranked against exactly these skills, weights and hard filters. This never appears on the public board."
+              ? "Define the role you're screening for - CVs you upload next are ranked against exactly these skills, weights and hard filters. This never appears on the public board."
               : "Hard filters are pass/fail gates. Scoring weights rank the survivors on a spectrum."}
           </p>
         </div>

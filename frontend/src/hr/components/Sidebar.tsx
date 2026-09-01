@@ -14,7 +14,7 @@ import "./Sidebar.css";
 
 type NavItem = { to: string; label: string; icon: LucideIcon };
 
-/** Recruiter-workspace nav — array order is the menu order. */
+/** Recruiter-workspace nav - array order is the menu order. */
 const NAV_ITEMS: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/jobs", label: "Jobs", icon: ClipboardList },
@@ -32,7 +32,7 @@ function readCollapsed() {
 }
 
 /**
- * HR / recruiter sidebar — independent of the other actors. Brand, nav, and a
+ * HR / recruiter sidebar - independent of the other actors. Brand, nav, and a
  * pinned footer block (collapse toggle + "signed in as" + sign out). Desktop only.
  */
 export function Sidebar() {
@@ -45,7 +45,7 @@ export function Sidebar() {
     try {
       localStorage.setItem(STORAGE_KEY, collapsed ? "1" : "0");
     } catch {
-      /* storage unavailable — collapse state stays in memory only */
+      /* storage unavailable - collapse state stays in memory only */
     }
   }, [collapsed]);
 
@@ -95,7 +95,7 @@ export function Sidebar() {
 
         <div className="hr-sidebar__account">
           <span className="hr-sidebar__account-label">Signed in as</span>
-          <span className="hr-sidebar__account-name">{user ? roleLabels[user.role] : "—"}</span>
+          <span className="hr-sidebar__account-name">{user ? roleLabels[user.role] : "-"}</span>
           <button
             type="button"
             className="hr-sidebar__logout"

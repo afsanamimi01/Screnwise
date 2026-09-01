@@ -8,11 +8,11 @@ import { createHr, getCompanyHr, getMyCompany, updateHr } from "@/shared/lib/api
 import { usePageTitle } from "@/shared/lib/use-page-title";
 import "./Team.css";
 
-/** Table columns — reorder / rename here. */
+/** Table columns - reorder / rename here. */
 const COLUMNS = ["Name", "Email", "Joined", "Active"] as const;
 
 export default function Team() {
-  usePageTitle("HR team — Screenwise");
+  usePageTitle("HR team - Screenwise");
   const queryClient = useQueryClient();
   const company = useQuery({ queryKey: ["company"], queryFn: getMyCompany });
   const hr = useQuery({ queryKey: ["company-hr"], queryFn: getCompanyHr });
@@ -100,7 +100,7 @@ export default function Team() {
               </span>
               {atCapacity ? (
                 <span className="team__warn">
-                  Seat limit reached — upgrade the plan or deactivate an HR
+                  Seat limit reached - upgrade the plan or deactivate an HR
                 </span>
               ) : null}
             </div>

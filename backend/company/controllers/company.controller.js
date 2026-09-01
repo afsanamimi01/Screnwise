@@ -120,7 +120,7 @@ export async function updateHr(req, res, next) {
     await logAudit(
       req.user.name,
       "HR updated",
-      `${user.name} — ${user.active ? "active" : "deactivated"}`,
+      `${user.name} - ${user.active ? "active" : "deactivated"}`,
       req.user.companyId,
     );
     res.json(user);

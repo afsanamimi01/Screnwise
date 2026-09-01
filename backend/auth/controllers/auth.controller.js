@@ -16,7 +16,7 @@ function issueToken(user) {
  * Returns a blocking message if this company user should not be let in, or
  * `null` if they're fine. HR needs a fully provisioned company; a manager is
  * only blocked when access is revoked or a chosen plan has lapsed (a manager
- * with no plan yet still signs in — to go pick one).
+ * with no plan yet still signs in - to go pick one).
  */
 function companyBlockReason(user, company) {
   if (!company) return "Your account is not attached to a company";
@@ -32,7 +32,7 @@ function companyBlockReason(user, company) {
   return null;
 }
 
-/** Public self-serve signup. Always creates a `candidate` — never a company user. */
+/** Public self-serve signup. Always creates a `candidate` - never a company user. */
 export async function register(req, res, next) {
   try {
     const { name, email, password } = req.body;
@@ -62,7 +62,7 @@ export async function register(req, res, next) {
 
 /**
  * Organisation signup. Creates a plan-less Company plus its single `manager`
- * account — the manager picks a plan on first sign-in.
+ * account - the manager picks a plan on first sign-in.
  */
 export async function registerCompany(req, res, next) {
   try {
@@ -95,7 +95,7 @@ export async function registerCompany(req, res, next) {
       active: true,
     });
 
-    await logAudit(name, "Company registered", `${companyName} — awaiting plan selection`, company._id);
+    await logAudit(name, "Company registered", `${companyName} - awaiting plan selection`, company._id);
     res.status(201).json({ token: issueToken(user), user, company: company.toJSON() });
   } catch (err) {
     next(err);

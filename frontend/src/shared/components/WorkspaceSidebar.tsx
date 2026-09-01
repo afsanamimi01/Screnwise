@@ -38,7 +38,7 @@ export function WorkspaceSidebar({
     try {
       localStorage.setItem(STORAGE_KEY, collapsed ? "1" : "0");
     } catch {
-      /* storage unavailable — collapse state stays in memory only */
+      /* storage unavailable - collapse state stays in memory only */
     }
   }, [collapsed]);
 

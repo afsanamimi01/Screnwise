@@ -6,7 +6,7 @@ import { usePageTitle } from "@/shared/lib/use-page-title";
 import "./AuditLog.css";
 
 export default function AuditLog() {
-  usePageTitle("Audit log — Screenwise");
+  usePageTitle("Audit log - Screenwise");
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["audit"],
     queryFn: getAuditLog,

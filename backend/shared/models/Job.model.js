@@ -23,7 +23,7 @@ const weightsSchema = new mongoose.Schema(
 const jobSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
-    // Only the title is mandatory — a screening batch is defined by its skills,
+    // Only the title is mandatory - a screening batch is defined by its skills,
     // hard filters and weights, not by department / location / employment type.
     department: { type: String, default: "" },
     location: { type: String, default: "" },
@@ -39,12 +39,12 @@ const jobSchema = new mongoose.Schema(
     publicApplyEnabled: { type: Boolean, default: false },
     status: { type: String, enum: ["open", "closed"], default: "open" },
     /**
-     * "job"       — a real posting on the platform (public board, dashboard).
-     * "screening" — an internal batch: CVs sourced elsewhere, scored against a
+     * "job"       - a real posting on the platform (public board, dashboard).
+     * "screening" - an internal batch: CVs sourced elsewhere, scored against a
      *               role that never appears on the public board or dashboard.
      */
     kind: { type: String, enum: ["job", "screening"], default: "job" },
-    /** Owning organisation — every member of this company can see and manage it. */
+    /** Owning organisation - every member of this company can see and manage it. */
     companyId: { type: mongoose.Schema.Types.ObjectId, ref: "Company", required: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     newSinceLastVisit: { type: Number, default: 0 },
