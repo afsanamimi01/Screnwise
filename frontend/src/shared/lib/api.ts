@@ -98,23 +98,84 @@ export function getPublicJob(jobId: string): Promise<Job> {
   return request<Job>(`/candidate/jobs/${jobId}`);
 }
 
+/**
+ * Apply to a role. The CV comes from the candidate's profile unless `cv` is
+ * given here (a one-off file for this application, which the server also saves
+ * to the profile if there isn't one yet).
+ */
 export function submitApplication(payload: {
   jobId: string;
-  name: string;
-  email: string;
-  phone: string;
-  skills: string[];
-  years: number;
-  currentTitle: string;
-  cvFileName: string;
-}): Promise<{ trackingId: string }> {
-  return request("/candidate/apply", { method: "POST", body: body(payload) });
+  phone?: string;
+  cv?: File | null;
+}): Promise<{ trackingId: string; score: number }> {
+  if (payload.cv) {
+    const form = new FormData();
+    form.append("cv", payload.cv);
+    form.append("jobId", payload.jobId);
+    if (payload.phone) form.append("phone", payload.phone);
+    return request("/candidate/apply", { method: "POST", body: form });
+  }
+  return request("/candidate/apply", {
+    method: "POST",
+    body: body({ jobId: payload.jobId, phone: payload.phone ?? "" }),
+  });
 }
 
 /* -------------------------------- candidate ------------------------------ */
 
 export function getMyApplications(): Promise<{ app: Application; job: Job | null }[]> {
   return request("/candidate/applications");
+}
+
+export type CandidateProfile = {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  headline: string;
+  location: string;
+  phone: string;
+  yearsExperience: number;
+  educationLevel: string;
+  skills: string[];
+  summary: string;
+  links: { portfolio: string; linkedin: string; github: string };
+  cv: { fileName: string; size: number; contentType: string; uploadedAt: string } | null;
+};
+
+export type CandidateProfilePatch = Partial<
+  Pick<
+    CandidateProfile,
+    "headline" | "location" | "phone" | "yearsExperience" | "educationLevel" | "skills" | "summary"
+  > & { links: Partial<CandidateProfile["links"]> }
+>;
+
+export function getCandidateProfile(): Promise<CandidateProfile> {
+  return request<CandidateProfile>("/candidate/profile");
+}
+
+export function updateCandidateProfile(patch: CandidateProfilePatch): Promise<CandidateProfile> {
+  return request<CandidateProfile>("/candidate/profile", { method: "PUT", body: body(patch) });
+}
+
+export function uploadProfileCv(file: File): Promise<CandidateProfile> {
+  const form = new FormData();
+  form.append("cv", file);
+  return request<CandidateProfile>("/candidate/profile/cv", { method: "POST", body: form });
+}
+
+export function deleteProfileCv(): Promise<CandidateProfile> {
+  return request<CandidateProfile>("/candidate/profile/cv", { method: "DELETE" });
+}
+
+/** Fetch the stored CV as a blob (needs the auth header, so not a plain link). */
+export async function getProfileCvBlob(): Promise<Blob> {
+  const token = getToken();
+  const res = await fetch(`${BASE_URL}/candidate/profile/cv`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) throw new ApiError(res.status, "Could not load your CV");
+  return res.blob();
 }
 
 /* ----------------------------------- hr --------------------------------- */

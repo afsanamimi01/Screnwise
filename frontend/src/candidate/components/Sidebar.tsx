@@ -7,6 +7,7 @@ import {
   Home,
   LogOut,
   Sparkles,
+  UserRound,
   type LucideIcon,
 } from "lucide-react";
 import { useAuth } from "@/shared/lib/auth";
@@ -21,6 +22,7 @@ type NavItem = { to: string; label: string; icon: LucideIcon };
 const NAV_ITEMS: NavItem[] = [
   { to: "/my-applications", label: "My applications", icon: FileStack },
   { to: "/open-roles", label: "Open roles", icon: Briefcase },
+  { to: "/profile", label: "Profile", icon: UserRound },
 ];
 
 const STORAGE_KEY = "candidate.sidebar.collapsed";

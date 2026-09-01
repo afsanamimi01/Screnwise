@@ -167,6 +167,90 @@
   letter-spacing: -0.02em;
 }
 
+/* --- identity + hints --------------------------------------- */
+.apply__identity {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.5rem;
+  background: #f5f8fa;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+.apply__hint {
+  font-weight: 400;
+  color: #5e6b73;
+}
+
+.apply__hint--block {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+}
+
+/* --- CV from profile ---------------------------------------- */
+.apply__cv {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.5rem;
+  background: #f5f8fa;
+}
+
+.apply__cv-icon {
+  color: #006b79;
+  flex-shrink: 0;
+}
+
+.apply__cv-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.apply__cv-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.apply__cv-sub {
+  font-size: 0.75rem;
+  color: #5e6b73;
+}
+
+.apply__cv-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.apply__cv-link {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #006b79;
+  cursor: pointer;
+}
+
+.apply__cv-link:hover {
+  text-decoration: underline;
+}
+
+.apply__cv-link--back {
+  display: inline-block;
+  margin-top: 0.5rem;
+  text-align: left;
+}
+
 /* --- checkboxes ------------------------------------------------ */
 .apply__check {
   display: flex;

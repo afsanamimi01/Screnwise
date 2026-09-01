@@ -10,6 +10,7 @@ import NotFound from "@/shared/pages/NotFound";
 import Apply from "@/candidate/pages/Apply";
 import MyApplications from "@/candidate/pages/MyApplications";
 import OpenRoles from "@/candidate/pages/OpenRoles";
+import Profile from "@/candidate/pages/Profile";
 import Dashboard from "@/hr/pages/Dashboard";
 import Jobs from "@/hr/pages/Jobs";
 import JobNew from "@/hr/pages/JobNew";
@@ -100,6 +101,7 @@ export default function App() {
               <Route path="/apply/:jobId" element={<Apply />} />
               <Route path="/my-applications" element={<MyApplications />} />
               <Route path="/open-roles" element={<OpenRoles />} />
+              <Route path="/profile" element={<Profile />} />
 
               {/* recruiter workspace - hr and manager have their own page copies */}
               <Route

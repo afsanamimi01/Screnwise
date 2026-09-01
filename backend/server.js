@@ -8,6 +8,7 @@ import authRoutes from "./auth/routes/auth.routes.js";
 import candidateJobsRoutes from "./candidate/routes/jobs.routes.js";
 import candidateApplyRoutes from "./candidate/routes/apply.routes.js";
 import candidateApplicationsRoutes from "./candidate/routes/applications.routes.js";
+import candidateProfileRoutes from "./candidate/routes/profile.routes.js";
 import hrJobsRoutes from "./hr/routes/jobs.routes.js";
 import hrBoardRoutes from "./hr/routes/board.routes.js";
 import hrShortlistRoutes from "./hr/routes/shortlist.routes.js";
@@ -32,6 +33,7 @@ app.use("/api/plans", publicPlansRoutes);
 app.use("/api/candidate/jobs", candidateJobsRoutes);
 app.use("/api/candidate/apply", candidateApplyRoutes);
 app.use("/api/candidate/applications", candidateApplicationsRoutes);
+app.use("/api/candidate/profile", candidateProfileRoutes);
 
 app.use("/api/hr/jobs", hrJobsRoutes);
 app.use("/api/hr/board", hrBoardRoutes);
