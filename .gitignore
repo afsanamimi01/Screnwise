@@ -20,10 +20,6 @@ yarn-error.log*
 .cache/
 coverage/
 
-# Test CV corpora - real resumes, never commit (see docs/screening-engine.md)
-/Resumes/
-backend/uploads-test/
-
 # Editor / OS
 .DS_Store
 Thumbs.db

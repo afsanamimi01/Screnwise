@@ -1,0 +1,146 @@
+[
+  {
+    "file": "HEALTHCARE-01.pdf",
+    "domain": "HEALTHCARE",
+    "sourceId": "10062724.pdf",
+    "chars": 11693
+  },
+  {
+    "file": "HEALTHCARE-02.pdf",
+    "domain": "HEALTHCARE",
+    "sourceId": "10076271.pdf",
+    "chars": 5529
+  },
+  {
+    "file": "TEACHER-01.pdf",
+    "domain": "TEACHER",
+    "sourceId": "10504237.pdf",
+    "chars": 6288
+  },
+  {
+    "file": "TEACHER-02.pdf",
+    "domain": "TEACHER",
+    "sourceId": "10527994.pdf",
+    "chars": 1649
+  },
+  {
+    "file": "ADVOCATE-01.pdf",
+    "domain": "ADVOCATE",
+    "sourceId": "10186968.pdf",
+    "chars": 3940
+  },
+  {
+    "file": "ADVOCATE-02.pdf",
+    "domain": "ADVOCATE",
+    "sourceId": "10344379.pdf",
+    "chars": 5048
+  },
+  {
+    "file": "ACCOUNTANT-01.pdf",
+    "domain": "ACCOUNTANT",
+    "sourceId": "10554236.pdf",
+    "chars": 24227
+  },
+  {
+    "file": "ACCOUNTANT-02.pdf",
+    "domain": "ACCOUNTANT",
+    "sourceId": "10674770.pdf",
+    "chars": 7512
+  },
+  {
+    "file": "CHEF-01.pdf",
+    "domain": "CHEF",
+    "sourceId": "10001727.pdf",
+    "chars": 4827
+  },
+  {
+    "file": "CHEF-02.pdf",
+    "domain": "CHEF",
+    "sourceId": "10276858.pdf",
+    "chars": 5303
+  },
+  {
+    "file": "FITNESS-01.pdf",
+    "domain": "FITNESS",
+    "sourceId": "10235429.pdf",
+    "chars": 6322
+  },
+  {
+    "file": "FITNESS-02.pdf",
+    "domain": "FITNESS",
+    "sourceId": "10268614.pdf",
+    "chars": 5380
+  },
+  {
+    "file": "AVIATION-01.pdf",
+    "domain": "AVIATION",
+    "sourceId": "10176815.pdf",
+    "chars": 5597
+  },
+  {
+    "file": "AVIATION-02.pdf",
+    "domain": "AVIATION",
+    "sourceId": "10189110.pdf",
+    "chars": 8809
+  },
+  {
+    "file": "BANKING-01.pdf",
+    "domain": "BANKING",
+    "sourceId": "10329506.pdf",
+    "chars": 4596
+  },
+  {
+    "file": "BANKING-02.pdf",
+    "domain": "BANKING",
+    "sourceId": "10909673.pdf",
+    "chars": 5625
+  },
+  {
+    "file": "SALES-01.pdf",
+    "domain": "SALES",
+    "sourceId": "10138632.pdf",
+    "chars": 5537
+  },
+  {
+    "file": "SALES-02.pdf",
+    "domain": "SALES",
+    "sourceId": "10464113.pdf",
+    "chars": 6176
+  },
+  {
+    "file": "INFORMATION-TECHNOLOGY-01.pdf",
+    "domain": "INFORMATION-TECHNOLOGY",
+    "sourceId": "10089434.pdf",
+    "chars": 8297
+  },
+  {
+    "file": "INFORMATION-TECHNOLOGY-02.pdf",
+    "domain": "INFORMATION-TECHNOLOGY",
+    "sourceId": "10247517.pdf",
+    "chars": 7080
+  },
+  {
+    "file": "ENGINEERING-01.pdf",
+    "domain": "ENGINEERING",
+    "sourceId": "10030015.pdf",
+    "chars": 2688
+  },
+  {
+    "file": "ENGINEERING-02.pdf",
+    "domain": "ENGINEERING",
+    "sourceId": "10219099.pdf",
+    "chars": 7766
+  },
+  {
+    "file": "DESIGNER-01.pdf",
+    "domain": "DESIGNER",
+    "sourceId": "10466583.pdf",
+    "chars": 1715
+  },
+  {
+    "file": "DESIGNER-02.pdf",
+    "domain": "DESIGNER",
+    "sourceId": "10748989.pdf",
+    "chars": 5848
+  }
+]
