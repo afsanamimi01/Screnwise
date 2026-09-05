@@ -59,6 +59,26 @@
   background: #ebf1f4;
 }
 
+/* --- signed-in header block ---------------------------------------- */
+.landing__session {
+  display: none;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.25;
+  margin-right: 0.25rem;
+}
+
+.landing__session-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0b1d27;
+}
+
+.landing__session-role {
+  font-size: 0.75rem;
+  color: #5e6b73;
+}
+
 /* --- button (shared across hero + header) -------------------------- */
 .landing__btn {
   display: inline-flex;
@@ -276,6 +296,10 @@
 @media (min-width: 768px) {
   .landing__header {
     padding: 1.25rem 2rem;
+  }
+
+  .landing__session {
+    display: flex;
   }
 
   .landing__hero {

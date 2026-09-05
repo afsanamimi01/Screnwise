@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { ArrowUp, Mail, ShieldCheck, Sparkles } from "lucide-react";
-import { homeForRole } from "@/shared/lib/auth";
+import { homeForRole, workspaceLabels } from "@/shared/lib/auth";
 import type { Role } from "@/shared/lib/types";
 import "./SiteFooter.css";
 
@@ -10,40 +10,55 @@ const CONTACT_PHONE = "+880 1700-000000";
 type FooterLink = { label: string; to?: string; href?: string };
 type FooterColumn = { heading: string; links: FooterLink[] };
 
-/** Link columns. Internal `to` routes never dead-end; `href` is used for contact. */
-const COLUMNS: FooterColumn[] = [
-  {
-    heading: "Platform",
-    links: [
-      { label: "Browse open roles", to: "/" },
-      { label: "How screening works", to: "/" },
-      { label: "Create account", to: "/register" },
-    ],
-  },
-  {
-    heading: "For companies",
-    links: [
-      { label: "Register your company", to: "/register?type=company" },
-      { label: "Recruiter dashboard", to: "/dashboard" },
-      { label: "Jobs", to: "/jobs" },
-    ],
-  },
-  {
-    heading: "For candidates",
-    links: [
-      { label: "Apply to a role", to: "/" },
-      { label: "My applications", to: "/my-applications" },
-      { label: "Sign in", to: "/login" },
-    ],
-  },
-  {
-    heading: "Contact",
-    links: [
-      { label: CONTACT_EMAIL, href: `mailto:${CONTACT_EMAIL}` },
-      { label: CONTACT_PHONE, href: `tel:${CONTACT_PHONE.replace(/[^\d+]/g, "")}` },
-    ],
-  },
-];
+/**
+ * Link columns, built per actor. A signed-in visitor never sees "Create account"
+ * or "Sign in" here - those read as a logged-out state; they get the route back
+ * into their own workspace instead. Internal `to` routes never dead-end;
+ * `href` is used for contact.
+ */
+function columnsFor(role?: Role): FooterColumn[] {
+  const keep = (links: (FooterLink | null)[]) => links.filter((l): l is FooterLink => l !== null);
+
+  return [
+    {
+      heading: "Platform",
+      links: keep([
+        { label: "Browse open roles", to: "/" },
+        { label: "How screening works", to: "/" },
+        role
+          ? { label: `Go to ${workspaceLabels[role].toLowerCase()}`, to: homeForRole(role) }
+          : { label: "Create account", to: "/register" },
+      ]),
+    },
+    {
+      heading: "For companies",
+      links: keep([
+        role ? null : { label: "Register your company", to: "/register?type=company" },
+        { label: "Recruiter dashboard", to: "/dashboard" },
+        { label: "Jobs", to: "/jobs" },
+      ]),
+    },
+    {
+      heading: "For candidates",
+      links: keep([
+        { label: "Apply to a role", to: "/" },
+        { label: "My applications", to: "/my-applications" },
+        role === "candidate"
+          ? { label: "Your profile", to: "/profile" }
+          : role
+            ? null
+            : { label: "Sign in", to: "/login" },
+      ]),
+    },
+    {
+      heading: "Contact",
+      links: [
+        { label: CONTACT_EMAIL, href: `mailto:${CONTACT_EMAIL}` },
+        { label: CONTACT_PHONE, href: `tel:${CONTACT_PHONE.replace(/[^\d+]/g, "")}` },
+      ],
+    },
+  ];
+}
 
 /** One-line reminder shown in the footer, tuned to what each role does here. */
 const ROLE_NOTE: Record<Role, string> = {
@@ -60,6 +75,7 @@ const ROLE_NOTE: Record<Role, string> = {
  */
 export function SiteFooter({ role, className }: { role?: Role; className?: string }) {
   const year = new Date().getFullYear();
+  const columns = columnsFor(role);
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   return (
@@ -85,7 +101,7 @@ export function SiteFooter({ role, className }: { role?: Role; className?: strin
             ) : null}
           </div>
 
-          {COLUMNS.map((col) => (
+          {columns.map((col) => (
             <div key={col.heading} className="site-footer__column">
               <h3 className="site-footer__col-title">{col.heading}</h3>
               <ul className="site-footer__col-list">

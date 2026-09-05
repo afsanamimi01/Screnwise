@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, EyeOff, ListChecks, Scale, Sparkles } from "lucide-react";
 import { SiteFooter } from "@/shared/components/SiteFooter";
 import { getPublicJobs } from "@/shared/lib/api";
-import { useAuth } from "@/shared/lib/auth";
+import { homeForRole, roleLabels, useAuth, workspaceLabels } from "@/shared/lib/auth";
 import { usePageTitle } from "@/shared/lib/use-page-title";
 import "./Landing.css";
 
@@ -27,7 +27,11 @@ const pillars = [
 
 export default function Landing() {
   usePageTitle("Screenwise - blind, explainable CV screening");
-  const { user } = useAuth();
+  // The landing page is public, but a signed-in session survives here: show the
+  // actor their account and a way back into their workspace instead of the
+  // guest "Sign in / Create account" pair, which reads as a silent logout.
+  // Signing out stays in the workspace sidebar - it is not offered here.
+  const { user, ready } = useAuth();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["public-jobs"],
     queryFn: () => getPublicJobs(),
@@ -47,17 +51,37 @@ export default function Landing() {
           <span className="landing__wordmark">Screenwise</span>
         </div>
         <div className="landing__nav">
-          <Link to="/login" className="landing__nav-link">
-            Sign in
-          </Link>
-          <Link to="/register" className="landing__btn">
-            Create account
-          </Link>
+          {/* `ready` is false until the stored session is read - render neither
+              state yet so a signed-in actor never sees a guest-nav flash. */}
+          {!ready ? null : user ? (
+            <>
+              <span className="landing__session">
+                <span className="landing__session-name">{user.name}</span>
+                <span className="landing__session-role">{roleLabels[user.role]}</span>
+              </span>
+              <Link to={homeForRole(user.role)} className="landing__btn">
+                {workspaceLabels[user.role]} <ArrowRight size={16} />
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="landing__nav-link">
+                Sign in
+              </Link>
+              <Link to="/register" className="landing__btn">
+                Create account
+              </Link>
+            </>
+          )}
         </div>
       </header>
 
       <section className="landing__hero">
-        <span className="landing__eyebrow">Applicant screening, without the bias</span>
+        <span className="landing__eyebrow">
+          {user
+            ? `Signed in as ${user.name} · ${roleLabels[user.role]}`
+            : "Applicant screening, without the bias"}
+        </span>
         <h1 className="landing__title">
           Screen hundreds of CVs fairly, and still make the call yourself.
         </h1>
@@ -66,9 +90,15 @@ export default function Landing() {
           a blind board. You shortlist. Only then does the platform show you who they are.
         </p>
         <div className="landing__cta">
-          <Link to="/login" className="landing__btn landing__btn--lg">
-            Open the demo dashboard <ArrowRight size={16} />
-          </Link>
+          {user ? (
+            <Link to={homeForRole(user.role)} className="landing__btn landing__btn--lg">
+              Continue to {workspaceLabels[user.role].toLowerCase()} <ArrowRight size={16} />
+            </Link>
+          ) : (
+            <Link to="/login" className="landing__btn landing__btn--lg">
+              Open the demo dashboard <ArrowRight size={16} />
+            </Link>
+          )}
         </div>
 
         <div className="landing__pillars">
@@ -120,7 +150,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <SiteFooter />
+      <SiteFooter role={user?.role} />
     </div>
   );
 }

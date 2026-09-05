@@ -97,6 +97,14 @@ export function homeForRole(role: Role) {
   return "/dashboard";
 }
 
+/** What each actor's workspace is called - used on links back into it. */
+export const workspaceLabels: Record<Role, string> = {
+  hr: "Dashboard",
+  manager: "Dashboard",
+  candidate: "My applications",
+  superadmin: "Admin console",
+};
+
 /**
  * Access rule: a job's rank board is visible to the super admin and to any
  * member of the company that owns the job. The server enforces this too.

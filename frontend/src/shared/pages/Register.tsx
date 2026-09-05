@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Briefcase, Building2, Sparkles } from "lucide-react";
 import { SiteFooter } from "@/shared/components/SiteFooter";
@@ -10,7 +10,7 @@ type Mode = "candidate" | "company";
 
 export default function Register() {
   usePageTitle("Create an account - Screenwise");
-  const { register, registerCompany } = useAuth();
+  const { register, registerCompany, user } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
 
@@ -21,6 +21,12 @@ export default function Register() {
   const [companyName, setCompanyName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Already signed in? Don't ask an existing actor to create a second account.
+  // Skipped while a signup is in flight - `submit` owns the destination then.
+  useEffect(() => {
+    if (user && !submitting) navigate(homeForRole(user.role), { replace: true });
+  }, [user, submitting, navigate]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
