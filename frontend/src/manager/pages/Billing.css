@@ -86,6 +86,123 @@
   color: #0b1d27;
 }
 
+/* --- payment gateway banner ---------------------------------- */
+.billing__gateway {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #dee4e7;
+  background: #f5f8fa;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #1e313a;
+}
+
+.billing__gateway svg {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+/* Live money: the strongest signal on the page. */
+.billing__gateway--live {
+  border-color: #a7d9c6;
+  background: #e4f6ee;
+  color: #14563c;
+}
+
+/* Sandbox: working checkout, no real money. */
+.billing__gateway--sandbox {
+  border-color: #bfe3ea;
+  background: #dcf4f8;
+  color: #084c57;
+}
+
+/* No gateway at all - plans activate without payment. */
+.billing__gateway--off {
+  border-color: #f3d9a4;
+  background: #fdf6e6;
+  color: #7a5216;
+}
+
+/* --- payment history ------------------------------------------ */
+.billing__history {
+  margin-top: 0.5rem;
+}
+
+.billing__history-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0b1d27;
+}
+
+.billing__history-list {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.billing__payment {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.75rem;
+  background: #ffffff;
+}
+
+.billing__payment-status {
+  flex-shrink: 0;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  background: #ebf1f4;
+  color: #1e313a;
+}
+
+.billing__payment-status--paid {
+  background: #e4f6ee;
+  color: #14563c;
+}
+
+.billing__payment-status--failed,
+.billing__payment-status--invalid {
+  background: #ffe5e1;
+  color: #c92f33;
+}
+
+.billing__payment-status--cancelled,
+.billing__payment-status--pending {
+  background: #fdf6e6;
+  color: #7a5216;
+}
+
+.billing__payment-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.billing__payment-plan {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #0b1d27;
+  text-transform: capitalize;
+}
+
+.billing__payment-meta {
+  font-size: 0.75rem;
+  color: #5e6b73;
+  word-break: break-word;
+}
+
 .billing__strong {
   font-weight: 600;
 }

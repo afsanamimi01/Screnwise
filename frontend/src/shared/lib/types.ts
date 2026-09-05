@@ -22,7 +22,11 @@ export type Plan = {
   key: PlanKey;
   name: string;
   tagline: string;
+  /** Display string, e.g. "৳5,000". */
   price: string;
+  /** What checkout charges. `0` means the plan isn't sold online. */
+  amount: number;
+  currency: string;
   period: string;
   cta: string;
   featured: boolean;
@@ -129,6 +133,31 @@ export type Candidate = {
   /** True once a shortlisted self-applied candidate has a stored CV to open. */
   cvAvailable?: boolean;
   cvFileName?: string;
+};
+
+/** Whether real money can be taken right now. */
+export type PaymentStatus = {
+  driver: "sslcommerz" | "manual";
+  /** True only with live credentials - sandbox and manual are both false. */
+  live: boolean;
+  configured: boolean;
+  sandbox: boolean;
+  currency: string;
+  message: string;
+};
+
+export type Payment = {
+  id: string;
+  planKey: PlanKey;
+  tranId: string;
+  amount: number;
+  currency: string;
+  status: "pending" | "paid" | "failed" | "cancelled" | "invalid";
+  gateway: string;
+  cardType: string;
+  failReason: string;
+  createdAt: string;
+  paidAt: string | null;
 };
 
 export type AuditEntry = {

@@ -16,6 +16,7 @@ import hrUploadRoutes from "./hr/routes/upload.routes.js";
 import hrEmailRoutes from "./hr/routes/email.routes.js";
 import hrDashboardRoutes from "./hr/routes/dashboard.routes.js";
 import companyRoutes from "./company/routes/company.routes.js";
+import { paymentRoutes, paymentCallbackRoutes } from "./company/routes/payment.routes.js";
 import adminUsersRoutes from "./admin/routes/users.routes.js";
 import adminAuditRoutes from "./admin/routes/audit.routes.js";
 import adminCompaniesRoutes from "./admin/routes/companies.routes.js";
@@ -26,6 +27,8 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+// SSLCommerz posts its callbacks as form data, not JSON.
+app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/plans", publicPlansRoutes);
@@ -42,7 +45,13 @@ app.use("/api/hr/upload", hrUploadRoutes);
 app.use("/api/hr/email", hrEmailRoutes);
 app.use("/api/hr/dashboard", hrDashboardRoutes);
 
+// Ahead of the general company router, so a checkout request is not run
+// through that router's middleware chain first.
+app.use("/api/company/payments", paymentRoutes);
 app.use("/api/company", companyRoutes);
+// Public: the payment gateway calls these, so they carry no session and
+// validate every transaction against the gateway itself.
+app.use("/api/payments", paymentCallbackRoutes);
 
 app.use("/api/admin/dashboard", adminDashboardRoutes);
 app.use("/api/admin/companies", adminCompaniesRoutes);

@@ -15,7 +15,17 @@ const planSchema = new mongoose.Schema(
     key: { type: String, enum: ["basic", "advance", "custom"], required: true, unique: true },
     name: { type: String, required: true },
     tagline: { type: String, default: "" },
+    /** What the card shows, e.g. "৳5,000". Free text - a super admin edits it. */
     price: { type: String, default: "" },
+    /**
+     * What the gateway actually charges, in the smallest sensible unit of
+     * `currency` (taka, not poisha). The display string is not parsed for this:
+     * money that reaches a payment gateway should never come from free text.
+     * `0` means the plan cannot be bought online (the Custom plan is a
+     * conversation, not a checkout).
+     */
+    amount: { type: Number, default: 0 },
+    currency: { type: String, default: "BDT" },
     period: { type: String, default: "" },
     cta: { type: String, default: "Get started" },
     featured: { type: Boolean, default: false },

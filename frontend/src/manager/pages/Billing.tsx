@@ -1,10 +1,18 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Check } from "lucide-react";
+import { Check, CreditCard, ShieldCheck, TriangleAlert } from "lucide-react";
 import { Shell } from "@/manager/components/Shell";
 import { ErrorState, LoadingRows } from "@/shared/components/StateViews";
-import { changePlan, getMyCompany, getPlans } from "@/shared/lib/api";
+import {
+  changePlan,
+  getMyCompany,
+  getPayments,
+  getPaymentStatus,
+  getPlans,
+  startPayment,
+} from "@/shared/lib/api";
 import type { PlanKey } from "@/shared/lib/types";
 import { usePageTitle } from "@/shared/lib/use-page-title";
 import "./Billing.css";
@@ -21,18 +29,62 @@ export default function Billing() {
   const queryClient = useQueryClient();
   const company = useQuery({ queryKey: ["company"], queryFn: getMyCompany });
   const plans = useQuery({ queryKey: ["plans"], queryFn: getPlans });
+  const gateway = useQuery({ queryKey: ["payment-status"], queryFn: getPaymentStatus });
+  const payments = useQuery({ queryKey: ["payments"], queryFn: getPayments });
   const [switching, setSwitching] = useState<PlanKey | null>(null);
+  const [params, setParams] = useSearchParams();
 
   const current = company.data?.plan ?? null;
   const hasPlan = Boolean(current);
+
+  // The gateway sends the customer back here with the outcome on the URL.
+  // Report it once, then strip it so a refresh doesn't repeat the message.
+  useEffect(() => {
+    const outcome = params.get("payment");
+    if (!outcome) return;
+
+    const plan = params.get("plan");
+    if (outcome === "success") {
+      toast.success(plan ? `Payment received - you're on the ${plan} plan.` : "Payment received.");
+      queryClient.invalidateQueries({ queryKey: ["company"] });
+      queryClient.invalidateQueries({ queryKey: ["payments"] });
+    } else if (outcome === "cancelled") {
+      toast.info("Payment cancelled - nothing was charged.");
+    } else if (outcome === "invalid") {
+      toast.error(params.get("reason") ?? "We couldn't verify that payment.");
+    } else {
+      toast.error("The payment didn't go through.");
+    }
+
+    const next = new URLSearchParams(params);
+    ["payment", "plan", "reason"].forEach((k) => next.delete(k));
+    setParams(next, { replace: true });
+  }, [params, setParams, queryClient]);
 
   const pickPlan = async (key: PlanKey) => {
     if (key === current) return;
     setSwitching(key);
     try {
-      await changePlan(key);
-      toast.success(hasPlan ? `You're now on the ${key} plan.` : `${key} plan activated.`);
+      const plan = plans.data?.find((p) => p.key === key);
+      // A plan with no price is agreed with us directly; everything else goes
+      // through checkout, which is also what activates it.
+      if (!plan?.amount) {
+        await changePlan(key);
+        toast.success(hasPlan ? `You're now on the ${key} plan.` : `${key} plan activated.`);
+        await queryClient.invalidateQueries({ queryKey: ["company"] });
+        return;
+      }
+
+      const result = await startPayment(key);
+      if (result.redirectUrl) {
+        // Hand the browser to SSLCommerz - we never see card details.
+        window.location.href = result.redirectUrl;
+        return;
+      }
+
+      toast.success(`${key} plan activated. No gateway is configured, so nothing was charged.`);
       await queryClient.invalidateQueries({ queryKey: ["company"] });
+      await queryClient.invalidateQueries({ queryKey: ["payments"] });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not change the plan.");
     } finally {
@@ -106,6 +158,28 @@ export default function Billing() {
           </div>
         ) : null}
 
+        {gateway.data ? (
+          <div
+            className={
+              "billing__gateway" +
+              (gateway.data.live
+                ? " billing__gateway--live"
+                : gateway.data.configured
+                  ? " billing__gateway--sandbox"
+                  : " billing__gateway--off")
+            }
+          >
+            {gateway.data.live ? (
+              <ShieldCheck size={16} />
+            ) : gateway.data.configured ? (
+              <CreditCard size={16} />
+            ) : (
+              <TriangleAlert size={16} />
+            )}
+            <span>{gateway.data.message}</span>
+          </div>
+        ) : null}
+
         {plans.isLoading ? <LoadingRows rows={3} /> : null}
         {plans.isError ? (
           <ErrorState message="We couldn't load the plans." onRetry={() => plans.refetch()} />
@@ -173,6 +247,31 @@ export default function Billing() {
               );
             })}
           </div>
+        ) : null}
+
+        {payments.data && payments.data.length > 0 ? (
+          <section className="billing__history">
+            <h2 className="billing__history-title">Payments</h2>
+            <div className="billing__history-list">
+              {payments.data.map((p) => (
+                <div key={p.id} className="billing__payment">
+                  <span className={`billing__payment-status billing__payment-status--${p.status}`}>
+                    {p.status}
+                  </span>
+                  <span className="billing__payment-main">
+                    <span className="billing__payment-plan">
+                      {p.planKey} plan · {p.currency} {p.amount.toLocaleString()}
+                    </span>
+                    <span className="billing__payment-meta">
+                      {p.paidAt ?? p.createdAt} · {p.tranId}
+                      {p.cardType ? ` · ${p.cardType}` : ""}
+                      {p.failReason ? ` · ${p.failReason}` : ""}
+                    </span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
         ) : null}
       </div>
     </Shell>

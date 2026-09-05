@@ -3,24 +3,14 @@ import User from "../../shared/models/User.model.js";
 import Company from "../../shared/models/Company.model.js";
 import Plan from "../../shared/models/Plan.model.js";
 import { logAudit } from "../../shared/utils/audit.js";
-
-const FALLBACK_SEATS = { basic: 2, advance: 5, custom: null };
-const SUBSCRIPTION_DAYS = 30;
-const DAY = 24 * 60 * 60 * 1000;
-
-async function seatLimitForPlan(planKey) {
-  const plan = await Plan.findOne({ key: planKey });
-  if (plan) return plan.hrSeatLimit ?? null;
-  return FALLBACK_SEATS[planKey] ?? null;
-}
-
-async function seatUsage(companyId) {
-  const [used, total] = await Promise.all([
-    User.countDocuments({ companyId, role: "hr", active: true }),
-    User.countDocuments({ companyId, role: "hr" }),
-  ]);
-  return { used, total };
-}
+import {
+  PLAN_KEYS,
+  activatePlan,
+  seatConflict,
+  seatLimitForPlan,
+  seatUsage,
+} from "../../shared/billing/subscription.js";
+import { activeDriver } from "../../shared/payment/sslcommerz.js";
 
 /** The caller's own company, with plan detail and seat usage. */
 export async function getMyCompany(req, res, next) {
@@ -129,32 +119,33 @@ export async function updateHr(req, res, next) {
   }
 }
 
+/**
+ * Switch plan without paying.
+ *
+ * Only legitimate for the Custom plan (agreed offline) and when no payment
+ * gateway is configured at all. With a gateway live, a paid plan has to go
+ * through checkout - otherwise this endpoint would be a free upgrade.
+ */
 export async function changePlan(req, res, next) {
   try {
     const { plan } = req.body;
-    if (!["basic", "advance", "custom"].includes(plan)) {
+    if (!PLAN_KEYS.includes(plan)) {
       return res.status(400).json({ message: "plan must be basic, advance or custom" });
     }
 
-    const company = await Company.findById(req.user.companyId);
-    const newLimit = await seatLimitForPlan(plan);
-    if (newLimit != null) {
-      const { used } = await seatUsage(company._id);
-      if (used > newLimit) {
-        return res.status(409).json({
-          message: `The ${plan} plan allows ${newLimit} HR seats but you have ${used} active. Deactivate some first.`,
-        });
-      }
+    const priced = await Plan.findOne({ key: plan });
+    if (activeDriver() !== "manual" && (priced?.amount ?? 0) > 0) {
+      return res.status(402).json({
+        message: "This plan is paid for at checkout. Start a payment instead.",
+        code: "PAYMENT_REQUIRED",
+      });
     }
 
-    const firstPick = !company.plan;
-    company.plan = plan;
-    company.hrSeatLimit = newLimit;
-    if (firstPick || !company.subscriptionExpiresAt) {
-      company.subscriptionStartedAt = new Date();
-      company.subscriptionExpiresAt = new Date(Date.now() + SUBSCRIPTION_DAYS * DAY);
-    }
-    await company.save();
+    const company = await Company.findById(req.user.companyId);
+    const conflict = await seatConflict(company._id, plan);
+    if (conflict) return res.status(409).json({ message: conflict });
+
+    const { firstPick } = await activatePlan(company, plan);
     await logAudit(
       req.user.name,
       firstPick ? "Plan selected" : "Plan changed",

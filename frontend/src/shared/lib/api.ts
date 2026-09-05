@@ -14,6 +14,8 @@ import type {
   Company,
   Job,
   MailStatus,
+  Payment,
+  PaymentStatus,
   Plan,
   PlanKey,
   SentEmail,
@@ -319,6 +321,28 @@ export function updateHr(id: string, patch: { active?: boolean; name?: string })
 
 export function changePlan(plan: PlanKey): Promise<Company> {
   return request<Company>("/company/plan", { method: "PATCH", body: body({ plan }) });
+}
+
+/** Whether a payment gateway is configured, and whether it is live or sandbox. */
+export function getPaymentStatus(): Promise<PaymentStatus> {
+  return request<PaymentStatus>("/company/payments/status");
+}
+
+/** This company's checkout history. */
+export function getPayments(): Promise<Payment[]> {
+  return request<Payment[]>("/company/payments");
+}
+
+/**
+ * Start a plan purchase.
+ *
+ * With a gateway configured this returns the SSLCommerz page to send the
+ * customer to; with none, the plan is already active and `paid` is true.
+ */
+export function startPayment(
+  plan: PlanKey,
+): Promise<{ paid: boolean; redirectUrl: string | null; tranId?: string }> {
+  return request("/company/payments", { method: "POST", body: body({ plan }) });
 }
 
 /* ----------------------- admin (super-admin console) ------------------- */

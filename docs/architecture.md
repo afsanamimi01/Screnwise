@@ -38,6 +38,8 @@ backend/
   shared/        config (db), middleware (auth, error), models, seed, utils
   shared/engine/ free offline CV screening engine - see screening-engine.md
   shared/mail/   outbound email - driver per provider, plus template rendering
+  shared/payment/ SSLCommerz checkout; `manual` driver when nothing is configured
+  shared/billing/ plan activation and seat rules, shared by both payment paths
   auth/          register / login, JWT issuing
   candidate/     public job list, apply, my applications
   hr/            jobs, blind rank board, shortlist, upload, email, dashboard
@@ -66,7 +68,10 @@ All routes are mounted under `/api` (see `backend/server.js`):
 - `/api/candidate/{jobs,apply,applications}`
 - `/api/hr/{jobs,board,shortlist,upload,email,dashboard}`
   (`GET /api/hr/email/status` reports which mail provider is live)
-- `/api/company`
+- `/api/company`, `/api/company/payments` (checkout + history)
+- `/api/payments/{success,fail,cancel,ipn}` - public SSLCommerz callbacks; they
+  carry no session, so each one re-validates the transaction with the gateway
+  before a plan is granted
 - `/api/admin/{dashboard,companies,users,audit,plans}`
 
 ## Frontend layout

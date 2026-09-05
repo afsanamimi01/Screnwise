@@ -61,6 +61,37 @@ rejected address is visible instead of silent.
 
 [backend/.env.example](backend/.env.example) walks through both providers.
 
+## Taking payment for a plan
+
+A manager buys a plan on the **Billing** page. Checkout runs through
+[SSLCommerz](https://sslcommerz.com), Bangladesh's payment gateway, in taka:
+Basic ৳5,000/month, Advance ৳20,000/month. Custom is agreed with us
+directly and has no online price.
+
+| Driver | Set | Behaviour |
+| ------ | --- | --------- |
+| `sslcommerz` | `SSLCOMMERZ_STORE_ID` + `SSLCOMMERZ_STORE_PASSWORD` | Real checkout. Sandbox unless `SSLCOMMERZ_LIVE=true`. |
+| `manual` | nothing | Choosing a plan activates it and charges nothing. |
+
+With nothing configured the app falls back to `manual` and the billing page
+says so in a banner rather than implying a payment happened. Sandbox
+credentials are free and instant from
+[developer.sslcommerz.com](https://developer.sslcommerz.com).
+
+**What is trusted.** The price comes from the Plan record on the server, never
+from the browser. SSLCommerz redirects the customer back to
+`/api/payments/success`, but that request proves nothing - anyone can open the
+URL - so the server calls the gateway's validation API with its own store
+credentials and activates the plan only if the transaction is confirmed *and*
+the amount matches what was recorded. A settled payment is never settled twice,
+so a repeated callback grants nothing. With a gateway configured, the plain
+plan-change endpoint refuses paid plans outright.
+
+**Testing locally.** The browser redirects work against `localhost` because the
+browser is on your machine. The server-to-server IPN is not reachable at
+`localhost` from the gateway's side - point `PUBLIC_API_URL` at a tunnel
+(ngrok or similar) if you want to exercise it.
+
 ## Actors
 
 - **Candidate** - global, free forever. Register/login, browse every open job
