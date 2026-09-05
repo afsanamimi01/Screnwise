@@ -14,14 +14,13 @@ function nameFromFileName(fileName, index) {
   return words.map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
 }
 
-function emailFromName(name, index) {
-  const slug = name
-    .toLowerCase()
-    .replace(/[^a-z\s]/g, "")
-    .trim()
-    .split(/\s+/)
-    .join(".");
-  return slug ? `${slug}@example.com` : `candidate${index + 1}@example.com`;
+/**
+ * The file name is a fallback, not a source of truth: a dataset drop is named
+ * `10554236.pdf` and a real one `jordan-blake-cv.pdf`. Digits-only or
+ * single-word results are not a person's name, so the CV's own header wins.
+ */
+function looksLikeAPersonsName(value) {
+  return /\s/.test(value.trim()) && !/\d/.test(value);
 }
 
 /**
@@ -55,12 +54,23 @@ export async function uploadCvs(req, res, next) {
       );
       if (result.score === 0 && result.scoreBreakdown[0]?.dimension === "File") unreadableCount++;
 
-      const name = nameFromFileName(file.originalname, existingCount + i);
+      // Identity comes from the CV itself. An address is never invented: with
+      // none printed in the file the record keeps an empty one and the email
+      // composer refuses to write to that candidate, rather than sending a
+      // real message to a plausible-looking address that nobody reads.
+      const contact = result.contact ?? { email: "", phone: "", name: "" };
+      const fromFileName = nameFromFileName(file.originalname, existingCount + i);
+      const name =
+        contact.name ||
+        (looksLikeAPersonsName(fromFileName)
+          ? fromFileName
+          : `Uploaded Candidate ${existingCount + i + 1}`);
+
       docs.push({
         jobId: job._id,
         name,
-        email: emailFromName(name, existingCount + i),
-        phone: "",
+        email: contact.email,
+        phone: contact.phone,
         alias: `Candidate #${String(existingCount + i + 1).padStart(3, "0")}`,
         source: "HR-uploaded",
         score: result.score,

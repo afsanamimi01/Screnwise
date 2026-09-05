@@ -9,7 +9,7 @@
   width: 100%;
   max-width: 80rem;
   margin: 0 auto;
-  padding: 2.5rem 1.25rem 1.5rem;
+  padding: 2.5rem 1.25rem 1rem;
 }
 
 .hr-footer__top {
@@ -90,9 +90,9 @@
 }
 
 .hr-footer__copyright {
-  margin-top: 1.5rem;
+  margin-top: 0.875rem;
   border-top: 1px solid #dee4e7;
-  padding-top: 1rem;
+  padding-top: 0.625rem;
   text-align: center;
   font-size: 0.75rem;
   color: #5e6b73;
@@ -100,7 +100,7 @@
 
 @media (min-width: 768px) {
   .hr-footer__inner {
-    padding: 2.5rem 2rem 1.5rem;
+    padding: 2.5rem 2rem 1rem;
   }
 
   .hr-footer__top {

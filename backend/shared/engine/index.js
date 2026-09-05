@@ -11,6 +11,7 @@
  */
 import { normalize, clamp } from "./text.js";
 import { extractText } from "./extract.js";
+import { extractContact } from "./contact.js";
 import {
   scoreSkills,
   estimateYears,
@@ -64,6 +65,7 @@ function unreadable(criteria, reason) {
     needsManualReview: false,
     reasons: [reason],
     status: "screened",
+    contact: { email: "", phone: "", name: "" },
   };
 }
 
@@ -196,5 +198,7 @@ export async function screenCv(file, job) {
     needsManualReview: false,
     reasons,
     status: "screened",
+    /** Read off the CV itself - empty when it doesn't state one. Never guessed. */
+    contact: extractContact(raw),
   };
 }

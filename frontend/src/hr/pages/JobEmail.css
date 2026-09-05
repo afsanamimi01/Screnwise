@@ -19,16 +19,34 @@
   color: #5e6b73;
 }
 
-.hr-email__sandbox {
+.hr-email__status {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
-  border: 1px solid #e6c78a;
+  border: 1px solid #dee4e7;
   border-radius: 0.75rem;
-  background: #fbeecf;
+  background: #f4f7f8;
   font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+/* Live provider configured - mail really goes out. */
+.hr-email__status--live {
+  border-color: #9ed3b4;
+  background: #e8f6ee;
+  color: #1c6b45;
+}
+
+/* No provider, or one that isn't answering - nothing gets delivered. */
+.hr-email__status--warn {
+  border-color: #e6c78a;
+  background: #fbeecf;
   color: #7a5a12;
+}
+
+.hr-email__status svg {
+  flex-shrink: 0;
 }
 
 /* --- layout ------------------------------------------- */
@@ -155,6 +173,50 @@
   color: #5e6b73;
 }
 
+
+/* --- per-recipient delivery rows ------------------ */
+.hr-email__deliveries {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-top: 0.5rem;
+  list-style: none;
+}
+
+.hr-email__delivery {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.hr-email__pill {
+  padding: 0.0625rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.hr-email__pill--ok {
+  background: #e8f6ee;
+  color: #1c6b45;
+}
+
+.hr-email__pill--failed {
+  background: #fbeaea;
+  color: #96322f;
+}
+
+.hr-email__delivery-to {
+  color: #24343b;
+}
+
+.hr-email__delivery-error {
+  color: #96322f;
+}
+
 .hr-email__empty {
   font-size: 0.875rem;
   color: #5e6b73;
@@ -183,6 +245,32 @@
   display: block;
   font-size: 0.75rem;
   color: #5e6b73;
+}
+
+/* A candidate whose CV printed no address: visible, but not selectable. */
+.hr-email__recipient--unreachable {
+  opacity: 0.72;
+}
+
+.hr-email__recipient--unreachable .hr-email__recipient-name {
+  color: #5e6b73;
+}
+
+.hr-email__recipient-missing {
+  display: block;
+  font-size: 0.75rem;
+  color: #b45309;
+}
+
+.hr-email__unreachable-note {
+  margin-top: 0.25rem;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid #f3d9a4;
+  border-radius: 0.5rem;
+  background: #fdf6e6;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: #7a5216;
 }
 
 .hr-email__selected {

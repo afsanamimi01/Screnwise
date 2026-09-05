@@ -37,6 +37,7 @@ backend/
   server.js      Express app - mounts every actor's routes under /api/*
   shared/        config (db), middleware (auth, error), models, seed, utils
   shared/engine/ free offline CV screening engine - see screening-engine.md
+  shared/mail/   outbound email - driver per provider, plus template rendering
   auth/          register / login, JWT issuing
   candidate/     public job list, apply, my applications
   hr/            jobs, blind rank board, shortlist, upload, email, dashboard
@@ -44,6 +45,14 @@ backend/
   admin/         super admin: dashboard, companies, users, audit, plans
   scripts/       one-off scripts (seed)
 ```
+
+Candidate email goes out through [`shared/mail/`](../backend/shared/mail):
+`mailer.js` picks a driver from the environment (`resend` over HTTPS, `smtp`
+via nodemailer, or `console` - logged, never delivered - when nothing is
+configured) and `render.js` fills the `{{variables}}` in per recipient. One
+message per candidate, never a shared To: line. `sendMail()` reports failures
+rather than throwing, so a single bad address can't abort a batch; each
+outcome lands in the `SentEmail` record's `deliveries`.
 
 CV scoring for bulk HR upload runs through
 [`shared/engine/`](screening-engine.md): extract text → five weighted
@@ -56,6 +65,7 @@ All routes are mounted under `/api` (see `backend/server.js`):
 - `/api/auth`, `/api/plans`
 - `/api/candidate/{jobs,apply,applications}`
 - `/api/hr/{jobs,board,shortlist,upload,email,dashboard}`
+  (`GET /api/hr/email/status` reports which mail provider is live)
 - `/api/company`
 - `/api/admin/{dashboard,companies,users,audit,plans}`
 

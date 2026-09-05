@@ -1,5 +1,5 @@
 /* Manager "preview mode" banner - self-contained. Amber notice palette, matching
-   the sandbox strip on the email page. */
+   the delivery-status strip on the email page. */
 
 .manager-preview {
   display: flex;

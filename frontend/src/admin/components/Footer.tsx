@@ -46,6 +46,7 @@ const COLUMNS: FooterColumn[] = [
 export function Footer() {
   const { user } = useAuth();
   const workspace = user ? homeForRole(user.role) : "/dashboard";
+  const year = new Date().getFullYear();
 
   return (
     <footer className="admin-footer">
@@ -89,6 +90,8 @@ export function Footer() {
             </div>
           ))}
         </div>
+
+        <div className="admin-footer__copyright">© {year} Screenwise</div>
       </div>
     </footer>
   );

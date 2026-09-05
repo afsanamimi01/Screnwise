@@ -15,7 +15,12 @@ const applicationSchema = new mongoose.Schema(
     jobId: { type: mongoose.Schema.Types.ObjectId, ref: "Job", required: true },
     candidateId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     name: { type: String, required: true },
-    email: { type: String, required: true },
+    /**
+     * Empty when an HR-uploaded CV printed no address. Self-applied rows always
+     * carry the account's address. Never a placeholder - the email composer
+     * skips a candidate it cannot reach instead of mailing a made-up address.
+     */
+    email: { type: String, default: "" },
     phone: String,
     alias: String,
     source: { type: String, enum: ["self-applied", "HR-uploaded"], default: "self-applied" },

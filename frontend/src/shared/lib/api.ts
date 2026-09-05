@@ -13,6 +13,7 @@ import type {
   Candidate,
   Company,
   Job,
+  MailStatus,
   Plan,
   PlanKey,
   SentEmail,
@@ -238,12 +239,19 @@ export function uploadCvs(jobId: string, files: File[]): Promise<Application[]> 
   return request<Application[]>(`/hr/upload/${jobId}`, { method: "POST", body: form });
 }
 
+/**
+ * Sends one personalised message per shortlisted candidate. Recipients travel
+ * as application ids - the server looks up each address and fills in the
+ * `{{variables}}` per person, so no candidate sees the rest of the shortlist.
+ * Resolves even when delivery fails: check `status` and `deliveries` on the
+ * returned record.
+ */
 export function sendShortlistEmails(payload: {
   jobId: string;
   subject: string;
   body: string;
   template: string;
-  recipients: string[];
+  applicationIds: string[];
 }): Promise<SentEmail> {
   const { jobId, ...rest } = payload;
   return request<SentEmail>(`/hr/email/${jobId}`, { method: "POST", body: body(rest) });
@@ -251,6 +259,11 @@ export function sendShortlistEmails(payload: {
 
 export function getSentEmails(jobId: string): Promise<SentEmail[]> {
   return request<SentEmail[]>(`/hr/email/${jobId}`);
+}
+
+/** Which email provider the server is configured with, if any. */
+export function getMailStatus(): Promise<MailStatus> {
+  return request<MailStatus>("/hr/email/status");
 }
 
 /* ------------------------ company (manager console) --------------------- */

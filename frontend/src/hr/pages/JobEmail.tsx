@@ -1,27 +1,33 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
-import { FlaskConical, Send } from "lucide-react";
+import { FlaskConical, MailCheck, Send, TriangleAlert } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Shell } from "@/hr/components/Shell";
 import { JobTabs } from "@/hr/components/JobTabs";
 import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
-import { getJob, getSentEmails, getShortlist, sendShortlistEmails } from "@/shared/lib/api";
+import {
+  getJob,
+  getMailStatus,
+  getSentEmails,
+  getShortlist,
+  sendShortlistEmails,
+} from "@/shared/lib/api";
 import { usePageTitle } from "@/shared/lib/use-page-title";
 import "./JobEmail.css";
 
 const templates: Record<string, { subject: string; body: string }> = {
   "Invite to interview": {
     subject: "Interview invitation - {{job_title}}",
-    body: "Hi {{candidate_name}},\n\nThank you for applying for {{job_title}}. We'd love to talk further - could you share a few times that work for you next week?\n\nBest,\nThe hiring team",
+    body: "Hi {{candidate_name}},\n\nThank you for applying for {{job_title}}. We'd love to talk further - could you share a few times that work for you next week?\n\nBest,\n{{hr_name}}\n{{company_name}}",
   },
   "Request more info": {
     subject: "A quick follow-up on your {{job_title}} application",
-    body: "Hi {{candidate_name}},\n\nThanks for your application for {{job_title}}. Could you tell us a little more about your recent work, and share any portfolio or code samples?\n\nBest,\nThe hiring team",
+    body: "Hi {{candidate_name}},\n\nThanks for your application for {{job_title}}. Could you tell us a little more about your recent work, and share any portfolio or code samples?\n\nBest,\n{{hr_name}}\n{{company_name}}",
   },
   "Rejection with feedback": {
     subject: "Update on your {{job_title}} application",
-    body: "Hi {{candidate_name}},\n\nThank you for the time you put into your application for {{job_title}}. We've decided to move forward with other candidates this time. Here's the feedback from our review: ...\n\nWe'd genuinely welcome a future application.\n\nBest,\nThe hiring team",
+    body: "Hi {{candidate_name}},\n\nThank you for the time you put into your application for {{job_title}}. We've decided to move forward with other candidates this time. Here's the feedback from our review: ...\n\nWe'd genuinely welcome a future application.\n\nBest,\n{{hr_name}}\n{{company_name}}",
   },
 };
 
@@ -35,6 +41,12 @@ export default function JobEmail() {
     queryFn: () => getShortlist(jobId),
   });
   const sentQuery = useQuery({ queryKey: ["emails", jobId], queryFn: () => getSentEmails(jobId) });
+  // Server-side config, not a per-job thing - cache it across the session.
+  const mailQuery = useQuery({
+    queryKey: ["mail-status"],
+    queryFn: getMailStatus,
+    staleTime: 5 * 60 * 1000,
+  });
 
   const [template, setTemplate] = useState("Invite to interview");
   const [subject, setSubject] = useState(templates["Invite to interview"]!.subject);
@@ -52,6 +64,10 @@ export default function JobEmail() {
   };
 
   const rows = query.data ?? [];
+  const mail = mailQuery.data;
+  // A CV that printed no address leaves the record's email empty - those rows
+  // can't be written to, so they are shown but not selectable.
+  const unreachable = rows.filter((r) => !r.candidate?.email).length;
   const firstName =
     rows.find((r) => selected.includes(r.app.id))?.candidate?.name ?? "Candidate name";
   const render = (text: string) =>
@@ -65,19 +81,37 @@ export default function JobEmail() {
       return;
     }
     setSending(true);
-    await sendShortlistEmails({
-      jobId,
-      subject,
-      body,
-      template,
-      recipients: rows
-        .filter((r) => selected.includes(r.app.id))
-        .map((r) => r.candidate?.email ?? "unknown"),
-    });
-    setSending(false);
-    setSelected([]);
-    await queryClient.invalidateQueries({ queryKey: ["emails", jobId] });
-    toast.success("Simulated send complete - logged below, no real email was delivered.");
+    try {
+      const result = await sendShortlistEmails({
+        jobId,
+        subject,
+        body,
+        template,
+        applicationIds: selected,
+      });
+      const delivered = result.deliveries.filter((d) => d.status === "sent").length;
+      const total = result.deliveries.length;
+
+      if (result.driver === "console") {
+        toast.warning(
+          `Logged ${total} message(s) - no email provider is configured, so nothing was delivered.`,
+        );
+      } else if (result.status === "sent") {
+        toast.success(`Sent to ${delivered} candidate(s).`);
+      } else if (result.status === "partial") {
+        toast.warning(`Sent to ${delivered} of ${total}. The rest are listed below with the error.`);
+      } else {
+        const reason = result.deliveries.find((d) => d.error)?.error;
+        toast.error(reason ? `Nothing was delivered: ${reason}` : "Nothing was delivered.");
+      }
+
+      setSelected([]);
+      await queryClient.invalidateQueries({ queryKey: ["emails", jobId] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "We couldn't send those emails.");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -86,15 +120,31 @@ export default function JobEmail() {
         <div className="hr-email__intro">
           <h1 className="hr-email__intro-title">Email shortlisted candidates</h1>
           <p className="hr-email__intro-text">
-            Write once, send to many. Sandbox mode: messages are logged, never delivered.
+            Write once, send to many. Each candidate gets their own message, addressed to them by
+            name - nobody sees the rest of the shortlist.
           </p>
         </div>
 
         <JobTabs jobId={jobId} />
 
-        <div className="hr-email__sandbox">
-          <FlaskConical size={16} /> Sandbox mode is on. Nothing leaves this demo.
-        </div>
+        {mail ? (
+          <div
+            className={`hr-email__status ${
+              mail.live && !mail.restricted
+                ? "hr-email__status--live"
+                : "hr-email__status--warn"
+            }`}
+          >
+            {mail.live && !mail.restricted ? (
+              <MailCheck size={16} />
+            ) : mail.driver === "console" ? (
+              <FlaskConical size={16} />
+            ) : (
+              <TriangleAlert size={16} />
+            )}
+            <span>{mail.message}</span>
+          </div>
+        ) : null}
 
         {query.isLoading ? <LoadingRows rows={3} /> : null}
         {query.isError ? (
@@ -149,7 +199,8 @@ export default function JobEmail() {
                     onChange={(e) => setBody(e.target.value)}
                   />
                   <p className="hr-email__note">
-                    Variables: {"{{candidate_name}}"} and {"{{job_title}}"}
+                    Variables: {"{{candidate_name}}"}, {"{{job_title}}"}, {"{{company_name}}"} and{" "}
+                    {"{{hr_name}}"} - filled in per recipient when the message goes out.
                   </p>
                 </div>
               </section>
@@ -163,18 +214,47 @@ export default function JobEmail() {
               </section>
 
               <section className="hr-email__card">
-                <h2 className="hr-email__card-title">Sent log (simulated)</h2>
+                <h2 className="hr-email__card-title">Sent log</h2>
                 {sentQuery.data && sentQuery.data.length > 0 ? (
-                  sentQuery.data.map((mail) => (
-                    <div key={mail.id} className="hr-email__sent">
+                  sentQuery.data.map((mailRow) => (
+                    <div key={mailRow.id} className="hr-email__sent">
                       <div className="hr-email__sent-head">
-                        <span className="hr-email__sent-subject">{mail.subject}</span>
-                        <span className="hr-email__sent-time">{mail.sentAt}</span>
+                        <span className="hr-email__sent-subject">{mailRow.subject}</span>
+                        <span className="hr-email__sent-time">{mailRow.sentAt}</span>
                       </div>
                       <div className="hr-email__sent-meta">
-                        {mail.template} · {mail.recipients.length} recipient(s):{" "}
-                        {mail.recipients.join(", ")}
+                        {mailRow.template} · {mailRow.recipients.length} recipient(s)
+                        {mailRow.driver === "console"
+                          ? " · logged only, not delivered"
+                          : mailRow.status === "sent"
+                            ? " · delivered"
+                            : mailRow.status === "partial"
+                              ? " · partly delivered"
+                              : " · delivery failed"}
                       </div>
+                      {mailRow.deliveries.length > 0 ? (
+                        <ul className="hr-email__deliveries">
+                          {mailRow.deliveries.map((d) => (
+                            <li key={d.email} className="hr-email__delivery">
+                              <span
+                                className={`hr-email__pill ${
+                                  d.status === "sent"
+                                    ? "hr-email__pill--ok"
+                                    : "hr-email__pill--failed"
+                                }`}
+                              >
+                                {d.status}
+                              </span>
+                              <span className="hr-email__delivery-to">{d.email}</span>
+                              {d.error ? (
+                                <span className="hr-email__delivery-error">{d.error}</span>
+                              ) : null}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <div className="hr-email__sent-meta">{mailRow.recipients.join(", ")}</div>
+                      )}
                     </div>
                   ))
                 ) : (
@@ -185,34 +265,48 @@ export default function JobEmail() {
 
             <section className="hr-email__card hr-email__card--recipients">
               <h2 className="hr-email__card-title">Recipients</h2>
-              {rows.map(({ app, candidate }) => (
-                <label key={app.id} className="hr-email__recipient">
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(app.id)}
-                    onChange={() =>
-                      setSelected((prev) =>
-                        prev.includes(app.id)
-                          ? prev.filter((x) => x !== app.id)
-                          : [...prev, app.id],
-                      )
-                    }
-                  />
-                  <span>
-                    <span className="hr-email__recipient-name">{candidate?.name}</span>
-                    <span className="hr-email__recipient-email">{candidate?.email}</span>
-                  </span>
-                </label>
-              ))}
+              {rows.map(({ app, candidate }) => {
+                const email = candidate?.email ?? "";
+                return (
+                  <label
+                    key={app.id}
+                    className={`hr-email__recipient${email ? "" : " hr-email__recipient--unreachable"}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selected.includes(app.id)}
+                      disabled={!email}
+                      onChange={() =>
+                        setSelected((prev) =>
+                          prev.includes(app.id)
+                            ? prev.filter((x) => x !== app.id)
+                            : [...prev, app.id],
+                        )
+                      }
+                    />
+                    <span>
+                      <span className="hr-email__recipient-name">{candidate?.name}</span>
+                      {email ? (
+                        <span className="hr-email__recipient-email">{email}</span>
+                      ) : (
+                        <span className="hr-email__recipient-missing">
+                          No address in this CV - can't be emailed
+                        </span>
+                      )}
+                    </span>
+                  </label>
+                );
+              })}
+              {unreachable > 0 ? (
+                <p className="hr-email__unreachable-note">
+                  {unreachable} of {rows.length} shortlisted candidate(s) printed no email address
+                  in their CV. Nothing can be sent to them until an address is added.
+                </p>
+              ) : null}
               <span className="hr-email__selected">{selected.length} selected</span>
-              <button
-                type="button"
-                className="hr-email__btn"
-                onClick={send}
-                disabled={sending}
-              >
+              <button type="button" className="hr-email__btn" onClick={send} disabled={sending}>
                 <Send size={16} />
-                {sending ? "Sending…" : "Send (simulated)"}
+                {sending ? "Sending…" : mail && !mail.live ? "Send (not delivered)" : "Send"}
               </button>
             </section>
           </div>

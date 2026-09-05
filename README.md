@@ -38,6 +38,29 @@ bun run dev                          # frontend + backend together
 Other scripts: `bun run dev:frontend`, `bun run dev:backend`,
 `bun run build`, `bun run seed`. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Sending candidate emails
+
+The composer on a job's **Email** tab sends one personalised message per
+shortlisted candidate, with `{{candidate_name}}`, `{{job_title}}`,
+`{{company_name}}` and `{{hr_name}}` filled in per recipient. Replies go to the
+HR user who sent it, and no candidate ever sees another candidate's address.
+
+Delivery is driver-based, picked from `backend/.env` - no code changes to
+switch provider:
+
+| Driver    | Set                          | Behaviour                                    |
+| --------- | ---------------------------- | -------------------------------------------- |
+| `resend`  | `RESEND_API_KEY`, `MAIL_FROM`| Sends over HTTPS. Recommended.               |
+| `smtp`    | `SMTP_HOST` + friends        | Any SMTP server (Gmail, SES, Mailtrap, …).   |
+| `console` | nothing                      | Logs to the server, delivers nothing.        |
+
+With nothing configured the app falls back to `console`, and the composer says
+so in a banner rather than pretending the mail went out. Every send is recorded
+in the job's sent log with a per-recipient sent/failed outcome, so a bounce or a
+rejected address is visible instead of silent.
+
+[backend/.env.example](backend/.env.example) walks through both providers.
+
 ## Actors
 
 - **Candidate** - global, free forever. Register/login, browse every open job

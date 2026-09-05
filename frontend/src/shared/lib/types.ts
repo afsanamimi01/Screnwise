@@ -136,14 +136,43 @@ export type AuditEntry = {
   timestamp: string;
 };
 
+/** Which provider handled a send. `console` means it was logged, not delivered. */
+export type MailDriver = "resend" | "smtp" | "console";
+
+export type EmailDelivery = {
+  email: string;
+  name: string;
+  applicationId: string | null;
+  status: "sent" | "failed";
+  messageId: string | null;
+  error: string | null;
+};
+
 export type SentEmail = {
   id: string;
   jobId: string;
   subject: string;
   body: string;
   recipients: string[];
+  /** Per-recipient outcome. Empty on records written before live sending. */
+  deliveries: EmailDelivery[];
   sentAt: string;
   template: string;
+  driver: MailDriver;
+  status: "sent" | "partial" | "failed";
+  sentBy: string;
+};
+
+/** Whether the server can actually deliver mail right now. */
+export type MailStatus = {
+  driver: MailDriver;
+  /** True only when a provider is configured and reachable. */
+  live: boolean;
+  configured: boolean;
+  /** Live, but delivery is limited (e.g. Resend's shared test sender). */
+  restricted: boolean;
+  from: string;
+  message: string;
 };
 
 export const DEFAULT_WEIGHTS: ScoringWeights = {

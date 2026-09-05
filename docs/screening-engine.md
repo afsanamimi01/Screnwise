@@ -116,6 +116,28 @@ Example - a strong backend CV against the seeded "Senior backend engineer"
 Files are held in memory (`multer.memoryStorage`) only long enough to parse -
 nothing is written to disk.
 
+### Contact details
+
+`contact.js` reads the candidate's **email, phone and name** off the same
+parsed text, so an uploaded CV can actually be replied to. Nothing is
+fabricated: a CV that prints no address stores an empty one, and the email
+composer shows that candidate as unreachable instead of offering to write to
+them. (The uploader used to build `first.last@example.com` out of the file
+name, which looked real and sent every message nowhere.)
+
+The heuristics are deliberately cautious - an absent address is honest, a wrong
+one mails a stranger:
+
+- **Email** - the earliest plausible match wins, since a CV's own address sits
+  in the header; matches under a *References* heading are a referee's and are
+  skipped unless the CV has no other. Asset artefacts (`logo@2x.png`) are
+  rejected by their extension.
+- **Phone** - 7-15 digits with an optional country code; year ranges
+  (`2019 - 2022`) are not mistaken for numbers.
+- **Name** - only a 2-4 word capitalised line in the first few, and never one
+  containing a role word. Dataset CVs open with `HR ADMINISTRATOR` exactly
+  where a name would sit; those fall back to the file name.
+
 ---
 
 ## API & data-flow changes
@@ -221,6 +243,7 @@ offline and deterministic.
 backend/shared/engine/
   index.js        screenCv(file, job) - orchestrator, weighting, hard filters
   extract.js      bytes → text (pdf-parse · mammoth · txt)
+  contact.js      text → candidate email · phone · name (never fabricated)
   dimensions.js   the 5 scorers + skill aliases + education ladder
   text.js         normalise · tokenise · Levenshtein · TF-IDF cosine (no deps)
 ```
