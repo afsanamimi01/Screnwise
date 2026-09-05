@@ -10,6 +10,7 @@ import {
   Sparkles,
   Tags,
   Users,
+  Wallet,
 } from "lucide-react";
 import { roleLabels, useAuth } from "@/shared/lib/auth";
 import "./Sidebar.css";
@@ -21,6 +22,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { to: "/admin/companies", label: "Companies", icon: Building2 },
   { to: "/admin/users", label: "Users", icon: Users },
+  { to: "/admin/revenue", label: "Revenue", icon: Wallet },
   { to: "/admin/audit", label: "Audit log", icon: ScrollText },
   { to: "/admin/pricing", label: "Pricing", icon: Tags },
 ];

@@ -5,7 +5,7 @@
   width: 100%;
   max-width: 80rem;
   margin: 0 auto;
-  padding: 1.75rem 1.25rem;
+  padding: 1.75rem 1.5rem;
 }
 
 /* --- page heading --------------------------------------------------- */
@@ -173,6 +173,6 @@
 
 @media (min-width: 768px) {
   .dashboard {
-    padding: 1.75rem 2rem;
+    padding: 1.75rem 2.5rem;
   }
 }

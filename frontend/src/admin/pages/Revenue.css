@@ -1,0 +1,375 @@
+/* Super-admin revenue page. Self-contained: no shared tokens or utilities.
+   #0891a4 is the data hue - the brand teal a step brighter, so marks read as
+   data rather than as chrome. */
+
+.revenue {
+  flex: 1;
+  width: 100%;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 1.75rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.revenue__intro-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: #0b1d27;
+}
+
+.revenue__intro-text {
+  margin-top: 0.25rem;
+  max-width: 46rem;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+/* --- headline tiles ------------------------------------------- */
+.revenue__tiles {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.revenue__tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 1rem 1.125rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.75rem;
+  background: #ffffff;
+}
+
+.revenue__tile-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #5e6b73;
+}
+
+.revenue__tile-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #0b1d27;
+}
+
+.revenue__tile-hint {
+  font-size: 0.75rem;
+  color: #5e6b73;
+}
+
+/* --- panels --------------------------------------------------- */
+.revenue__panel {
+  padding: 1.125rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.75rem;
+  background: #ffffff;
+}
+
+.revenue__panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.revenue__panel-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0b1d27;
+}
+
+.revenue__panel-note {
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: #5e6b73;
+}
+
+.revenue__empty-note {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+.revenue__split {
+  display: grid;
+  gap: 1.25rem;
+}
+
+/* --- monthly trend -------------------------------------------- */
+.revenue__chart {
+  margin-top: 1.25rem;
+  display: flex;
+  align-items: flex-end;
+  /* Left-aligned with capped slots: two months sit together rather than
+     stretching across the panel, and twelve still fill the width. */
+  justify-content: flex-start;
+  gap: 2px; /* the 2px surface gap between adjacent bars */
+  height: 11rem;
+  border-bottom: 1px solid #dee4e7; /* recessive baseline */
+}
+
+.revenue__bar-slot {
+  position: relative;
+  flex: 1 1 0;
+  max-width: 4.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  height: 100%;
+  padding-bottom: 1.25rem;
+  cursor: default;
+}
+
+.revenue__bar-slot:focus-visible {
+  outline: 2px solid #0891a4;
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+.revenue__bar {
+  width: 100%;
+  border-radius: 4px 4px 0 0; /* rounded data-end, anchored to the baseline */
+  background: #0891a4;
+  transition: background-color 0.15s ease;
+}
+
+.revenue__bar-slot:hover .revenue__bar {
+  background: #06788a;
+}
+
+/* A month with nothing collected still shows a tick, so a gap reads as real. */
+.revenue__bar--empty {
+  background: #dee4e7;
+}
+
+.revenue__bar-month {
+  position: absolute;
+  bottom: 0;
+  font-size: 0.6875rem;
+  color: #5e6b73;
+}
+
+.revenue__bar-label {
+  margin-bottom: 0.25rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #1e313a;
+  white-space: nowrap;
+}
+
+.revenue__tooltip {
+  position: absolute;
+  bottom: calc(100% - 1rem);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.5rem;
+  background: #0b1d27;
+  color: #f8fdfe;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px #04191f26;
+}
+
+.revenue__tooltip-value {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.revenue__tooltip-meta {
+  font-size: 0.6875rem;
+  color: #b9c6cc;
+}
+
+/* --- by plan --------------------------------------------------- */
+.revenue__plans {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.revenue__plan-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.revenue__plan-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: capitalize;
+  color: #0b1d27;
+}
+
+.revenue__plan-amount {
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #0b1d27;
+}
+
+.revenue__plan-track {
+  margin-top: 0.375rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: #ebf1f4;
+  overflow: hidden;
+}
+
+.revenue__plan-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: #0891a4;
+}
+
+.revenue__plan-meta {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #5e6b73;
+}
+
+/* --- outcomes -------------------------------------------------- */
+.revenue__outcomes {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.revenue__outcome {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.5rem;
+  background: #f5f8fa;
+}
+
+.revenue__outcome-count {
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #0b1d27;
+}
+
+/* --- status pills: always carry the word, never colour alone --- */
+.revenue__pill {
+  flex-shrink: 0;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  background: #ebf1f4;
+  color: #1e313a;
+}
+
+.revenue__pill--paid {
+  background: #e4f6ee;
+  color: #14563c;
+}
+
+.revenue__pill--failed,
+.revenue__pill--invalid {
+  background: #ffe5e1;
+  color: #c92f33;
+}
+
+.revenue__pill--pending,
+.revenue__pill--cancelled {
+  background: #fdf6e6;
+  color: #7a5216;
+}
+
+/* --- payments table -------------------------------------------- */
+.revenue__table {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.revenue__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid #dee4e7;
+  border-radius: 0.625rem;
+  background: #f5f8fa;
+}
+
+.revenue__row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.revenue__row-company {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #0b1d27;
+}
+
+.revenue__row-meta {
+  font-size: 0.75rem;
+  color: #5e6b73;
+  word-break: break-word;
+  text-transform: capitalize;
+}
+
+.revenue__row-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.125rem;
+  flex-shrink: 0;
+}
+
+.revenue__row-amount {
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #0b1d27;
+}
+
+.revenue__row-date {
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: #5e6b73;
+}
+
+@media (min-width: 768px) {
+  .revenue {
+    padding: 1.75rem 2.5rem;
+  }
+}
+
+@media (min-width: 900px) {
+  .revenue__tiles {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .revenue__split {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

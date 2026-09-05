@@ -17,6 +17,12 @@ import type { PlanKey } from "@/shared/lib/types";
 import { usePageTitle } from "@/shared/lib/use-page-title";
 import "./Billing.css";
 
+/** Amounts read the same as the plan cards above them. */
+function money(amount: number, currency: string) {
+  const symbol = currency === "BDT" ? "৳" : `${currency} `;
+  return `${symbol}${amount.toLocaleString("en-US")}`;
+}
+
 /** Facts in the "current subscription" strip - reorder here. */
 const SUB_FACTS = [
   { key: "plan", label: "Plan" },
@@ -260,7 +266,7 @@ export default function Billing() {
                   </span>
                   <span className="billing__payment-main">
                     <span className="billing__payment-plan">
-                      {p.planKey} plan · {p.currency} {p.amount.toLocaleString()}
+                      {p.planKey} plan · {money(p.amount, p.currency)}
                     </span>
                     <span className="billing__payment-meta">
                       {p.paidAt ?? p.createdAt} · {p.tranId}

@@ -33,6 +33,7 @@ import AdminDashboard from "@/admin/pages/Dashboard";
 import AdminCompanies from "@/admin/pages/Companies";
 import AdminUsers from "@/admin/pages/Users";
 import AdminAuditLog from "@/admin/pages/AuditLog";
+import AdminRevenue from "@/admin/pages/Revenue";
 import AdminPricing from "@/admin/pages/Pricing";
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
@@ -176,6 +177,7 @@ export default function App() {
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/companies" element={<AdminCompanies />} />
               <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/revenue" element={<AdminRevenue />} />
               <Route path="/admin/audit" element={<AdminAuditLog />} />
               <Route path="/admin/pricing" element={<AdminPricing />} />
 

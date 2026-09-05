@@ -6,6 +6,7 @@ import Job from "./models/Job.model.js";
 import Application from "./models/Application.model.js";
 import SentEmail from "./models/SentEmail.model.js";
 import AuditLog from "./models/AuditLog.model.js";
+import Payment from "./models/Payment.model.js";
 import { attachFittedCv } from "./demo/cv.js";
 import { screenCv } from "./engine/index.js";
 
@@ -870,8 +871,11 @@ export async function seedDatabase({ reset = false } = {}) {
       Application.deleteMany({}),
       SentEmail.deleteMany({}),
       AuditLog.deleteMany({}),
+      Payment.deleteMany({}),
     ]);
-    console.log("Cleared users, companies, plans, jobs, applications, emails and the audit log");
+    console.log(
+      "Cleared users, companies, plans, jobs, applications, emails, payments and the audit log",
+    );
   }
 
   await Plan.create(PLANS);
@@ -1033,11 +1037,47 @@ export async function seedDatabase({ reset = false } = {}) {
     })),
   );
 
+  // Subscription history for the companies that have a plan: one payment per
+  // month since they signed up, so the super admin's revenue page has a trend
+  // to show. Demo data like everything else here - the amounts come from the
+  // Plan records, so the totals stay consistent with the pricing cards.
+  const priced = Object.fromEntries((await Plan.find()).map((p) => [p.key, p]));
+  const paymentDocs = [];
+  for (const company of companyDocs) {
+    const plan = priced[company.plan];
+    if (!plan || !plan.amount) continue;
+
+    // Bill monthly from signup to now - never before the company existed, so
+    // the revenue trend can't show income from a company that hadn't signed up.
+    const months = Math.min(12, Math.max(1, Math.round((Date.now() - company.createdAt) / (30 * DAY))));
+    for (let i = months - 1; i >= 0; i--) {
+      const paidAt = new Date(Date.now() - i * 30 * DAY);
+      // One declined attempt in the run, so the page shows a failure too.
+      const declined = i === 1 && company.plan === "advance";
+      paymentDocs.push({
+        companyId: company._id,
+        planKey: company.plan,
+        tranId: `SW-SEED-${String(company._id).slice(-6)}-${i}`.toUpperCase(),
+        amount: plan.amount,
+        currency: plan.currency || "BDT",
+        status: declined ? "failed" : "paid",
+        gateway: "sslcommerz",
+        cardType: declined ? "" : ["VISA-Dutch Bangla", "MASTER-City Bank", "bKash", "Nagad"][i % 4],
+        failReason: declined ? "Issuer declined the card" : "",
+        valId: declined ? null : `SEED${String(company._id).slice(-4)}${i}`,
+        paidAt: declined ? null : paidAt,
+        createdAt: paidAt,
+      });
+    }
+  }
+  if (paymentDocs.length) await Payment.insertMany(paymentDocs);
+
   const appTotal = await Application.countDocuments();
   console.log(
     `Seeded ${PLANS.length} plans, ${companyDocs.length} companies, ` +
       `${superAdminDocs.length + companyUserDocs.length + candidateDocs.length} users, ` +
       `${jobDocs.length} jobs, ${appTotal} applications (${cvCount} with a generated CV), ` +
+      `${paymentDocs.length} payments, ` +
       `${emailCount} sent emails, ` +
       `${AUDIT_SEED.length} audit entries. Password for every account: "${DEMO_PASSWORD}"`,
   );

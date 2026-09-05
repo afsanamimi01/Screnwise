@@ -160,6 +160,28 @@ export type Payment = {
   paidAt: string | null;
 };
 
+/** Everything the super admin's revenue page reads. */
+export type RevenueReport = {
+  gateway: PaymentStatus;
+  currency: string;
+  totals: {
+    collected: number;
+    thisMonth: number;
+    last30Days: number;
+    paidCount: number;
+    attempted: number;
+    conversion: number;
+    manualCount: number;
+    manualAmount: number;
+    payingCompanies: number;
+    averagePayment: number;
+  };
+  series: { month: string; amount: number; count: number }[];
+  byPlan: { plan: PlanKey; amount: number; count: number }[];
+  byStatus: Record<string, number>;
+  payments: (Payment & { companyName: string })[];
+};
+
 export type AuditEntry = {
   id: string;
   actor: string;

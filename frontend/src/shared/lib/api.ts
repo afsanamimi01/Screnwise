@@ -18,6 +18,7 @@ import type {
   PaymentStatus,
   Plan,
   PlanKey,
+  RevenueReport,
   SentEmail,
   User,
 } from "./types";
@@ -346,6 +347,11 @@ export function startPayment(
 }
 
 /* ----------------------- admin (super-admin console) ------------------- */
+
+/** Platform revenue: totals, monthly trend, and every payment attempt. */
+export function getRevenue(): Promise<RevenueReport> {
+  return request<RevenueReport>("/admin/revenue");
+}
 
 export type AdminDashboard = {
   totals: {
