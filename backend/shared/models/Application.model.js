@@ -10,6 +10,24 @@ const scoreBreakdownItemSchema = new mongoose.Schema(
   { _id: false },
 );
 
+/**
+ * The CV this application was screened from, when the bytes are kept.
+ *
+ * Self-applied candidates also have a CV on their profile; this is the copy
+ * that belongs to *this* submission, which is what a recruiter should read
+ * after shortlisting - a candidate may have replaced their profile CV since.
+ */
+const cvSchema = new mongoose.Schema(
+  {
+    data: Buffer,
+    contentType: String,
+    fileName: String,
+    size: Number,
+    uploadedAt: Date,
+  },
+  { _id: false },
+);
+
 const applicationSchema = new mongoose.Schema(
   {
     jobId: { type: mongoose.Schema.Types.ObjectId, ref: "Job", required: true },
@@ -41,6 +59,7 @@ const applicationSchema = new mongoose.Schema(
     },
     appliedAt: { type: Date, default: Date.now },
     cvFileName: String,
+    cv: { type: cvSchema, default: undefined },
   },
   { timestamps: false },
 );
@@ -49,6 +68,9 @@ applicationSchema.set("toJSON", {
   transform: (_doc, ret) => {
     ret.id = ret._id.toString();
     ret.appliedAt = ret.appliedAt.toISOString().slice(0, 10);
+    // Never let the raw bytes into JSON - the file is served by its own
+    // endpoint, and only after the candidate has been shortlisted.
+    delete ret.cv;
     delete ret._id;
     delete ret.__v;
     return ret;

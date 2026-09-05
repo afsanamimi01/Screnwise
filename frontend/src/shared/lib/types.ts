@@ -126,6 +126,9 @@ export type Candidate = {
   email: string;
   phone: string;
   location: string;
+  /** True once a shortlisted self-applied candidate has a stored CV to open. */
+  cvAvailable?: boolean;
+  cvFileName?: string;
 };
 
 export type AuditEntry = {

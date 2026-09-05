@@ -60,6 +60,25 @@
   background: #d5f2f3;
 }
 
+/* Row actions: "View CV" sits beside "Message" and wraps under it when the
+   card is narrow. `button` needs the font reset that the Link doesn't. */
+.hr-shortlist__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.hr-shortlist__actions button {
+  font-family: inherit;
+}
+
+.hr-shortlist__actions button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 /* --- blind-screening note ---------------------------------- */
 .hr-shortlist__note {
   display: flex;

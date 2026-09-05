@@ -1,11 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
-import { Eye, Mail } from "lucide-react";
+import { Eye, FileText, Mail } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { JobTabs } from "@/hr/components/JobTabs";
 import { scoreBand } from "@/shared/components/ScoreBadge";
 import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
 import { Shell } from "@/hr/components/Shell";
-import { getJob, getShortlist } from "@/shared/lib/api";
+import { fetchApplicationCv, getJob, getShortlist } from "@/shared/lib/api";
 import { usePageTitle } from "@/shared/lib/use-page-title";
 import { useWorkspaceBase } from "@/shared/lib/workspace";
 import "./JobShortlist.css";
@@ -19,6 +21,26 @@ export default function JobShortlist() {
     queryKey: ["shortlist", jobId],
     queryFn: () => getShortlist(jobId),
   });
+
+  const [opening, setOpening] = useState<string | null>(null);
+
+  /**
+   * The CV is served as bytes behind the JWT, so it can't be a plain link:
+   * fetch it, hand the tab an object URL, and release it once the viewer has
+   * had time to load.
+   */
+  const openCv = async (applicationId: string) => {
+    setOpening(applicationId);
+    try {
+      const url = await fetchApplicationCv(applicationId);
+      window.open(url, "_blank", "noopener");
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "We couldn't open that CV.");
+    } finally {
+      setOpening(null);
+    }
+  };
 
   return (
     <Shell allow={["hr", "manager"]}>
@@ -91,12 +113,26 @@ export default function JobShortlist() {
                   ))}
                 </div>
               </div>
-              <Link
-                to={`${base}/${jobId}/email`}
-                className="hr-shortlist__btn hr-shortlist__btn--ghost"
-              >
-                Message
-              </Link>
+              <div className="hr-shortlist__actions">
+                {candidate?.cvAvailable ? (
+                  <button
+                    type="button"
+                    className="hr-shortlist__btn hr-shortlist__btn--ghost"
+                    onClick={() => openCv(app.id)}
+                    disabled={opening === app.id}
+                    title={candidate.cvFileName || "Open the full CV"}
+                  >
+                    <FileText size={16} />
+                    {opening === app.id ? "Opening…" : "View CV"}
+                  </button>
+                ) : null}
+                <Link
+                  to={`${base}/${jobId}/email`}
+                  className="hr-shortlist__btn hr-shortlist__btn--ghost"
+                >
+                  Message
+                </Link>
+              </div>
             </div>
           ))}
         </div>

@@ -6,6 +6,8 @@ import Job from "./models/Job.model.js";
 import Application from "./models/Application.model.js";
 import SentEmail from "./models/SentEmail.model.js";
 import AuditLog from "./models/AuditLog.model.js";
+import { attachFittedCv } from "./demo/cv.js";
+import { screenCv } from "./engine/index.js";
 
 const DEMO_PASSWORD = "demo1234";
 const DAY = 24 * 60 * 60 * 1000;
@@ -977,6 +979,22 @@ export async function seedDatabase({ reset = false } = {}) {
   });
   await Application.insertMany(candidateApps);
 
+  // Every self-applied row gets the CV its numbers imply, then is re-scored
+  // from that document - so a recruiter who shortlists one has something real
+  // to open, and the breakdown can be checked against the file. HR-uploaded
+  // rows are left alone: the product deliberately keeps no copy of those.
+  const needCvs = await Application.find({ source: "self-applied", needsManualReview: false });
+  const jobsById = new Map(jobDocs.map((j) => [j._id.toString(), j]));
+  let cvCount = 0;
+  for (const app of needCvs) {
+    const job = jobsById.get(app.jobId.toString());
+    if (!job) continue;
+    const { unreadable } = await attachFittedCv(app, job, (file) => screenCv(file, job));
+    if (unreadable) continue;
+    await app.save();
+    cvCount++;
+  }
+
   // A couple of sent emails per job that has people past the blind stage.
   let emailCount = 0;
   for (const title of ["Senior backend engineer", "Product designer", "Frontend engineer (React)"]) {
@@ -1012,7 +1030,8 @@ export async function seedDatabase({ reset = false } = {}) {
   console.log(
     `Seeded ${PLANS.length} plans, ${companyDocs.length} companies, ` +
       `${superAdminDocs.length + companyUserDocs.length + candidateDocs.length} users, ` +
-      `${jobDocs.length} jobs, ${appTotal} applications, ${emailCount} sent emails, ` +
+      `${jobDocs.length} jobs, ${appTotal} applications (${cvCount} with a generated CV), ` +
+      `${emailCount} sent emails, ` +
       `${AUDIT_SEED.length} audit entries. Password for every account: "${DEMO_PASSWORD}"`,
   );
 }

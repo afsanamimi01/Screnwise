@@ -230,6 +230,28 @@ export function shortlistCandidate(applicationIds: string[]): Promise<{ shortlis
 }
 
 /**
+ * The full CV of a shortlisted, self-applied candidate.
+ *
+ * Served as bytes behind the JWT, so a plain link can't fetch it - the caller
+ * gets an object URL to open in a tab and must revoke it when done. The server
+ * refuses with 403 until the candidate is shortlisted.
+ */
+export async function fetchApplicationCv(applicationId: string): Promise<string> {
+  const token = getToken();
+  const res = await fetch(`${BASE_URL}/hr/shortlist/cv/${applicationId}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+
+  if (!res.ok) {
+    // The error body is JSON even though a success is binary.
+    const data = await res.json().catch(() => null);
+    throw new ApiError(res.status, data?.message ?? "Could not open the CV", data?.code);
+  }
+
+  return URL.createObjectURL(await res.blob());
+}
+
+/**
  * Upload CV files for one job/screening. The server parses and scores each one
  * with the local screening engine and returns the (blind) ranked records.
  */
