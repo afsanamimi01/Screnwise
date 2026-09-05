@@ -394,7 +394,15 @@ export function getCompanies(): Promise<CompanyRow[]> {
   return request<CompanyRow[]>("/admin/companies");
 }
 
-export function updateCompanyAccess(id: string, action: "renew" | "revoke"): Promise<Company> {
+/**
+ * `clear` removes the subscription without blocking the company: it goes back
+ * to the state a newly registered one starts in, and the manager picks a plan
+ * again. Their jobs, candidates and HR accounts are untouched.
+ */
+export function updateCompanyAccess(
+  id: string,
+  action: "renew" | "revoke" | "clear",
+): Promise<Company> {
   return request<Company>(`/admin/companies/${id}`, {
     method: "PATCH",
     body: body({ action }),

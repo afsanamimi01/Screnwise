@@ -36,9 +36,15 @@ export async function listCompanies(req, res, next) {
 }
 
 /**
- * PATCH /api/admin/companies/:id  { action: "renew" | "revoke" }
+ * PATCH /api/admin/companies/:id  { action: "renew" | "revoke" | "clear" }
+ *
  * renew  → status active, expiry pushed RENEW_DAYS from today
  * revoke → status revoked (expiry untouched)
+ * clear  → the subscription is removed and the company is put back exactly
+ *          where a freshly registered one starts: no plan, no seats, no
+ *          expiry, but still `active`. Nothing else is touched - the jobs,
+ *          candidates, HR accounts and history all survive; the manager simply
+ *          has to choose a plan again before the workspace unlocks.
  */
 export async function updateCompanyAccess(req, res, next) {
   try {
@@ -55,15 +61,29 @@ export async function updateCompanyAccess(req, res, next) {
         : Date.now();
       company.subscriptionExpiresAt = new Date(from + RENEW_DAYS * DAY);
       if (!company.subscriptionStartedAt) company.subscriptionStartedAt = new Date();
+    } else if (action === "clear") {
+      // Deliberately not a revoke: the company is not blocked, it just has
+      // nothing bought. `plan: null` is what `requireActivePlan` reads, and
+      // what makes the manager's console show the plan chooser again.
+      company.plan = null;
+      company.hrSeatLimit = 0;
+      company.subscriptionStartedAt = null;
+      company.subscriptionExpiresAt = null;
+      company.status = "active";
     } else {
-      return res.status(400).json({ message: "action must be 'renew' or 'revoke'" });
+      return res.status(400).json({ message: "action must be 'renew', 'revoke' or 'clear'" });
     }
 
     await company.save();
+    const ACTION_LABEL = {
+      revoke: "Company access revoked",
+      renew: "Company subscription renewed",
+      clear: "Company subscription cleared",
+    };
     await logAudit(
       req.user.name,
-      action === "revoke" ? "Company access revoked" : "Company subscription renewed",
-      company.name,
+      ACTION_LABEL[action],
+      action === "clear" ? `${company.name} - back to no plan` : company.name,
       company._id,
     );
     res.json(company.toJSON());

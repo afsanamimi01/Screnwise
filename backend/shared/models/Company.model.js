@@ -36,9 +36,12 @@ companySchema.set("toJSON", {
   virtuals: true,
   transform: (_doc, ret) => {
     ret.id = ret._id.toString();
-    ret.subscriptionStartedAt = ret.subscriptionStartedAt?.toISOString().slice(0, 10);
-    ret.subscriptionExpiresAt = ret.subscriptionExpiresAt?.toISOString().slice(0, 10);
-    ret.createdAt = ret.createdAt?.toISOString().slice(0, 10);
+    // `?? null` matters: without it an unset date becomes `undefined` and the
+    // key is dropped from the JSON entirely, so a company with no plan answers
+    // with a different shape than one that has it.
+    ret.subscriptionStartedAt = ret.subscriptionStartedAt?.toISOString().slice(0, 10) ?? null;
+    ret.subscriptionExpiresAt = ret.subscriptionExpiresAt?.toISOString().slice(0, 10) ?? null;
+    ret.createdAt = ret.createdAt?.toISOString().slice(0, 10) ?? null;
     delete ret._id;
     delete ret.__v;
     return ret;
