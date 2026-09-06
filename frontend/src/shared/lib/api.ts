@@ -422,8 +422,9 @@ export function updateUser(
   });
 }
 
-export function getAuditLog(): Promise<AuditEntry[]> {
-  return request<AuditEntry[]>("/admin/audit");
+/** `order` flips the list; the newest entries are kept either way. */
+export function getAuditLog(order: "asc" | "desc" = "desc"): Promise<AuditEntry[]> {
+  return request<AuditEntry[]>(`/admin/audit?order=${order}`);
 }
 
 export function getAdminPlans(): Promise<Plan[]> {

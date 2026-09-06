@@ -5,11 +5,14 @@ import { getAuditLog } from "@/shared/lib/api";
 import { usePageTitle } from "@/shared/lib/use-page-title";
 import "./AuditLog.css";
 
+/** Newest entry first. Flip to "asc" to read the log oldest-first. */
+const ORDER: "asc" | "desc" = "desc";
+
 export default function AuditLog() {
   usePageTitle("Audit log - Screenwise");
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["audit"],
-    queryFn: getAuditLog,
+    queryKey: ["audit", ORDER],
+    queryFn: () => getAuditLog(ORDER),
   });
 
   return (

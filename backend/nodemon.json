@@ -1,0 +1,7 @@
+{
+  "watch": ["server.js", "auth", "admin", "candidate", "company", "hr", "shared"],
+  "ext": "js,mjs,cjs,json",
+  "ignore": ["node_modules/**", "scripts/**", "uploads/**", "**/*.test.js"],
+  "delay": 500,
+  "signal": "SIGTERM"
+}

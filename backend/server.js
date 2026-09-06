@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import mongoose from "mongoose";
 import cors from "cors";
 import { connectDB } from "./shared/config/db.js";
 import { seedIfEmpty } from "./shared/seed.js";
@@ -63,12 +64,52 @@ app.use("/api/admin/plans", adminPlansRoutes);
 
 app.use(errorMiddleware);
 
-const port = process.env.PORT || 5000;
+const port = Number(process.env.PORT) || 5000;
+
+let server;
 
 async function start() {
   await connectDB();
   await seedIfEmpty();
-  app.listen(port, () => console.log(`Screenwise backend listening on http://localhost:${port}`));
+
+  server = app.listen(port, () =>
+    console.log(`Screenwise backend listening on http://localhost:${port}`)
+  );
+
+  // Without this the EADDRINUSE is an unhandled 'error' event: a stack trace
+  // instead of the one line that says what to do about it.
+  server.on("error", (err) => {
+    if (err.code !== "EADDRINUSE") throw err;
+    console.error(
+      `Port ${port} is already in use. Run \`npm run free-port\` to stop whatever is holding it, then start again.`
+    );
+    process.exit(1);
+  });
+}
+
+// Nodemon restarts and Ctrl+C both land here. Releasing the socket and the
+// Mongo connection on the way out is what keeps the port from being held by a
+// process that is already on its way to exiting.
+let closing = false;
+async function shutdown(signal) {
+  if (closing) return;
+  closing = true;
+  console.log(`\n${signal} received - shutting down.`);
+
+  // Never let a wedged connection hold the port hostage.
+  const failsafe = setTimeout(() => process.exit(1), 5000);
+  failsafe.unref();
+
+  if (server) {
+    server.closeAllConnections();
+    await new Promise((resolve) => server.close(resolve));
+  }
+  await mongoose.connection.close().catch(() => {});
+  process.exit(0);
+}
+
+for (const signal of ["SIGINT", "SIGTERM", "SIGUSR2", "SIGBREAK"]) {
+  process.once(signal, () => shutdown(signal));
 }
 
 start();
