@@ -1,5 +1,6 @@
 import { ragConfig } from "../config.js";
 import { GeminiEmbeddingClient } from "./gemini.js";
+import { LocalEmbeddingClient } from "./local.js";
 import { HashingEmbeddingClient } from "./hashing.js";
 
 let cached;
@@ -12,9 +13,11 @@ let cached;
  */
 export function embeddingClient() {
   if (cached) return cached;
-  const { driver, gemini, hashing } = ragConfig.embeddings;
+  const { driver, local, gemini, hashing } = ragConfig.embeddings;
 
-  if (driver === "gemini") {
+  if (driver === "local") {
+    cached = new LocalEmbeddingClient(local);
+  } else if (driver === "gemini") {
     cached = new GeminiEmbeddingClient(gemini);
   } else {
     cached = new HashingEmbeddingClient(hashing);

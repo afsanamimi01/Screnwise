@@ -100,10 +100,46 @@ Fusion is by **position**, not score: cosine and BM25 live on different scales,
 and weighting them directly needs recalibrating whenever either side moves.
 
 **This is the part to get right.** "No vector database" does not mean "no
-vectors". The offline `hashing` embedder is for development only — it matches
-words, not meaning, so `"led a team"` will not find `"managed six engineers"`,
-which is the entire point of the feature. `npm run rag:eval` prints a vector
-column of zeros when it is active. Ship with `GEMINI_API_KEY` set.
+vectors". The `hashing` embedder is for tests only — it matches words, not
+meaning, so `"led a team"` will not find `"managed six engineers"`, which is
+the entire point of the feature. `npm run rag:check` refuses it outright.
+
+### Embeddings run locally, and that is the recommended setup
+
+The default driver is **`local`**: `Xenova/all-MiniLM-L6-v2` via
+`@huggingface/transformers`, ~90 MB, downloaded once and cached, CPU only.
+
+The reason is not cost. CV text is the personal data of people who are not the
+customer, and a hosted embedding API means every candidate's résumé is sent to
+a third party to be vectorised — on a free tier, one that reserves the right to
+train on it. Running the model here removes that question instead of paying to
+opt out of it.
+
+Measured on this corpus, against `gemini-embedding-2` at 768 dimensions:
+
+| | local (MiniLM, 384d) | Gemini (768d) |
+|---|---|---|
+| Full 721-document index | **40.6s** | 466s (quota backoff) |
+| Rate limit | none | 1,500 requests/day |
+| CV text leaves the server | **no** | yes |
+| Similarity spread (match → control) | **0.267** | 0.122 |
+| Unrelated control scores | **−0.034** | 0.499 |
+
+That last row decides more than it looks. Gemini's cosines sit in a narrow band
+near 0.5 even for text sharing nothing with the query, so any `RAG_MIN_SCORE`
+near zero admits the entire corpus. MiniLM pushes unrelated content below zero,
+so the floor genuinely rejects something and "nothing matched" can register as
+such.
+
+Retrieval quality holds up. On real data, `"led or managed a team"` returns a
+Customer success **manager**, `"cloud infrastructure background"` a DevOps /
+Infrastructure engineer at 0.61, and `"Kubernetes"` a DevOps and Cloud
+engineer.
+
+Gemini remains one config flip away (`RAG_EMBEDDING_DRIVER=gemini`) if a
+stronger model is ever wanted — but it re-introduces both the quota and the
+privacy question, and changing driver requires a full re-index because vectors
+of different models and widths cannot be compared.
 
 ### Two calibration findings, measured on this corpus
 
@@ -142,7 +178,10 @@ All of it env-driven; see [`backend/.env.example`](../backend/.env.example).
 | Variable | Default | Note |
 |---|---|---|
 | `GEMINI_API_KEY` | — | One key covers embeddings and chat. |
-| `RAG_EMBEDDING_DRIVER` | `gemini` when a key is present, else `hashing` | `hashing` is never a silent production fallback — it warns. |
+| `RAG_EMBEDDING_DRIVER` | `local` | `local` needs no key and no network. `gemini` is hosted; `hashing` is tests only and `rag:check` rejects it. |
+| `RAG_LOCAL_MODEL` | `Xenova/all-MiniLM-L6-v2` | Any transformers.js feature-extraction model. **Changing it requires a full re-index.** |
+| `RAG_LOCAL_DIMENSIONS` | `384` | Must match the model's real output width. |
+| `RAG_LOCAL_BATCH` | `32` | Texts per forward pass. Bounded by memory, not by a quota. |
 | `GEMINI_EMBEDDING_MODEL` | `gemini-embedding-2` | v2 takes its task instruction in the text; `-001` takes `taskType`. Both are handled. |
 | `GEMINI_CHAT_MODEL` | `gemini-3.8-flash` | |
 | `RAG_DIMENSIONS` | `768` | Matryoshka: a real prefix of the full 3072 at a quarter the cost. **Changing it requires a full re-index** — vectors of different widths cannot be compared. |
@@ -249,7 +288,7 @@ backend/shared/rag/
   redact.js         identity out of CV text, permanently
   vector.js         float32 packing, normalisation, dot product
   scoring/bm25.js   keyword half - reuses engine/text.js tokenising
-  embeddings/       gemini · hashing, behind one interface
+  embeddings/       local · gemini · hashing, behind one interface
   builders/         cv · job · application · policy · profile
   assistant/
     tools.js        what the model may look up - each re-scopes on the user

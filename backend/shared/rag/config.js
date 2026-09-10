@@ -14,12 +14,25 @@ export const ragConfig = {
 
   embeddings: {
     /**
-     * gemini  - hosted API, what production uses.
-     * hashing - deterministic, offline, no key. Development and tests only:
-     *           it has no semantics, which is the entire point of retrieval
-     *           here, so it is never a silent fallback.
+     * local   - runs here, no API. The default, and the recommended one:
+     *           CV text is other people's personal data and should not be
+     *           posted to a third party to be vectorised.
+     * gemini  - hosted API. Stronger model, but every CV goes over the wire
+     *           and the free tier's quota makes indexing slow.
+     * hashing - deterministic, offline, no model at all. Tests only: it has
+     *           no semantics, which is the entire point of retrieval here,
+     *           so it is never a silent fallback.
      */
-    driver: process.env.RAG_EMBEDDING_DRIVER || (process.env.GEMINI_API_KEY ? "gemini" : "hashing"),
+    driver: process.env.RAG_EMBEDDING_DRIVER || "local",
+    local: {
+      /**
+       * Runs on this server - no API, no rate limit, and candidate CV text
+       * never leaves the machine. The default for that last reason above all.
+       * ~90 MB, downloaded once and cached, CPU only.
+       */
+      model: process.env.RAG_LOCAL_MODEL || "Xenova/all-MiniLM-L6-v2",
+      dimensions: Number(process.env.RAG_LOCAL_DIMENSIONS || 384),
+    },
     gemini: {
       apiKey: process.env.GEMINI_API_KEY || "",
       model: process.env.GEMINI_EMBEDDING_MODEL || "gemini-embedding-2",
