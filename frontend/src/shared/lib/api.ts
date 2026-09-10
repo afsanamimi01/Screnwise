@@ -464,20 +464,67 @@ export interface AssistantAnswer {
   /** Which lookups produced the answer - shown so a reply can be traced. */
   toolsUsed: string[];
   sources: string[];
+  /** The thread this answer was appended to - new on the first question. */
+  conversationId: string;
+}
+
+/** A stored message. Threads are private to the account that created them. */
+export interface AssistantMessage {
+  role: "user" | "assistant";
+  text: string;
+  toolsUsed?: string[];
+  failed?: boolean;
+  at?: string;
+}
+
+export interface ConversationSummary {
+  id: string;
+  title: string;
+  /** The actor the thread was held as, recorded when it started. */
+  role: string;
+  messageCount: number;
+  lastMessageAt: string;
+  createdAt: string;
+}
+
+export interface Conversation {
+  id: string;
+  title: string;
+  role: string;
+  messages: AssistantMessage[];
 }
 
 export function getAssistantStatus(): Promise<AssistantStatus> {
   return request<AssistantStatus>("/assistant/status");
 }
 
+/**
+ * Ask a question, optionally continuing a thread.
+ *
+ * History is NOT sent: the server owns the transcript and reads prior turns
+ * from the stored thread. A client that could supply "what was said earlier"
+ * could put words in the assistant's mouth.
+ */
 export function askAssistant(
   question: string,
-  history: AssistantTurn[] = [],
+  conversationId?: string | null,
 ): Promise<AssistantAnswer> {
   return request<AssistantAnswer>("/assistant/ask", {
     method: "POST",
-    body: body({ question, history }),
+    body: body({ question, conversationId: conversationId ?? undefined }),
   });
+}
+
+export function getConversations(): Promise<ConversationSummary[]> {
+  return request<ConversationSummary[]>("/assistant/conversations");
+}
+
+export function getConversation(id: string): Promise<Conversation> {
+  return request<Conversation>(`/assistant/conversations/${id}`);
+}
+
+export function deleteConversation(id: string): Promise<{ deleted: boolean }> {
+  return request<{ deleted: boolean }>(`/assistant/conversations/${id}`, { method: "DELETE" });
 }
 
 export type { ApplicationStatus };

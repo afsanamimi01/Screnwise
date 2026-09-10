@@ -2,9 +2,30 @@ import { ask, AssistantUnavailableError } from "../../shared/rag/assistant/servi
 import { ragConfig } from "../../shared/rag/config.js";
 import { embeddingClient } from "../../shared/rag/embeddings/index.js";
 import RagDocument from "../../shared/models/RagDocument.model.js";
+import Conversation from "../../shared/models/Conversation.model.js";
 import { visibleFilter } from "../../shared/rag/visibility.js";
 
 const MAX_QUESTION = 2000;
+/** Turns of context sent to the model. Older messages stay stored, just unsent. */
+const CONTEXT_TURNS = 12;
+/** Messages kept on a thread before the oldest are dropped. */
+const MAX_STORED = 200;
+
+/**
+ * Every query in this file is scoped by `userId`, never by `_id` alone.
+ *
+ * A thread belonging to someone else must not be findable and then rejected -
+ * it must not be found. That difference matters: a 403 confirms a thread
+ * exists, and the id space is guessable enough that confirming existence is
+ * itself a leak. Everything here returns 404 for "not yours".
+ */
+const own = (req, id) => ({ _id: id, userId: req.user._id });
+
+/** A thread list needs a label, and the opening question is the honest one. */
+function titleFrom(question) {
+  const clean = question.replace(/\s+/g, " ").trim();
+  return clean.length <= 60 ? clean : `${clean.slice(0, 57)}…`;
+}
 
 /**
  * Whether the assistant can actually answer, and what it is running on.
@@ -37,6 +58,56 @@ export async function getStatus(req, res, next) {
   }
 }
 
+/** This account's threads, newest first. Never anyone else's. */
+export async function listConversations(req, res, next) {
+  try {
+    const conversations = await Conversation.find({ userId: req.user._id })
+      .select("title role lastMessageAt createdAt messages")
+      .sort({ lastMessageAt: -1 })
+      .limit(50)
+      .lean();
+
+    res.json(
+      conversations.map((c) => ({
+        id: String(c._id),
+        title: c.title,
+        role: c.role,
+        messageCount: c.messages?.length ?? 0,
+        lastMessageAt: c.lastMessageAt,
+        createdAt: c.createdAt,
+      })),
+    );
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getConversation(req, res, next) {
+  try {
+    const conversation = await Conversation.findOne(own(req, req.params.id)).lean();
+    if (!conversation) return res.status(404).json({ message: "No such conversation." });
+
+    res.json({
+      id: String(conversation._id),
+      title: conversation.title,
+      role: conversation.role,
+      messages: conversation.messages ?? [],
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteConversation(req, res, next) {
+  try {
+    const result = await Conversation.deleteOne(own(req, req.params.id));
+    if (!result.deletedCount) return res.status(404).json({ message: "No such conversation." });
+    res.json({ deleted: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function askAssistant(req, res, next) {
   try {
     const question = String(req.body?.question ?? "").trim();
@@ -45,24 +116,82 @@ export async function askAssistant(req, res, next) {
       return res.status(400).json({ message: `Keep it under ${MAX_QUESTION} characters.` });
     }
 
-    // History comes from the client, so it is shaped and capped here rather
-    // than trusted - it goes straight into a model prompt.
-    const history = Array.isArray(req.body?.history)
-      ? req.body.history
-          .filter((t) => t && typeof t.text === "string" && t.text.trim())
-          .slice(-12)
-          .map((t) => ({
-            role: t.role === "assistant" ? "assistant" : "user",
-            text: t.text.slice(0, MAX_QUESTION),
-          }))
-      : [];
+    // Continue a thread, or start one. A conversationId that is not this
+    // user's simply does not resolve, and a new thread is started instead of
+    // an error being raised - there is nothing to tell them about it.
+    let conversation = req.body?.conversationId
+      ? await Conversation.findOne(own(req, req.body.conversationId))
+      : null;
 
-    const answer = await ask(req.user, question, history);
-    res.json(answer);
+    if (!conversation) {
+      conversation = new Conversation({
+        userId: req.user._id,
+        role: req.user.role,
+        companyId: req.user.companyId ?? null,
+        title: titleFrom(question),
+        messages: [],
+      });
+    }
+
+    /**
+     * History comes from the stored thread, never from the request body.
+     *
+     * It used to be sent up by the client, which meant anything could be put
+     * in front of the model as "what was said earlier" - a plausible route to
+     * talking it into a claim it never made. The server owns the transcript
+     * now, so prior turns are the ones that actually happened.
+     */
+    const history = conversation.messages
+      .filter((m) => !m.failed)
+      .slice(-CONTEXT_TURNS)
+      .map((m) => ({ role: m.role, text: m.text }));
+
+    conversation.messages.push({ role: "user", text: question, at: new Date() });
+
+    let answer;
+    try {
+      answer = await ask(req.user, question, history);
+    } catch (err) {
+      if (err instanceof AssistantUnavailableError) {
+        // The failure is stored too, so a refresh does not silently drop the
+        // question the user actually asked.
+        conversation.messages.push({
+          role: "assistant",
+          text: err.message,
+          failed: true,
+          at: new Date(),
+        });
+        await persist(conversation);
+        return res.status(err.status).json({
+          message: err.message,
+          conversationId: String(conversation._id),
+        });
+      }
+      throw err;
+    }
+
+    conversation.messages.push({
+      role: "assistant",
+      text: answer.reply,
+      toolsUsed: answer.toolsUsed,
+      at: new Date(),
+    });
+    await persist(conversation);
+
+    res.json({ ...answer, conversationId: String(conversation._id) });
   } catch (err) {
     if (err instanceof AssistantUnavailableError) {
       return res.status(err.status).json({ message: err.message });
     }
     next(err);
   }
+}
+
+/** Trim to the cap and save. A thread grows without limit otherwise. */
+async function persist(conversation) {
+  if (conversation.messages.length > MAX_STORED) {
+    conversation.messages = conversation.messages.slice(-MAX_STORED);
+  }
+  conversation.lastMessageAt = new Date();
+  await conversation.save();
 }

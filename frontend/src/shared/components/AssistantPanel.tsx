@@ -1,10 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/shared/lib/auth";
 import {
   askAssistant,
+  deleteConversation,
   getAssistantStatus,
+  getConversation,
+  getConversations,
+  type AssistantMessage,
   type AssistantStatus,
-  type AssistantTurn,
+  type ConversationSummary,
 } from "@/shared/lib/api";
 import "./AssistantPanel.css";
 
@@ -14,12 +18,13 @@ import "./AssistantPanel.css";
  * It is deliberately not a route. The questions it answers are about whatever
  * is already on screen - this board, this score, this role - and sending
  * someone to a separate page to ask about the page they just left is the wrong
- * shape. Closed, it is one button; open, it never covers the primary column on
- * a desktop width.
+ * shape.
  *
- * Conversation state is per session and lives here. Nothing is persisted: a
- * recruiter's question can name a candidate's details, and the transcript is
- * not something this product should be keeping.
+ * Threads are stored server-side and belong to one account. Nothing here
+ * decides who may read what: every call is scoped by the signed-in user on the
+ * server, so this component never holds another person's conversation to
+ * filter out. Switching account switches the whole list, because it is a
+ * different owner asking.
  */
 
 /** Openers, chosen per role - an empty chat box gets asked nothing. */
@@ -49,30 +54,48 @@ const PROMPTS: Record<string, string[]> = {
   ],
 };
 
-interface Message extends AssistantTurn {
-  id: number;
-  toolsUsed?: string[];
-  failed?: boolean;
+interface Message extends AssistantMessage {
+  key: string;
 }
+
+const withKey = (m: AssistantMessage, i: number): Message => ({ ...m, key: `${i}-${m.at ?? ""}` });
 
 export default function AssistantPanel() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<AssistantStatus | null>(null);
+  const [threads, setThreads] = useState<ConversationSummary[]>([]);
+  const [showThreads, setShowThreads] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
   const [pending, setPending] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Status is fetched once the panel is first opened, not on every page load -
-  // it is a database count, and nobody needs it paid for before they ask.
+  const refreshThreads = useCallback(() => {
+    getConversations()
+      .then(setThreads)
+      .catch(() => setThreads([]));
+  }, []);
+
+  // Status and threads load when the panel is first opened, not on every page
+  // load - both are database reads, and nobody needs them before they ask.
   useEffect(() => {
-    if (!open || status || !user) return;
-    getAssistantStatus()
-      .then(setStatus)
-      .catch(() => setStatus(null));
-  }, [open, status, user]);
+    if (!open || !user) return;
+    if (!status) getAssistantStatus().then(setStatus).catch(() => setStatus(null));
+    refreshThreads();
+  }, [open, status, user, refreshThreads]);
+
+  // A different account is a different owner: drop everything on screen rather
+  // than leaving one person's thread visible under another's name.
+  useEffect(() => {
+    setConversationId(null);
+    setMessages([]);
+    setThreads([]);
+    setStatus(null);
+    setShowThreads(false);
+  }, [user?.id]);
 
   useEffect(() => {
     if (open) inputRef.current?.focus();
@@ -86,37 +109,68 @@ export default function AssistantPanel() {
 
   const prompts = PROMPTS[user.role] ?? PROMPTS.candidate;
 
+  function startNew() {
+    setConversationId(null);
+    setMessages([]);
+    setShowThreads(false);
+    inputRef.current?.focus();
+  }
+
+  async function openThread(id: string) {
+    setShowThreads(false);
+    try {
+      const thread = await getConversation(id);
+      setConversationId(thread.id);
+      setMessages(thread.messages.map(withKey));
+    } catch {
+      // Gone, or never this account's. Either way there is nothing to show.
+      refreshThreads();
+    }
+  }
+
+  async function removeThread(id: string) {
+    try {
+      await deleteConversation(id);
+      if (id === conversationId) startNew();
+      refreshThreads();
+    } catch {
+      refreshThreads();
+    }
+  }
+
   async function send(question: string) {
     const text = question.trim();
     if (!text || pending) return;
 
-    const asked: Message = { id: Date.now(), role: "user", text };
-    // The history sent up is what came before this question, so the server is
-    // never handed the question twice.
-    const history: AssistantTurn[] = messages
-      .filter((m) => !m.failed)
-      .map(({ role, text }) => ({ role, text }));
-
-    setMessages((prev) => [...prev, asked]);
+    setMessages((prev) => [...prev, { key: `q${Date.now()}`, role: "user", text }]);
     setDraft("");
     setPending(true);
 
     try {
-      const answer = await askAssistant(text, history);
-      setMessages((prev) => [
-        ...prev,
-        { id: Date.now() + 1, role: "assistant", text: answer.reply, toolsUsed: answer.toolsUsed },
-      ]);
-    } catch (err) {
+      const answer = await askAssistant(text, conversationId);
+      setConversationId(answer.conversationId);
       setMessages((prev) => [
         ...prev,
         {
-          id: Date.now() + 1,
+          key: `a${Date.now()}`,
           role: "assistant",
-          failed: true,
-          text: err instanceof Error ? err.message : "The assistant could not answer just now.",
+          text: answer.reply,
+          toolsUsed: answer.toolsUsed,
         },
       ]);
+      refreshThreads();
+    } catch (err) {
+      const failure = err as { message?: string; conversationId?: string };
+      setMessages((prev) => [
+        ...prev,
+        {
+          key: `e${Date.now()}`,
+          role: "assistant",
+          failed: true,
+          text: failure.message ?? "The assistant could not answer just now.",
+        },
+      ]);
+      refreshThreads();
     } finally {
       setPending(false);
     }
@@ -141,7 +195,7 @@ export default function AssistantPanel() {
         aria-label="Screenwise assistant"
       >
         <header className="assistant__head">
-          <div>
+          <div className="assistant__head-text">
             <p className="assistant__title">Screenwise assistant</p>
             <p className="assistant__subtitle">
               {status
@@ -149,15 +203,60 @@ export default function AssistantPanel() {
                 : "Grounded in what you already have access to"}
             </p>
           </div>
-          <button
-            type="button"
-            className="assistant__close"
-            onClick={() => setOpen(false)}
-            aria-label="Close the assistant"
-          >
-            ×
-          </button>
+          <div className="assistant__head-actions">
+            <button
+              type="button"
+              className="assistant__icon-btn"
+              onClick={() => setShowThreads((v) => !v)}
+              aria-pressed={showThreads}
+              title="Your conversations"
+            >
+              History{threads.length ? ` (${threads.length})` : ""}
+            </button>
+            <button type="button" className="assistant__icon-btn" onClick={startNew} title="Start a new conversation">
+              New
+            </button>
+            <button
+              type="button"
+              className="assistant__close"
+              onClick={() => setOpen(false)}
+              aria-label="Close the assistant"
+            >
+              ×
+            </button>
+          </div>
         </header>
+
+        {showThreads && (
+          <div className="assistant__threads">
+            {threads.length === 0 && <p className="assistant__threads-empty">No saved conversations yet.</p>}
+            {threads.map((thread) => (
+              <div
+                key={thread.id}
+                className={
+                  "assistant__thread" + (thread.id === conversationId ? " assistant__thread--current" : "")
+                }
+              >
+                <button type="button" className="assistant__thread-open" onClick={() => openThread(thread.id)}>
+                  <span className="assistant__thread-title">{thread.title}</span>
+                  <span className="assistant__thread-meta">
+                    {thread.messageCount} message{thread.messageCount === 1 ? "" : "s"} ·{" "}
+                    {new Date(thread.lastMessageAt).toLocaleDateString()}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className="assistant__thread-del"
+                  onClick={() => removeThread(thread.id)}
+                  aria-label={`Delete conversation: ${thread.title}`}
+                  title="Delete"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/*
           A chat box that fails on first use is worse than one that says why.
@@ -183,7 +282,7 @@ export default function AssistantPanel() {
               <p className="assistant__empty-title">Ask about what's in front of you.</p>
               <p className="assistant__empty-text">
                 It reads only what your account can already see, and answers from records rather
-                than memory.
+                than memory. Your conversations are private to you.
               </p>
               <div className="assistant__prompts">
                 {prompts.map((prompt) => (
@@ -202,7 +301,7 @@ export default function AssistantPanel() {
 
           {messages.map((message) => (
             <div
-              key={message.id}
+              key={message.key}
               className={
                 `assistant__msg assistant__msg--${message.role}` +
                 (message.failed ? " assistant__msg--failed" : "")
@@ -244,11 +343,7 @@ export default function AssistantPanel() {
               }
             }}
           />
-          <button
-            type="submit"
-            className="assistant__send"
-            disabled={pending || !draft.trim()}
-          >
+          <button type="submit" className="assistant__send" disabled={pending || !draft.trim()}>
             Send
           </button>
         </form>

@@ -13,6 +13,7 @@
     "rag:index": "node scripts/rag-index.js",
     "rag:stats": "node scripts/rag-index.js --stats",
     "rag:audit": "node scripts/rag-audit.js",
+    "rag:chat-audit": "node scripts/rag-chat-audit.js",
     "rag:backfill": "node scripts/rag-backfill-cv-text.js",
     "rag:check": "node scripts/rag-check.js",
     "rag:eval": "node scripts/rag-eval.js"
