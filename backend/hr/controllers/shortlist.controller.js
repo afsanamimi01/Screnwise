@@ -3,6 +3,7 @@ import Application from "../../shared/models/Application.model.js";
 import Candidate from "../../shared/models/Candidate.model.js";
 import { logAudit } from "../../shared/utils/audit.js";
 import { tenantFilter } from "../../shared/middleware/auth.middleware.js";
+import { rag } from "../../shared/rag/indexer.js";
 
 /** Identities are revealed only here, once a candidate has been shortlisted. */
 export async function getShortlist(req, res, next) {
@@ -65,6 +66,12 @@ export async function shortlistCandidates(req, res, next) {
     );
 
     if (allowed.length) {
+      // Shortlisting changes who these documents describe, not what they say,
+      // so their hashes move and the affected ones are re-indexed. The CV text
+      // itself stays redacted - a name is read from the shortlist page, never
+      // from the knowledge base.
+      for (const app of allowed) rag.application(app._id);
+
       const jobTitle = allowed[0].jobId?.title ?? "a job";
       await logAudit(
         req.user.name,

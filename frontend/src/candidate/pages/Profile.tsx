@@ -1,3 +1,4 @@
+import { useAuth } from "@/shared/lib/auth";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { FileText, UploadCloud } from "lucide-react";
@@ -24,6 +25,7 @@ const EDUCATION_LEVELS = [
 ];
 
 type Details = {
+  name: string;
   headline: string;
   location: string;
   phone: string;
@@ -38,6 +40,7 @@ type Details = {
 
 function toDetails(p: CandidateProfile): Details {
   return {
+    name: p.name,
     headline: p.headline,
     location: p.location,
     phone: p.phone,
@@ -63,6 +66,7 @@ export default function Profile() {
     queryFn: getCandidateProfile,
   });
 
+  const { updateUser } = useAuth();
   const [details, setDetails] = useState<Details | null>(null);
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState(0);
@@ -84,6 +88,7 @@ export default function Profile() {
     setSaving(true);
     try {
       await updateCandidateProfile({
+        name: details.name,
         headline: details.headline,
         location: details.location,
         phone: details.phone,
@@ -100,7 +105,9 @@ export default function Profile() {
           github: details.github,
         },
       });
+
       await refetch();
+      updateUser({ name: details.name });
       setSavedAt(Date.now());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save your profile.");
@@ -222,6 +229,7 @@ export default function Profile() {
                 onChange={(e) => onCvPicked(e.target.files?.[0])}
               />
             </section>
+            
 
             {/* --- details --------------------------------------------- */}
             <form className="candidate-profile__form" onSubmit={saveDetails}>
@@ -230,7 +238,9 @@ export default function Profile() {
               <div className="candidate-profile__grid">
                 <div className="candidate-profile__field candidate-profile__field--full">
                   <label className="candidate-profile__label">Name</label>
-                  <input className="candidate-profile__input" value={data.name} readOnly />
+                  <input className="candidate-profile__input" value={details.name}
+                    onChange={(e) => set("name", e.target.value)}
+                  />
                 </div>
                 <div className="candidate-profile__field candidate-profile__field--full">
                   <label className="candidate-profile__label">Email</label>

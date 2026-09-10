@@ -1,4 +1,5 @@
 import Candidate from "../../shared/models/Candidate.model.js";
+import { rag } from "../../shared/rag/indexer.js";
 
 const EDITABLE = [
   "headline",
@@ -47,7 +48,14 @@ export async function updateProfile(req, res, next) {
         profile[key] = req.body[key];
       }
     }
+    if (typeof req.body.name === "string" && req.body.name.trim()) {
+    req.user.name = req.body.name.trim();
+    await req.user.save();
+    }
     await profile.save();
+    // The assistant matches open roles against this profile, so a stale copy
+    // recommends jobs for skills the candidate has just changed.
+    rag.profile(req.user._id);
     res.json(present(profile, req.user));
   } catch (err) {
     next(err);
@@ -73,6 +81,9 @@ export async function uploadCv(req, res, next) {
       uploadedAt: new Date(),
     };
     await profile.save();
+    // The assistant matches open roles against this profile, so a stale copy
+    // recommends jobs for skills the candidate has just changed.
+    rag.profile(req.user._id);
     res.status(201).json(present(profile, req.user));
   } catch (err) {
     next(err);
@@ -99,6 +110,9 @@ export async function deleteCv(req, res, next) {
     const profile = await loadOrCreate(req.user._id);
     profile.cv = undefined;
     await profile.save();
+    // The assistant matches open roles against this profile, so a stale copy
+    // recommends jobs for skills the candidate has just changed.
+    rag.profile(req.user._id);
     res.json(present(profile, req.user));
   } catch (err) {
     next(err);

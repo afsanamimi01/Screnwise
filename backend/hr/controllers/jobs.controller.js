@@ -1,5 +1,6 @@
 import Job from "../../shared/models/Job.model.js";
 import { logAudit } from "../../shared/utils/audit.js";
+import { rag } from "../../shared/rag/indexer.js";
 import { tenantFilter } from "../../shared/middleware/auth.middleware.js";
 
 const EDITABLE_FIELDS = [
@@ -59,6 +60,8 @@ export async function createJob(req, res, next) {
       job.title,
       req.user.companyId,
     );
+    rag.job(job._id);
+
     res.status(201).json(job);
   } catch (err) {
     next(err);
@@ -82,6 +85,9 @@ export async function updateJob(req, res, next) {
     Object.assign(job, pickEditableFields(req.body));
     await job.save();
     await logAudit(req.user.name, "Job updated", job.title, req.user.companyId);
+    // Editing required skills or weights changes what the post means, and the
+    // assistant answers "what does this role need" from it.
+    rag.job(job._id);
     res.json(job);
   } catch (err) {
     next(err);

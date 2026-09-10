@@ -24,6 +24,7 @@ import adminCompaniesRoutes from "./admin/routes/companies.routes.js";
 import adminDashboardRoutes from "./admin/routes/dashboard.routes.js";
 import adminRevenueRoutes from "./admin/routes/revenue.routes.js";
 import { publicPlansRoutes, adminPlansRoutes } from "./admin/routes/plans.routes.js";
+import assistantRoutes from "./assistant/routes/assistant.routes.js";
 
 const app = express();
 
@@ -54,6 +55,8 @@ app.use("/api/company", companyRoutes);
 // Public: the payment gateway calls these, so they carry no session and
 // validate every transaction against the gateway itself.
 app.use("/api/payments", paymentCallbackRoutes);
+
+app.use("/api/assistant", assistantRoutes);
 
 app.use("/api/admin/dashboard", adminDashboardRoutes);
 app.use("/api/admin/companies", adminCompaniesRoutes);

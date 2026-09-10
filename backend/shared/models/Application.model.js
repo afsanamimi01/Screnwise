@@ -59,6 +59,15 @@ const applicationSchema = new mongoose.Schema(
     },
     appliedAt: { type: Date, default: Date.now },
     cvFileName: String,
+    /**
+     * Plain text of the screened CV, kept for the assistant's knowledge base.
+     *
+     * `select: false` so it is never pulled by an ordinary query and never
+     * reaches `toJSON` - the rank board, the shortlist and every API response
+     * are unchanged by its presence. Only the RAG indexer asks for it, and what
+     * it indexes is redacted first (`shared/rag/redact.js`).
+     */
+    cvText: { type: String, default: "", select: false },
     cv: { type: cvSchema, default: undefined },
   },
   { timestamps: false },

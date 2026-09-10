@@ -153,7 +153,7 @@ export type CandidateProfile = {
 export type CandidateProfilePatch = Partial<
   Pick<
     CandidateProfile,
-    "headline" | "location" | "phone" | "yearsExperience" | "educationLevel" | "skills" | "summary"
+     "name" |"headline" | "location" | "phone" | "yearsExperience" | "educationLevel" | "skills" | "summary"
   > & { links: Partial<CandidateProfile["links"]> }
 >;
 
@@ -433,6 +433,51 @@ export function getAdminPlans(): Promise<Plan[]> {
 
 export function updatePlan(key: PlanKey, patch: Partial<Plan>): Promise<Plan> {
   return request<Plan>(`/admin/plans/${key}`, { method: "PATCH", body: body(patch) });
+}
+
+/* ---------------------------------------------------------------- assistant */
+
+export interface AssistantStatus {
+  /** Configured AND with something indexed - the only state that can answer. */
+  ready: boolean;
+  configured: boolean;
+  /** How many knowledge-base documents this user is allowed to reach. */
+  documents: number;
+  model: string;
+  embeddingModel: string;
+  /**
+   * False means retrieval is keyword-only, because the server is running the
+   * offline development embedder. Worth showing: it is the difference between
+   * "who has led a team" working and not.
+   */
+  semanticSearch: boolean;
+  retrievalMode: string;
+}
+
+export interface AssistantTurn {
+  role: "user" | "assistant";
+  text: string;
+}
+
+export interface AssistantAnswer {
+  reply: string;
+  /** Which lookups produced the answer - shown so a reply can be traced. */
+  toolsUsed: string[];
+  sources: string[];
+}
+
+export function getAssistantStatus(): Promise<AssistantStatus> {
+  return request<AssistantStatus>("/assistant/status");
+}
+
+export function askAssistant(
+  question: string,
+  history: AssistantTurn[] = [],
+): Promise<AssistantAnswer> {
+  return request<AssistantAnswer>("/assistant/ask", {
+    method: "POST",
+    body: body({ question, history }),
+  });
 }
 
 export type { ApplicationStatus };

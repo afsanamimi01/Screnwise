@@ -200,5 +200,12 @@ export async function screenCv(file, job) {
     status: "screened",
     /** Read off the CV itself - empty when it doesn't state one. Never guessed. */
     contact: extractContact(raw),
+    /**
+     * The extracted plain text, so a caller that wants to keep it does not have
+     * to parse the file a second time. Not persisted by this function and not
+     * used by any score - the caller decides whether to store it. The assistant's
+     * indexer does; see `shared/rag`.
+     */
+    text: raw,
   };
 }

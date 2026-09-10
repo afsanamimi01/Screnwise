@@ -9,7 +9,13 @@
     "start": "node server.js",
     "free-port": "node scripts/free-port.js",
     "seed": "node scripts/seed.js",
-    "fix:emails": "node scripts/clear-placeholder-emails.js"
+    "fix:emails": "node scripts/clear-placeholder-emails.js",
+    "rag:index": "node scripts/rag-index.js",
+    "rag:stats": "node scripts/rag-index.js --stats",
+    "rag:audit": "node scripts/rag-audit.js",
+    "rag:backfill": "node scripts/rag-backfill-cv-text.js",
+    "rag:check": "node scripts/rag-check.js",
+    "rag:eval": "node scripts/rag-eval.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

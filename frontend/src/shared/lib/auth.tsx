@@ -19,7 +19,8 @@ type AuthValue = {
   register: (name: string, email: string, password: string) => Promise<User>;
   /** Organisation signup - creates a company + its manager account. */
   registerCompany: (payload: CompanySignup) => Promise<User>;
-  logout: () => void;
+  updateUser: (patch: Partial<User>) => void;
+
 };
 
 const AuthContext = createContext<AuthValue | null>(null);
@@ -70,7 +71,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         persist({ token: result.token, user: result.user });
         return result.user;
       },
-      logout: () => persist(null),
+      logout: () => persist(null),updateUser: (patch) => {
+  if (!user || !token) return;
+  persist({ token, user: { ...user, ...patch } });
+},
+
     };
   }, [user, token, ready]);
 

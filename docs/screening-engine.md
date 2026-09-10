@@ -186,6 +186,10 @@ Audit log entry records the batch (and any unreadable files):
 4. **Optional "LLM mode."** Add an `scoreCv` implementation that calls a model
    for extraction + notes, behind the same function signature, toggled per
    company or per job.
+
+   > Note: the **assistant** ([`assistant.md`](assistant.md)) is *not* this. It
+   > reads CVs semantically to answer questions, but computes no score - the
+   > engine's numbers stay arithmetic, and stay reproducible.
 5. **OCR** for scanned CVs (Tesseract locally, or a cloud document-AI service).
 
 ---

@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/shared/lib/auth";
 import { Toaster } from "@/shared/components/ui/sonner";
+import AssistantPanel from "@/shared/components/AssistantPanel";
 import Landing from "@/shared/pages/Landing";
 import Login from "@/shared/pages/Login";
 import Register from "@/shared/pages/Register";
@@ -183,6 +184,7 @@ export default function App() {
 
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <AssistantPanel />
           </ErrorBoundary>
         </BrowserRouter>
         <Toaster richColors position="top-right" />

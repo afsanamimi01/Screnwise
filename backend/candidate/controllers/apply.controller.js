@@ -2,6 +2,7 @@ import Job from "../../shared/models/Job.model.js";
 import Application from "../../shared/models/Application.model.js";
 import Candidate from "../../shared/models/Candidate.model.js";
 import { screenCv } from "../../shared/engine/index.js";
+import { rag } from "../../shared/rag/indexer.js";
 
 /**
  * Submit an application for a signed-in candidate.
@@ -83,7 +84,10 @@ export async function submitApplication(req, res, next) {
       status: "screened",
       appliedAt: new Date(),
       cvFileName: cvFileName || "cv.pdf",
+      cvText: result.text ?? "",
     });
+
+    rag.application(application._id);
 
     res.status(201).json({ trackingId: application._id.toString(), score: result.score });
   } catch (err) {

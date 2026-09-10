@@ -60,6 +60,15 @@ CV scoring for bulk HR upload runs through
 [`shared/engine/`](screening-engine.md): extract text → five weighted
 dimensions → hard filters. Dependency-light, offline, deterministic - no LLM.
 
+The **assistant** in [`shared/rag/`](assistant.md) is the one part of the system
+that does call a model. It is retrieval-augmented and strictly additive: no
+score is computed by it, and the engine above stays offline and deterministic.
+Retrieval is scoped by a Mongo filter that mirrors `tenantFilter`, so an
+assistant answer can only ever be built from documents the caller could already
+open - and CV passages are stored with identity redacted, so the blind board
+holds through it. Vectors live in an ordinary collection; there is no vector
+database.
+
 ### API surface
 
 All routes are mounted under `/api` (see `backend/server.js`):

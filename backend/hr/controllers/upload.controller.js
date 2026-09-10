@@ -1,6 +1,7 @@
 import Job from "../../shared/models/Job.model.js";
 import Application from "../../shared/models/Application.model.js";
 import { logAudit } from "../../shared/utils/audit.js";
+import { rag } from "../../shared/rag/indexer.js";
 import { tenantFilter } from "../../shared/middleware/auth.middleware.js";
 import { screenCv } from "../../shared/engine/index.js";
 
@@ -85,10 +86,16 @@ export async function uploadCvs(req, res, next) {
         status: result.status,
         appliedAt: new Date(),
         cvFileName: file.originalname,
+        cvText: result.text ?? "",
       });
     }
 
     const created = await Application.insertMany(docs);
+
+    // One re-index for the batch rather than one per CV. Fire-and-forget: the
+    // applications are already saved, and a failed embedding call must not turn
+    // a successful upload into an error.
+    rag.jobApplications(job._id);
 
     await logAudit(
       req.user.name,
