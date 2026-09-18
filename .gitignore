@@ -25,3 +25,7 @@ coverage/
 Thumbs.db
 .idea/
 *.swp
+
+# Reports
+Report/
+docs/
