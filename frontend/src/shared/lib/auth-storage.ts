@@ -4,6 +4,9 @@
  * `auth.tsx` writes it on login/register/logout; `api.ts` reads the token to
  * attach the `Authorization` header. Kept in its own module so those two files
  * don't have to import each other.
+ *
+ * Uses sessionStorage (per-tab) rather than localStorage (shared across all
+ * tabs of the origin) so different tabs can hold independent logged-in actors.
  */
 import type { User } from "./types";
 
@@ -13,7 +16,7 @@ export type StoredAuth = { token: string; user: User };
 
 export function getStoredAuth(): StoredAuth | null {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.sessionStorage.getItem(STORAGE_KEY);
     return raw ? (JSON.parse(raw) as StoredAuth) : null;
   } catch {
     return null;
@@ -22,7 +25,7 @@ export function getStoredAuth(): StoredAuth | null {
 
 export function setStoredAuth(value: StoredAuth): void {
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
+    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(value));
   } catch {
     /* ignore quota / disabled storage */
   }
@@ -30,7 +33,7 @@ export function setStoredAuth(value: StoredAuth): void {
 
 export function clearStoredAuth(): void {
   try {
-    window.localStorage.removeItem(STORAGE_KEY);
+    window.sessionStorage.removeItem(STORAGE_KEY);
   } catch {
     /* ignore */
   }
