@@ -55,9 +55,7 @@ export async function getAdminDashboard(req, res, next) {
       subscriptionExpiresAt: c.toJSON().subscriptionExpiresAt,
     }));
 
-    // ---- Plan mix ----
-    // Not a KPI card on the dashboard today, kept for API consumers that
-    // already read `planMix` (see frontend/src/shared/lib/api.ts).
+   
     const companiesForPlanMix = await Company.find();
     const planMix = companiesForPlanMix.reduce((acc, c) => {
       const key = c.plan ?? "none";

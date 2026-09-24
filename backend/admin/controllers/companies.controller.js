@@ -9,7 +9,7 @@ const RENEW_DAYS = 30;
 
 export async function listCompanies(req, res, next) {
   try {
-    // ---- Sort config: edit the field name, add/remove " desc" to flip the order ----
+    // ---- Sort config ----
     const SORT_BY = "createdAt desc";
     const [sortField, sortWord] = SORT_BY.split(" ");
     const sortOrder = sortWord === "desc" ? -1 : 1;

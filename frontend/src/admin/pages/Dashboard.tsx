@@ -14,6 +14,7 @@ const KPIS = [
   { key: "candidates", label: "Candidates", icon: Users },
   { key: "jobs", label: "Jobs", icon: Briefcase },
   { key: "applications", label: "Applications", icon: FileText },
+  
 ] as const;
 
 function companyState(c: { accessible?: boolean; status: string; plan: string | null }) {
