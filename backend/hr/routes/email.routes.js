@@ -14,8 +14,8 @@ const router = Router();
 
 router.use(verifyToken, requireActivePlan);
 // Ahead of "/:jobId" - otherwise the wildcard swallows it.
-router.get("/status", requireRole("hr", "manager"), getMailStatus);
-router.post("/:jobId", requireRole("hr", "manager"), sendShortlistEmail);
-router.get("/:jobId", requireRole("hr", "manager"), listSentEmails);
+router.get("/status", requireRole("hr"), getMailStatus);
+router.post("/:jobId", requireRole("hr"), sendShortlistEmail);
+router.get("/:jobId", requireRole("hr"), listSentEmails);
 
 export default router;

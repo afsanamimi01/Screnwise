@@ -291,7 +291,7 @@ export function getMailStatus(): Promise<MailStatus> {
   return request<MailStatus>("/hr/email/status");
 }
 
-/* ------------------------ company (manager console) --------------------- */
+/* --------------------------- manager console ----------------------------- */
 
 export type CompanyOverview = Company & {
   hrSeatsUsed: number;
@@ -305,11 +305,11 @@ export type CompanyOverview = Company & {
 };
 
 export function getMyCompany(): Promise<CompanyOverview> {
-  return request<CompanyOverview>("/company");
+  return request<CompanyOverview>("/manager");
 }
 
 export function getCompanyHr(): Promise<User[]> {
-  return request<User[]>("/company/hr");
+  return request<User[]>("/manager/hr");
 }
 
 export function createHr(payload: {
@@ -317,25 +317,25 @@ export function createHr(payload: {
   email: string;
   password: string;
 }): Promise<User> {
-  return request<User>("/company/hr", { method: "POST", body: body(payload) });
+  return request<User>("/manager/hr", { method: "POST", body: body(payload) });
 }
 
 export function updateHr(id: string, patch: { active?: boolean; name?: string }): Promise<User> {
-  return request<User>(`/company/hr/${id}`, { method: "PATCH", body: body(patch) });
+  return request<User>(`/manager/hr/${id}`, { method: "PATCH", body: body(patch) });
 }
 
 export function changePlan(plan: PlanKey): Promise<Company> {
-  return request<Company>("/company/plan", { method: "PATCH", body: body({ plan }) });
+  return request<Company>("/manager/plan", { method: "PATCH", body: body({ plan }) });
 }
 
 /** Whether a payment gateway is configured, and whether it is live or sandbox. */
 export function getPaymentStatus(): Promise<PaymentStatus> {
-  return request<PaymentStatus>("/company/payments/status");
+  return request<PaymentStatus>("/manager/payments/status");
 }
 
 /** This company's checkout history. */
 export function getPayments(): Promise<Payment[]> {
-  return request<Payment[]>("/company/payments");
+  return request<Payment[]>("/manager/payments");
 }
 
 /**
@@ -347,7 +347,59 @@ export function getPayments(): Promise<Payment[]> {
 export function startPayment(
   plan: PlanKey,
 ): Promise<{ paid: boolean; redirectUrl: string | null; tranId?: string }> {
-  return request("/company/payments", { method: "POST", body: body({ plan }) });
+  return request("/manager/payments", { method: "POST", body: body({ plan }) });
+}
+
+/**
+ * Manager's own read-only view of jobs, the rank board and the shortlist -
+ * served by `backend/manager`, independent of the HR endpoints above. A
+ * manager can shortlist candidates but cannot create/edit jobs, upload CVs or
+ * send emails - those stay HR-only.
+ */
+export function getManagerDashboard(): Promise<{ jobs: Job[]; apps: Application[] }> {
+  return request("/manager/dashboard");
+}
+
+export function getManagerJobs(): Promise<Job[]> {
+  return request<Job[]>("/manager/jobs");
+}
+
+export function getManagerScreenings(): Promise<Job[]> {
+  return request<Job[]>("/manager/jobs?kind=screening");
+}
+
+export function getManagerJob(jobId: string): Promise<Job> {
+  return request<Job>(`/manager/jobs/${jobId}`);
+}
+
+export function getManagerApplicationsForJob(jobId: string): Promise<Application[]> {
+  return request<Application[]>(`/manager/board/${jobId}`);
+}
+
+export function getManagerShortlist(
+  jobId: string,
+): Promise<{ app: Application; candidate: Candidate }[]> {
+  return request(`/manager/shortlist/${jobId}`);
+}
+
+export function shortlistCandidateAsManager(
+  applicationIds: string[],
+): Promise<{ shortlisted: number }> {
+  return request("/manager/shortlist", { method: "POST", body: body({ applicationIds }) });
+}
+
+export async function fetchManagerApplicationCv(applicationId: string): Promise<string> {
+  const token = getToken();
+  const res = await fetch(`${BASE_URL}/manager/shortlist/cv/${applicationId}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new ApiError(res.status, data?.message ?? "Could not open the CV", data?.code);
+  }
+
+  return URL.createObjectURL(await res.blob());
 }
 
 /* ----------------------- admin (super-admin console) ------------------- */

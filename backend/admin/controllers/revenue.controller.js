@@ -1,14 +1,4 @@
-/**
- * Platform revenue for the super admin.
- *
- * Reports what was actually collected, not what was invoiced: only payments the
- * gateway confirmed (`paid`) count towards revenue. Attempts that failed, were
- * cancelled, or failed validation are still listed - a checkout that keeps
- * failing is something the operator needs to see, not something to hide.
- *
- * Payments recorded while no gateway was configured are marked `manual` and
- * counted separately, because no money changed hands for those.
- */
+
 import Payment from "../../shared/models/Payment.model.js";
 import Company from "../../shared/models/Company.model.js";
 import { gatewayStatus } from "../../shared/payment/sslcommerz.js";
@@ -24,11 +14,6 @@ function sum(rows) {
   return rows.reduce((total, r) => total + (r.amount ?? 0), 0);
 }
 
-/**
- * Everything the admin revenue page shows: headline totals, a monthly series,
- * a breakdown per plan, and the transactions themselves with company names
- * resolved.
- */
 export async function getRevenue(req, res, next) {
   try {
     const limit = Math.min(Number(req.query.limit) || 100, 500);
@@ -49,9 +34,7 @@ export async function getRevenue(req, res, next) {
       (p) => (p.paidAt ?? p.createdAt) >= new Date(Date.now() - 30 * DAY),
     );
 
-    // The trend starts where the money does, not a fixed year back: a run of
-    // empty months before the first payment says nothing and reads as a gap in
-    // the data. Capped at twelve so a long history stays legible.
+
     const earliest = real.reduce(
       (oldest, p) => {
         const at = p.paidAt ?? p.createdAt;

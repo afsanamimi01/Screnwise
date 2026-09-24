@@ -1,20 +1,4 @@
-/**
- * Buying a plan through SSLCommerz.
- *
- * The flow, and where trust sits at each step:
- *
- *   1. The manager picks a plan. We read the price from the Plan record - never
- *      from the request - write a `pending` Payment, and ask SSLCommerz for a
- *      checkout session.
- *   2. The customer pays on the gateway's own page. We never see card details.
- *   3. SSLCommerz sends the browser back to `/payments/success`. That request
- *      proves nothing: anyone can open the URL. So we call the gateway's
- *      validation API from our server, with our store credentials, and only
- *      activate the plan if it confirms the transaction *and* the amount
- *      matches what we recorded.
- *   4. `/payments/ipn` is the same confirmation server-to-server, for the case
- *      where the customer closes the tab before being redirected back.
- */
+
 import Company from "../../shared/models/Company.model.js";
 import Payment from "../../shared/models/Payment.model.js";
 import Plan from "../../shared/models/Plan.model.js";

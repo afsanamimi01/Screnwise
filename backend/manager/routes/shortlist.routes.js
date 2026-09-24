@@ -12,7 +12,7 @@ import {
 
 const router = Router();
 
-router.use(verifyToken, requireActivePlan, requireRole("hr"));
+router.use(verifyToken, requireActivePlan, requireRole("manager"));
 // Two segments, so it never collides with "/:jobId" below.
 router.get("/cv/:applicationId", getApplicationCv);
 router.get("/:jobId", getShortlist);

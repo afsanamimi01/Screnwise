@@ -8,7 +8,11 @@ import { JobTabs } from "@/manager/components/JobTabs";
 import { ScoreExplainDrawer } from "@/manager/components/ScoreExplainDrawer";
 import { scoreBand } from "@/shared/components/ScoreBadge";
 import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
-import { getApplicationsForJob, getJob, shortlistCandidate } from "@/shared/lib/api";
+import {
+  getManagerApplicationsForJob,
+  getManagerJob,
+  shortlistCandidateAsManager,
+} from "@/shared/lib/api";
 import { canViewBoard, useAuth } from "@/shared/lib/auth";
 import { SCORE_THRESHOLD, type Application, type Job } from "@/shared/lib/types";
 import { usePageTitle } from "@/shared/lib/use-page-title";
@@ -59,11 +63,11 @@ export default function JobBoard() {
   const { locked } = useManagerAccess();
   const queryClient = useQueryClient();
 
-  const jobQuery = useQuery({ queryKey: ["job", jobId], queryFn: () => getJob(jobId) });
+  const jobQuery = useQuery({ queryKey: ["job", jobId], queryFn: () => getManagerJob(jobId) });
   const canView = canViewBoard(user, jobQuery.data?.companyId ?? "");
   const appsQuery = useQuery({
     queryKey: ["applications", jobId],
-    queryFn: () => getApplicationsForJob(jobId),
+    queryFn: () => getManagerApplicationsForJob(jobId),
     enabled: Boolean(jobQuery.data) && canView,
   });
 
@@ -101,7 +105,7 @@ export default function JobBoard() {
 
   const shortlist = async (ids: string[]) => {
     if (!ids.length) return;
-    await shortlistCandidate(ids);
+    await shortlistCandidateAsManager(ids);
     await queryClient.invalidateQueries({ queryKey: ["applications", jobId] });
     setSelected([]);
     toast.success(

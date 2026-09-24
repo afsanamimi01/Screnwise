@@ -4,11 +4,11 @@ import {
   requireRole,
   requireActivePlan,
 } from "../../shared/middleware/auth.middleware.js";
-import { getDashboard } from "../controllers/dashboard.controller.js";
+import { getBoard } from "../controllers/board.controller.js";
 
 const router = Router();
 
-router.use(verifyToken, requireActivePlan, requireRole("hr"));
-router.get("/", getDashboard);
+router.use(verifyToken, requireActivePlan, requireRole("manager"));
+router.get("/:jobId", getBoard);
 
 export default router;

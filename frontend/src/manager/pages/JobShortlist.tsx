@@ -1,13 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
-import { Eye, FileText, Mail } from "lucide-react";
+import { Eye, FileText } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { JobTabs } from "@/manager/components/JobTabs";
 import { Shell } from "@/manager/components/Shell";
 import { scoreBand } from "@/shared/components/ScoreBadge";
 import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
-import { fetchApplicationCv, getJob, getShortlist } from "@/shared/lib/api";
+import {
+  fetchManagerApplicationCv,
+  getManagerJob,
+  getManagerShortlist,
+} from "@/shared/lib/api";
 import { usePageTitle } from "@/shared/lib/use-page-title";
 import { useWorkspaceBase } from "@/shared/lib/workspace";
 import "./JobShortlist.css";
@@ -16,10 +20,10 @@ export default function JobShortlist() {
   usePageTitle("Shortlist - Screenwise");
   const { jobId = "" } = useParams();
   const base = useWorkspaceBase();
-  const jobQuery = useQuery({ queryKey: ["job", jobId], queryFn: () => getJob(jobId) });
+  const jobQuery = useQuery({ queryKey: ["job", jobId], queryFn: () => getManagerJob(jobId) });
   const query = useQuery({
     queryKey: ["shortlist", jobId],
-    queryFn: () => getShortlist(jobId),
+    queryFn: () => getManagerShortlist(jobId),
   });
 
   const [opening, setOpening] = useState<string | null>(null);
@@ -32,7 +36,7 @@ export default function JobShortlist() {
   const openCv = async (applicationId: string) => {
     setOpening(applicationId);
     try {
-      const url = await fetchApplicationCv(applicationId);
+      const url = await fetchManagerApplicationCv(applicationId);
       window.open(url, "_blank", "noopener");
       setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (err) {
@@ -54,9 +58,6 @@ export default function JobShortlist() {
               Identities are revealed for shortlisted candidates so you can contact them.
             </p>
           </div>
-          <Link to={`${base}/${jobId}/email`} className="manager-shortlist__btn">
-            <Mail size={16} /> Compose email
-          </Link>
         </div>
 
         <JobTabs jobId={jobId} />
@@ -129,12 +130,6 @@ export default function JobShortlist() {
                     {opening === app.id ? "Opening…" : "View CV"}
                   </button>
                 ) : null}
-                <Link
-                  to={`${base}/${jobId}/email`}
-                  className="manager-shortlist__btn manager-shortlist__btn--ghost"
-                >
-                  Message
-                </Link>
               </div>
             </div>
           ))}

@@ -1,14 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router-dom";
-import { ArrowUpDown, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ArrowUpDown } from "lucide-react";
 import { useState } from "react";
 import { Shell } from "@/manager/components/Shell";
 import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
-import { getApplicationsForJob, getJobs, getScreenings } from "@/shared/lib/api";
+import {
+  getManagerApplicationsForJob,
+  getManagerJobs,
+  getManagerScreenings,
+} from "@/shared/lib/api";
 import { useAuth } from "@/shared/lib/auth";
 import { usePageTitle } from "@/shared/lib/use-page-title";
 import { useWorkspaceBase } from "@/shared/lib/workspace";
-import { useManagerAccess } from "@/manager/lib/access";
 import "./Jobs.css";
 
 type SortKey = "title" | "applicants" | "shortlisted" | "createdAt";
@@ -17,7 +20,6 @@ export default function Jobs() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const base = useWorkspaceBase();
-  const { locked } = useManagerAccess();
   const isScreening = base === "/screen";
   usePageTitle(isScreening ? "Screen CVs - Screenwise" : "Jobs - Screenwise");
 
@@ -37,10 +39,10 @@ export default function Jobs() {
     queryKey: ["jobs-table", isScreening ? "screening" : "job", user?.id],
     enabled: Boolean(user),
     queryFn: async () => {
-      const jobs = isScreening ? await getScreenings() : await getJobs();
+      const jobs = isScreening ? await getManagerScreenings() : await getManagerJobs();
       return Promise.all(
         jobs.map(async (job) => {
-          const apps = await getApplicationsForJob(job.id);
+          const apps = await getManagerApplicationsForJob(job.id);
           return {
             job,
             applicants: apps.length,
@@ -76,19 +78,6 @@ export default function Jobs() {
                 : "Every member of your company can open a job's rank board."}
             </p>
           </div>
-          {locked ? (
-            <span
-              className="manager-jobs__btn manager-jobs__btn--disabled"
-              aria-disabled="true"
-              title={`Activate a plan to create a ${isScreening ? "screening" : "job"}`}
-            >
-              <Plus size={16} /> {isScreening ? "New screening" : "New job"}
-            </span>
-          ) : (
-            <Link to={`${base}/new`} className="manager-jobs__btn">
-              <Plus size={16} /> {isScreening ? "New screening" : "New job"}
-            </Link>
-          )}
         </div>
 
         {isLoading ? <LoadingRows rows={3} /> : null}

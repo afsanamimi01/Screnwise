@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Briefcase, Clock, Plus, TrendingUp, UploadCloud, Users } from "lucide-react";
+import { Briefcase, TrendingUp, Users } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -13,9 +13,8 @@ import {
 } from "recharts";
 import { Shell } from "@/manager/components/Shell";
 import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
-import { getDashboard } from "@/shared/lib/api";
+import { getManagerDashboard } from "@/shared/lib/api";
 import { useAuth } from "@/shared/lib/auth";
-import { useManagerAccess } from "@/manager/lib/access";
 import type { Application, Job } from "@/shared/lib/types";
 import { usePageTitle } from "@/shared/lib/use-page-title";
 import { useWorkspaceBase } from "@/shared/lib/workspace";
@@ -44,18 +43,15 @@ const KPI_CARDS: {
       return `${apps.length ? Math.round((s / apps.length) * 100) : 0}%`;
     },
   },
-  { key: "timeToScreen", label: "Avg. time to screen", icon: Clock, value: () => "1.8 days" },
 ];
 
 export default function Dashboard() {
   usePageTitle("Dashboard - Screenwise");
   const { user } = useAuth();
-  const base = useWorkspaceBase();
-  const { locked } = useManagerAccess();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["dashboard", user?.id],
     enabled: Boolean(user),
-    queryFn: () => getDashboard(),
+    queryFn: () => getManagerDashboard(),
   });
 
   return (
@@ -69,35 +65,6 @@ export default function Dashboard() {
             <p className="manager-dashboard__intro-text">
               Here's where your open roles stand today.
             </p>
-          </div>
-          <div className="manager-dashboard__actions">
-            {locked ? (
-              <>
-                <span
-                  className="manager-dashboard__btn manager-dashboard__btn--ghost manager-dashboard__btn--disabled"
-                  aria-disabled="true"
-                  title="Activate a plan to upload CVs"
-                >
-                  <UploadCloud size={16} /> Upload CVs
-                </span>
-                <span
-                  className="manager-dashboard__btn manager-dashboard__btn--disabled"
-                  aria-disabled="true"
-                  title="Activate a plan to post a job"
-                >
-                  <Plus size={16} /> New job
-                </span>
-              </>
-            ) : (
-              <>
-                <Link to="/screen" className="manager-dashboard__btn manager-dashboard__btn--ghost">
-                  <UploadCloud size={16} /> Upload CVs
-                </Link>
-                <Link to={`${base}/new`} className="manager-dashboard__btn">
-                  <Plus size={16} /> New job
-                </Link>
-              </>
-            )}
           </div>
         </div>
 

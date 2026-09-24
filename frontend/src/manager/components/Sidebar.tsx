@@ -8,7 +8,6 @@ import {
   Lock,
   LogOut,
   Sparkles,
-  UploadCloud,
   UsersRound,
   type LucideIcon,
 } from "lucide-react";
@@ -17,11 +16,14 @@ import "./Sidebar.css";
 
 type NavItem = { to: string; label: string; icon: LucideIcon };
 
-/** Company-manager nav - array order is the menu order. */
+/**
+ * Company-manager nav - array order is the menu order. Managers don't screen
+ * CVs (that's bulk-uploading + creating jobs, both HR-only) so "Screen CVs"
+ * is an HR-only nav item and isn't listed here.
+ */
 const NAV_ITEMS: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/jobs", label: "Jobs", icon: ClipboardList },
-  { to: "/screen", label: "Screen CVs", icon: UploadCloud },
   { to: "/team", label: "HR team", icon: UsersRound },
   { to: "/billing", label: "Plan & billing", icon: CreditCard },
 ];

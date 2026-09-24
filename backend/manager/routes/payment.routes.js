@@ -12,7 +12,7 @@ import {
 
 /**
  * Manager-facing checkout: starting a payment and reading your own history.
- * Mounted under /api/company/payments.
+ * Mounted under /api/manager/payments.
  */
 export const paymentRoutes = Router();
 

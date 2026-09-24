@@ -8,7 +8,7 @@ import { getBoard } from "../controllers/board.controller.js";
 
 const router = Router();
 
-router.use(verifyToken, requireActivePlan);
-router.get("/:jobId", requireRole("hr", "manager"), getBoard);
+router.use(verifyToken, requireActivePlan, requireRole("hr"));
+router.get("/:jobId", getBoard);
 
 export default router;

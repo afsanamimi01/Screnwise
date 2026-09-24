@@ -1,11 +1,12 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { AlertTriangle, CheckCircle2, UploadCloud } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { JobTabs } from "@/manager/components/JobTabs";
 import { Shell } from "@/manager/components/Shell";
-import { getJob, getMyCompany, uploadCvs } from "@/shared/lib/api";
+import { getManagerJob, getMyCompany, uploadCvs } from "@/shared/lib/api";
+import { useAuth } from "@/shared/lib/auth";
 import { usePageTitle } from "@/shared/lib/use-page-title";
 import { useWorkspaceBase } from "@/shared/lib/workspace";
 import { useManagerAccess } from "@/manager/lib/access";
@@ -13,17 +14,23 @@ import "./JobUpload.css";
 
 type Row = { name: string; status: "scoring" | "scored" | "review"; score?: number };
 
+/** Managers don't bulk-upload / screen CVs - that's HR-only. */
 export default function JobUpload() {
   usePageTitle("Bulk CV upload - Screenwise");
   const { jobId = "" } = useParams();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const base = useWorkspaceBase();
   const { locked } = useManagerAccess();
   const queryClient = useQueryClient();
-  const jobQuery = useQuery({ queryKey: ["job", jobId], queryFn: () => getJob(jobId) });
+  const jobQuery = useQuery({ queryKey: ["job", jobId], queryFn: () => getManagerJob(jobId) });
   const company = useQuery({ queryKey: ["company"], queryFn: getMyCompany });
   const [rows, setRows] = useState<Row[]>([]);
   const [dragging, setDragging] = useState(false);
+
+  useEffect(() => {
+    if (user?.role === "manager") navigate(`${base}/${jobId}/board`, { replace: true });
+  }, [user, base, jobId, navigate]);
 
   const screeningLimit = company.data?.cvScreeningLimit ?? null;
   const screeningRemaining = company.data?.cvScreeningRemaining ?? null;
@@ -61,6 +68,8 @@ export default function JobUpload() {
           100,
       )
     : 0;
+
+  if (user?.role === "manager") return null;
 
   return (
     <Shell allow={["manager"]}>

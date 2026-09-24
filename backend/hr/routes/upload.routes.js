@@ -17,6 +17,6 @@ const upload = multer({
 const router = Router();
 
 router.use(verifyToken, requireActivePlan);
-router.post("/:jobId", requireRole("hr", "manager"), upload.array("cvs", 200), uploadCvs);
+router.post("/:jobId", requireRole("hr"), upload.array("cvs", 200), uploadCvs);
 
 export default router;

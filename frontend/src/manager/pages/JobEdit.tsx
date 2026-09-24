@@ -1,19 +1,32 @@
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Shell } from "@/manager/components/Shell";
 import { JobForm } from "@/manager/components/JobForm";
 import { ErrorState, LoadingRows } from "@/shared/components/StateViews";
-import { getJob } from "@/shared/lib/api";
+import { getManagerJob } from "@/shared/lib/api";
+import { useAuth } from "@/shared/lib/auth";
 import { usePageTitle } from "@/shared/lib/use-page-title";
+import { useWorkspaceBase } from "@/shared/lib/workspace";
 import "./JobEdit.css";
 
+/** Managers are view-only on a job - editing it is HR-only. */
 export default function JobEdit() {
   usePageTitle("Edit job - Screenwise");
   const { jobId = "" } = useParams();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const base = useWorkspaceBase();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["job", jobId],
-    queryFn: () => getJob(jobId),
+    queryFn: () => getManagerJob(jobId),
   });
+
+  useEffect(() => {
+    if (user?.role === "manager") navigate(`${base}/${jobId}/board`, { replace: true });
+  }, [user, base, jobId, navigate]);
+
+  if (user?.role === "manager") return null;
 
   return (
     <Shell allow={["manager"]}>

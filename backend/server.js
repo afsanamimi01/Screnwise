@@ -16,8 +16,12 @@ import hrShortlistRoutes from "./hr/routes/shortlist.routes.js";
 import hrUploadRoutes from "./hr/routes/upload.routes.js";
 import hrEmailRoutes from "./hr/routes/email.routes.js";
 import hrDashboardRoutes from "./hr/routes/dashboard.routes.js";
-import companyRoutes from "./company/routes/company.routes.js";
-import { paymentRoutes, paymentCallbackRoutes } from "./company/routes/payment.routes.js";
+import managerJobsRoutes from "./manager/routes/jobs.routes.js";
+import managerBoardRoutes from "./manager/routes/board.routes.js";
+import managerShortlistRoutes from "./manager/routes/shortlist.routes.js";
+import managerDashboardRoutes from "./manager/routes/dashboard.routes.js";
+import managerCompanyRoutes from "./manager/routes/company.routes.js";
+import { paymentRoutes, paymentCallbackRoutes } from "./manager/routes/payment.routes.js";
 import adminUsersRoutes from "./admin/routes/users.routes.js";
 import adminAuditRoutes from "./admin/routes/audit.routes.js";
 import adminCompaniesRoutes from "./admin/routes/companies.routes.js";
@@ -48,10 +52,14 @@ app.use("/api/hr/upload", hrUploadRoutes);
 app.use("/api/hr/email", hrEmailRoutes);
 app.use("/api/hr/dashboard", hrDashboardRoutes);
 
-// Ahead of the general company router, so a checkout request is not run
+app.use("/api/manager/jobs", managerJobsRoutes);
+app.use("/api/manager/board", managerBoardRoutes);
+app.use("/api/manager/shortlist", managerShortlistRoutes);
+app.use("/api/manager/dashboard", managerDashboardRoutes);
+// Ahead of the general manager router, so a checkout request is not run
 // through that router's middleware chain first.
-app.use("/api/company/payments", paymentRoutes);
-app.use("/api/company", companyRoutes);
+app.use("/api/manager/payments", paymentRoutes);
+app.use("/api/manager", managerCompanyRoutes);
 // Public: the payment gateway calls these, so they carry no session and
 // validate every transaction against the gateway itself.
 app.use("/api/payments", paymentCallbackRoutes);

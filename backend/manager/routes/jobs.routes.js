@@ -4,15 +4,13 @@ import {
   requireRole,
   requireActivePlan,
 } from "../../shared/middleware/auth.middleware.js";
-import { createJob, getJobById, listJobs, updateJob } from "../controllers/jobs.controller.js";
+import { getJobById, listJobs } from "../controllers/jobs.controller.js";
 
 const router = Router();
 
-router.use(verifyToken, requireActivePlan, requireRole("hr"));
-
+// Read-only: creating and editing a job is HR-only (see backend/hr).
+router.use(verifyToken, requireActivePlan, requireRole("manager"));
 router.get("/", listJobs);
-router.post("/", createJob);
 router.get("/:id", getJobById);
-router.put("/:id", updateJob);
 
 export default router;

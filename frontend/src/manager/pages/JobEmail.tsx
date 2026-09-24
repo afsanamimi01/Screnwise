@@ -1,19 +1,21 @@
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { FlaskConical, MailCheck, Send, TriangleAlert } from "lucide-react";
-import { useState } from "react";
 import { toast } from "sonner";
 import { Shell } from "@/manager/components/Shell";
 import { JobTabs } from "@/manager/components/JobTabs";
 import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
 import {
-  getJob,
+  getManagerJob,
+  getManagerShortlist,
   getMailStatus,
   getSentEmails,
-  getShortlist,
   sendShortlistEmails,
 } from "@/shared/lib/api";
+import { useAuth } from "@/shared/lib/auth";
 import { usePageTitle } from "@/shared/lib/use-page-title";
+import { useWorkspaceBase } from "@/shared/lib/workspace";
 import { useManagerAccess } from "@/manager/lib/access";
 import "./JobEmail.css";
 
@@ -32,15 +34,19 @@ const templates: Record<string, { subject: string; body: string }> = {
   },
 };
 
+/** Managers are view-only on a job - emailing candidates is HR-only. */
 export default function JobEmail() {
   usePageTitle("Email composer - Screenwise");
   const { jobId = "" } = useParams();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const base = useWorkspaceBase();
   const queryClient = useQueryClient();
   const { locked } = useManagerAccess();
-  const jobQuery = useQuery({ queryKey: ["job", jobId], queryFn: () => getJob(jobId) });
+  const jobQuery = useQuery({ queryKey: ["job", jobId], queryFn: () => getManagerJob(jobId) });
   const query = useQuery({
     queryKey: ["shortlist", jobId],
-    queryFn: () => getShortlist(jobId),
+    queryFn: () => getManagerShortlist(jobId),
   });
   const sentQuery = useQuery({ queryKey: ["emails", jobId], queryFn: () => getSentEmails(jobId) });
   // Server-side config, not a per-job thing - cache it across the session.
@@ -116,6 +122,12 @@ export default function JobEmail() {
       setSending(false);
     }
   };
+
+  useEffect(() => {
+    if (user?.role === "manager") navigate(`${base}/${jobId}/shortlist`, { replace: true });
+  }, [user, base, jobId, navigate]);
+
+  if (user?.role === "manager") return null;
 
   return (
     <Shell allow={["manager"]}>

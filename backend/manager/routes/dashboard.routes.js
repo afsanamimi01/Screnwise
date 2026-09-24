@@ -8,7 +8,7 @@ import { getDashboard } from "../controllers/dashboard.controller.js";
 
 const router = Router();
 
-router.use(verifyToken, requireActivePlan, requireRole("hr"));
+router.use(verifyToken, requireActivePlan, requireRole("manager"));
 router.get("/", getDashboard);
 
 export default router;

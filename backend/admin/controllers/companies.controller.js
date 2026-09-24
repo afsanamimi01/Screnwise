@@ -6,28 +6,69 @@ import { logAudit } from "../../shared/utils/audit.js";
 const DAY = 24 * 60 * 60 * 1000;
 const RENEW_DAYS = 30;
 
-/** All companies with their manager, seat usage, job count and access state. */
+
 export async function listCompanies(req, res, next) {
   try {
-    const companies = await Company.find().sort({ createdAt: -1 });
+    // ---- Sort config: edit the field name, add/remove " desc" to flip the order ----
+    const SORT_BY = "createdAt desc";
+    const [sortField, sortWord] = SORT_BY.split(" ");
+    const sortOrder = sortWord === "desc" ? -1 : 1;
 
-    const rows = await Promise.all(
-      companies.map(async (c) => {
-        const [manager, hrActive, hrTotal, jobs] = await Promise.all([
-          User.findOne({ companyId: c._id, role: "manager" }).select("name email"),
-          User.countDocuments({ companyId: c._id, role: "hr", active: true }),
-          User.countDocuments({ companyId: c._id, role: "hr" }),
-          Job.countDocuments({ companyId: c._id }),
-        ]);
-        return {
-          ...c.toJSON(),
-          manager: manager ? { name: manager.name, email: manager.email } : null,
-          hrSeatsUsed: hrActive,
-          hrCount: hrTotal,
-          jobCount: jobs,
-        };
-      }),
-    );
+    const allCompanies = await Company.find().sort({ [sortField]: sortOrder });
+
+    const rows = [];
+    for (const company of allCompanies) {
+      // ---- Column: Company ----
+      const companyName = company.name;
+
+      // ---- Column: Manager ----
+      const manager = await User.findOne({ companyId: company._id, role: "manager" }).select(
+        "name email",
+      );
+      const managerInfo = manager ? { name: manager.name, email: manager.email } : null;
+
+      // ---- Column: Plan ----
+      const plan = company.plan;
+
+      // ---- Column: HR seats ----
+      const allHr = await User.find({ companyId: company._id, role: "hr" });
+      let hrTotal = 0;
+      let hrActive = 0;
+      for (const hr of allHr) {
+        hrTotal = hrTotal + 1;
+        if (hr.active) {
+          hrActive = hrActive + 1;
+        }
+      }
+
+      // ---- Column: Jobs ----
+      const allJobs = await Job.find({ companyId: company._id });
+      let jobCount = 0;
+      for (const job of allJobs) {
+        jobCount = jobCount + 1;
+      }
+
+      // ---- Column: Expires ----
+      const subscriptionExpiresAt = company.toJSON().subscriptionExpiresAt;
+
+      // ---- Column: Status ----
+      // "status" and "accessible" (a virtual) come straight off the company.
+      const status = company.status;
+      const accessible = company.accessible;
+
+      rows.push({
+        ...company.toJSON(),
+        name: companyName,
+        manager: managerInfo,
+        plan,
+        hrSeatsUsed: hrActive,
+        hrCount: hrTotal,
+        jobCount,
+        subscriptionExpiresAt,
+        status,
+        accessible,
+      });
+    }
 
     res.json(rows);
   } catch (err) {
@@ -35,58 +76,56 @@ export async function listCompanies(req, res, next) {
   }
 }
 
-/**
- * PATCH /api/admin/companies/:id  { action: "renew" | "revoke" | "clear" }
- *
- * renew  → status active, expiry pushed RENEW_DAYS from today
- * revoke → status revoked (expiry untouched)
- * clear  → the subscription is removed and the company is put back exactly
- *          where a freshly registered one starts: no plan, no seats, no
- *          expiry, but still `active`. Nothing else is touched - the jobs,
- *          candidates, HR accounts and history all survive; the manager simply
- *          has to choose a plan again before the workspace unlocks.
- */
 export async function updateCompanyAccess(req, res, next) {
   try {
     const { action } = req.body;
     const company = await Company.findById(req.params.id);
     if (!company) return res.status(404).json({ message: "Company not found" });
 
-    if (action === "revoke") {
-      company.status = "revoked";
-    } else if (action === "renew") {
+    let auditLabel = "";
+    let auditDetail = company.name;
+
+    // ---- Action: Renew ----
+    if (action === "renew") {
       company.status = "active";
-      const from = company.subscriptionExpiresAt
-        ? Math.max(Date.now(), company.subscriptionExpiresAt.getTime())
-        : Date.now();
-      company.subscriptionExpiresAt = new Date(from + RENEW_DAYS * DAY);
-      if (!company.subscriptionStartedAt) company.subscriptionStartedAt = new Date();
+
+      const now = Date.now();
+      let renewFrom = now;
+      if (company.subscriptionExpiresAt) {
+        const currentExpiry = company.subscriptionExpiresAt.getTime();
+        if (currentExpiry > now) {
+          renewFrom = currentExpiry;
+        }
+      }
+      const newExpiry = renewFrom + RENEW_DAYS * DAY;
+      company.subscriptionExpiresAt = new Date(newExpiry);
+
+      if (!company.subscriptionStartedAt) {
+        company.subscriptionStartedAt = new Date();
+      }
+
+      auditLabel = "Company subscription renewed";
     } else if (action === "clear") {
-      // Deliberately not a revoke: the company is not blocked, it just has
-      // nothing bought. `plan: null` is what `requireActivePlan` reads, and
-      // what makes the manager's console show the plan chooser again.
+
       company.plan = null;
       company.hrSeatLimit = 0;
       company.cvScreeningLimit = 0;
       company.subscriptionStartedAt = null;
       company.subscriptionExpiresAt = null;
       company.status = "active";
+
+      auditLabel = "Company subscription cleared";
+      auditDetail = `${company.name} - back to no plan`;
+    } else if (action === "revoke") {
+      company.status = "revoked";
+
+      auditLabel = "Company access revoked";
     } else {
       return res.status(400).json({ message: "action must be 'renew', 'revoke' or 'clear'" });
     }
 
     await company.save();
-    const ACTION_LABEL = {
-      revoke: "Company access revoked",
-      renew: "Company subscription renewed",
-      clear: "Company subscription cleared",
-    };
-    await logAudit(
-      req.user.name,
-      ACTION_LABEL[action],
-      action === "clear" ? `${company.name} - back to no plan` : company.name,
-      company._id,
-    );
+    await logAudit(req.user.name, auditLabel, auditDetail, company._id);
     res.json(company.toJSON());
   } catch (err) {
     next(err);

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Briefcase, Clock, Plus, TrendingUp, UploadCloud, Users } from "lucide-react";
+import { Briefcase, Plus, TrendingUp, UploadCloud, Users } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -43,7 +43,6 @@ const KPI_CARDS: {
       return `${apps.length ? Math.round((s / apps.length) * 100) : 0}%`;
     },
   },
-  { key: "timeToScreen", label: "Avg. time to screen", icon: Clock, value: () => "1.8 days" },
 ];
 
 export default function Dashboard() {

@@ -2,13 +2,14 @@ import { Link, useLocation } from "react-router-dom";
 import { useWorkspaceBase } from "@/shared/lib/workspace";
 import "./JobTabs.css";
 
-/** Per-job tab strip - reorder the array to reorder the tabs. */
+/**
+ * Per-job tab strip - reorder the array to reorder the tabs. Managers are
+ * view-only on a job: they don't bulk-upload CVs, send email or edit the
+ * job (all HR-only), so only the rank board and shortlist are listed here.
+ */
 const TABS = [
   { segment: "board", label: "Rank board" },
   { segment: "shortlist", label: "Shortlist" },
-  { segment: "upload", label: "Upload CVs" },
-  { segment: "email", label: "Email" },
-  { segment: "edit", label: "Edit" },
 ] as const;
 
 export function JobTabs({ jobId }: { jobId: string }) {

@@ -5,29 +5,61 @@ import Application from "../../shared/models/Application.model.js";
 
 const DAY = 24 * 60 * 60 * 1000;
 
-/** Platform-wide snapshot for the super-admin home. */
+
 export async function getAdminDashboard(req, res, next) {
   try {
-    const now = Date.now();
-    const soon = new Date(now + 7 * DAY);
+    // ---- Card 1: Companies ----
+    const companiesCount = await Company.countDocuments();
 
-    const companies = await Company.find().sort({ createdAt: -1 });
-    const active = companies.filter((c) => c.accessible);
-    const expiringSoon = companies.filter(
-      (c) =>
-        c.status === "active" &&
-        c.plan &&
-        c.subscriptionExpiresAt &&
-        c.subscriptionExpiresAt <= soon,
-    );
+    // ---- Card 2: Active now ----
+    // "accessible" is a virtual on the model, so it needs hydrated documents.
+    const companiesForActive = await Company.find();
+    const activeCompaniesCount = companiesForActive.filter((c) => c.accessible).length;
 
-    const [candidates, jobs, applications] = await Promise.all([
-      User.countDocuments({ role: "candidate" }),
-      Job.countDocuments(),
-      Application.countDocuments(),
-    ]);
+    // ---- Card 3: Candidates ----
+    const candidatesCount = await User.countDocuments({ role: "candidate" });
 
-    const planMix = companies.reduce((acc, c) => {
+    // ---- Card 4: Jobs ----
+    const jobsCount = await Job.countDocuments();
+
+    // ---- Card 5: Applications ----
+    const applicationsCount = await Application.countDocuments();
+
+    // ---- Panel: Expiring within 7 days ----
+    const soon = new Date(Date.now() + 7 * DAY);
+    const companiesForExpiry = await Company.find();
+    const expiringSoon = companiesForExpiry
+      .filter(
+        (c) =>
+          c.status === "active" &&
+          c.plan &&
+          c.subscriptionExpiresAt &&
+          c.subscriptionExpiresAt <= soon,
+      )
+      .map((c) => ({
+        id: c.id,
+        name: c.name,
+        plan: c.plan,
+        status: c.status,
+        subscriptionExpiresAt: c.toJSON().subscriptionExpiresAt,
+      }));
+
+    // ---- Panel: Recent companies ----
+    const recentCompaniesList = await Company.find().sort({ createdAt: "desc" }).limit(6);
+    const recentCompanies = recentCompaniesList.map((c) => ({
+      id: c.id,
+      name: c.name,
+      plan: c.plan,
+      status: c.status,
+      accessible: c.accessible,
+      subscriptionExpiresAt: c.toJSON().subscriptionExpiresAt,
+    }));
+
+    // ---- Plan mix ----
+    // Not a KPI card on the dashboard today, kept for API consumers that
+    // already read `planMix` (see frontend/src/shared/lib/api.ts).
+    const companiesForPlanMix = await Company.find();
+    const planMix = companiesForPlanMix.reduce((acc, c) => {
       const key = c.plan ?? "none";
       acc[key] = (acc[key] ?? 0) + 1;
       return acc;
@@ -35,28 +67,15 @@ export async function getAdminDashboard(req, res, next) {
 
     res.json({
       totals: {
-        companies: companies.length,
-        activeCompanies: active.length,
-        candidates,
-        jobs,
-        applications,
+        companies: companiesCount,
+        activeCompanies: activeCompaniesCount,
+        candidates: candidatesCount,
+        jobs: jobsCount,
+        applications: applicationsCount,
       },
       planMix,
-      expiringSoon: expiringSoon.map((c) => ({
-        id: c.id,
-        name: c.name,
-        plan: c.plan,
-        status: c.status,
-        subscriptionExpiresAt: c.toJSON().subscriptionExpiresAt,
-      })),
-      recentCompanies: companies.slice(0, 6).map((c) => ({
-        id: c.id,
-        name: c.name,
-        plan: c.plan,
-        status: c.status,
-        accessible: c.accessible,
-        subscriptionExpiresAt: c.toJSON().subscriptionExpiresAt,
-      })),
+      expiringSoon,
+      recentCompanies,
     });
   } catch (err) {
     next(err);
