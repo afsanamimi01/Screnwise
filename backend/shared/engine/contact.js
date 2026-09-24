@@ -1,17 +1,4 @@
-/**
- * Pull the candidate's own contact details out of a parsed CV.
- *
- * The uploader used to invent an address from the file name
- * (`jordan-blake-cv.pdf` -> `jordan.blake@example.com`), which looked real and
- * silently sent every message nowhere. Nothing here is ever fabricated: what
- * isn't printed in the CV comes back as an empty string, and the composer
- * refuses to email a candidate it has no address for.
- *
- * Deliberately conservative - a missing address is honest, a wrong one mails a
- * stranger.
- */
 
-/** Extensions that make a match an asset reference (`logo@2x.png`), not a person. */
 const NOT_A_TLD =
   /^(png|jpg|jpeg|gif|svg|webp|bmp|tiff|pdf|docx?|pptx?|xlsx?|zip|css|js|html?)$/i;
 
