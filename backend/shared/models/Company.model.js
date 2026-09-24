@@ -15,6 +15,8 @@ const companySchema = new mongoose.Schema(
     plan: { type: String, enum: ["basic", "advance", "custom", null], default: null },
     /** Max active `hr` users, excluding the manager. `null` = unlimited, `0` = no plan yet. */
     hrSeatLimit: { type: Number, default: 0 },
+    /** Max CVs screened per calendar month. `null` = unlimited, `0` = no plan yet. */
+    cvScreeningLimit: { type: Number, default: 0 },
     status: { type: String, enum: ["active", "revoked"], default: "active" },
     subscriptionStartedAt: { type: Date, default: null },
     subscriptionExpiresAt: { type: Date, default: null },

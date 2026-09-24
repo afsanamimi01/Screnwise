@@ -27,9 +27,9 @@ const PLANS = [
     cta: "Start Basic",
     featured: false,
     hrSeatLimit: 2,
+    cvScreeningLimit: 150,
     order: 0,
     features: [
-      { label: "Up to 150 CVs screened / month", included: true },
       { label: "Blind screening by default", included: true },
       { label: "Explainable match scores", included: true },
       { label: "2 active job openings", included: true },
@@ -49,9 +49,9 @@ const PLANS = [
     cta: "Get Advance",
     featured: true,
     hrSeatLimit: 5,
+    cvScreeningLimit: 2000,
     order: 1,
     features: [
-      { label: "Up to 2,000 CVs screened / month", included: true },
       { label: "Unlimited job openings", included: true },
       { label: "Custom scoring weights per role", included: true },
       { label: "Shortlist collaboration & notes", included: true },
@@ -72,6 +72,7 @@ const PLANS = [
     cta: "Contact us",
     featured: false,
     hrSeatLimit: null,
+    cvScreeningLimit: null,
     order: 2,
     features: [
       { label: "Unlimited CV volume", included: true },
@@ -85,6 +86,7 @@ const PLANS = [
 ];
 
 const SEAT_BY_PLAN = Object.fromEntries(PLANS.map((p) => [p.key, p.hrSeatLimit]));
+const SCREENING_BY_PLAN = Object.fromEntries(PLANS.map((p) => [p.key, p.cvScreeningLimit]));
 
 /* -------------------------------------------------------------- companies --- */
 
@@ -885,6 +887,7 @@ export async function seedDatabase({ reset = false } = {}) {
       name: c.name,
       plan: c.plan,
       hrSeatLimit: c.plan ? SEAT_BY_PLAN[c.plan] : 0,
+      cvScreeningLimit: c.plan ? SCREENING_BY_PLAN[c.plan] : 0,
       status: c.status,
       subscriptionStartedAt: c.plan ? new Date(Date.now() - 46 * DAY) : null,
       subscriptionExpiresAt: c.plan ? new Date(Date.now() + c.expiresInDays * DAY) : null,

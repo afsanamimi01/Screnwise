@@ -21,6 +21,29 @@
   color: #5e6b73;
 }
 
+/* --- monthly screening quota ------------------------------ */
+.hr-upload__quota {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+.hr-upload__quota-num {
+  font-weight: 600;
+  color: #1e313a;
+}
+
+.hr-upload__quota-warn {
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  background: #fbeecf;
+  color: #7a5a12;
+  font-size: 0.75rem;
+}
+
 /* --- drop zone -------------------------------------------- */
 .hr-upload__drop {
   display: flex;
@@ -38,6 +61,13 @@
 .hr-upload__drop--active {
   border-color: #006b79;
   background: #dcf4f8;
+}
+
+.hr-upload__drop--disabled {
+  cursor: not-allowed;
+  border-color: #dee4e7;
+  background: #f4f6f7;
+  opacity: 0.7;
 }
 
 .hr-upload__drop-icon {

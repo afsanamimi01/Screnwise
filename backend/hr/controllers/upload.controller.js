@@ -4,6 +4,7 @@ import { logAudit } from "../../shared/utils/audit.js";
 import { rag } from "../../shared/rag/indexer.js";
 import { tenantFilter } from "../../shared/middleware/auth.middleware.js";
 import { screenCv } from "../../shared/engine/index.js";
+import { screeningStatus } from "../../shared/billing/subscription.js";
 
 /** Turn "jordan-blake-cv-final.pdf" into "Jordan Blake" for the (blind) record. */
 function nameFromFileName(fileName, index) {
@@ -41,6 +42,20 @@ export async function uploadCvs(req, res, next) {
     const files = req.files || [];
     if (!files.length) {
       return res.status(400).json({ message: "Attach one or more PDF, DOCX or TXT files (field name: cvs)" });
+    }
+
+    // Refuse the whole batch up front rather than screening some and
+    // rejecting the rest partway through - cheaper (no wasted engine runs)
+    // and leaves no ambiguity about which files actually got screened.
+    const { limit, used, remaining } = await screeningStatus(req.company);
+    if (limit != null && files.length > remaining) {
+      return res.status(409).json({
+        code: "SCREENING_LIMIT_REACHED",
+        message:
+          remaining > 0
+            ? `Your ${req.company.plan} plan allows ${limit} CV screenings a month. You've used ${used} and have ${remaining} left - upload ${remaining} file${remaining === 1 ? "" : "s"} or fewer, or upgrade the plan.`
+            : `Your ${req.company.plan} plan's monthly CV screening limit (${limit}) is used up. Upgrade the plan to screen more this month.`,
+      });
     }
 
     const existingCount = await Application.countDocuments({ jobId });

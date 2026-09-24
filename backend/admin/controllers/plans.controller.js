@@ -1,7 +1,17 @@
 import Plan from "../../shared/models/Plan.model.js";
 import { logAudit } from "../../shared/utils/audit.js";
 
-const EDITABLE = ["name", "tagline", "price", "period", "cta", "featured", "hrSeatLimit", "features"];
+const EDITABLE = [
+  "name",
+  "tagline",
+  "price",
+  "period",
+  "cta",
+  "featured",
+  "hrSeatLimit",
+  "cvScreeningLimit",
+  "features",
+];
 
 /** Public - feeds the marketing pricing page. */
 export async function listPlans(req, res, next) {

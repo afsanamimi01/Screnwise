@@ -32,6 +32,8 @@ export type Plan = {
   featured: boolean;
   /** null = unlimited HR seats. */
   hrSeatLimit: number | null;
+  /** null = unlimited CV screenings per calendar month. */
+  cvScreeningLimit: number | null;
   features: PlanFeature[];
   order: number;
 };
@@ -42,6 +44,7 @@ export type Company = {
   /** null until the manager picks a plan on first sign-in. */
   plan: PlanKey | null;
   hrSeatLimit: number | null;
+  cvScreeningLimit: number | null;
   status: "active" | "revoked";
   subscriptionStartedAt: string | null;
   subscriptionExpiresAt: string | null;

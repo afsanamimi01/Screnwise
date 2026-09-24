@@ -1,0 +1,23 @@
+name: MongoDB Atlas keep-alive
+
+# Atlas pauses an M0 free cluster after 30 days with no activity. Touching it
+# every few days keeps it well inside that window with margin to spare.
+on:
+  schedule:
+    - cron: "0 6 */5 * *" # every 5 days at 06:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --omit=dev --no-save mongoose dotenv
+        working-directory: backend
+      - run: npm run keepalive
+        working-directory: backend
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}

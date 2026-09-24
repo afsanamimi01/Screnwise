@@ -1,7 +1,9 @@
 import Job from "../../shared/models/Job.model.js";
 import Application from "../../shared/models/Application.model.js";
 import Candidate from "../../shared/models/Candidate.model.js";
+import Company from "../../shared/models/Company.model.js";
 import { screenCv } from "../../shared/engine/index.js";
+import { screeningStatus } from "../../shared/billing/subscription.js";
 import { rag } from "../../shared/rag/indexer.js";
 
 /**
@@ -27,6 +29,20 @@ export async function submitApplication(req, res, next) {
     const already = await Application.findOne({ jobId: job._id, candidateId: req.user._id });
     if (already) {
       return res.status(409).json({ message: "You've already applied to this role." });
+    }
+
+    // A self-applied CV runs through the same screening engine as an
+    // HR bulk upload, so it counts against the same monthly cap - otherwise
+    // the cap is meaningless, bypassed just by pointing candidates at the
+    // public apply link instead of having HR upload in bulk.
+    const company = await Company.findById(job.companyId);
+    if (company) {
+      const { limit, remaining } = await screeningStatus(company);
+      if (limit != null && remaining <= 0) {
+        return res.status(409).json({
+          message: "This job isn't accepting new applications right now. Please check back later.",
+        });
+      }
     }
 
     let profile = await Candidate.findOne({ userId: req.user._id });

@@ -58,6 +58,7 @@ function PlanEditor({ plan }: { plan: Plan }) {
         cta: draft.cta,
         featured: draft.featured,
         hrSeatLimit: draft.hrSeatLimit,
+        cvScreeningLimit: draft.cvScreeningLimit,
         features: textToFeatures(featureText),
       });
       toast.success(`${draft.name} plan saved.`);
@@ -111,6 +112,21 @@ function PlanEditor({ plan }: { plan: Plan }) {
             }
           />
         </div>
+        <div className="pricing__field">
+          <label className="pricing__label">CV screenings / month (blank = unlimited)</label>
+          <input
+            className="pricing__input"
+            type="number"
+            min={0}
+            value={draft.cvScreeningLimit ?? ""}
+            onChange={(e) =>
+              setDraft((p) => ({
+                ...p,
+                cvScreeningLimit: e.target.value === "" ? null : Number(e.target.value),
+              }))
+            }
+          />
+        </div>
       </div>
 
       <div className="pricing__field">
@@ -145,8 +161,8 @@ export default function Pricing() {
         <div className="pricing__intro">
           <h1 className="pricing__intro-title">Pricing</h1>
           <p className="pricing__intro-text">
-            Edit the plan cards a company manager sees when choosing or switching plans. Seat limits
-            apply to new signups and plan changes.
+            Edit the plan cards a company manager sees when choosing or switching plans. Seat and
+            screening limits apply to new signups and plan changes.
           </p>
         </div>
 

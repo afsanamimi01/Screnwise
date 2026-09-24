@@ -27,6 +27,7 @@ function money(amount: number, currency: string) {
 const SUB_FACTS = [
   { key: "plan", label: "Plan" },
   { key: "status", label: "Status" },
+  { key: "screening", label: "CV screenings this month" },
   { key: "renews", label: "Renews / expires" },
 ] as const;
 
@@ -147,6 +148,13 @@ export default function Billing() {
                       >
                         {subStatus}
                       </span>
+                    ) : f.key === "screening" ? (
+                      <span className="billing__num">
+                        {c.cvScreeningUsed}
+                        {c.cvScreeningRemaining == null
+                          ? " (unlimited)"
+                          : ` · ${c.cvScreeningRemaining} left`}
+                      </span>
                     ) : (
                       <span className="billing__num">{c.subscriptionExpiresAt ?? "-"}</span>
                     )}
@@ -221,6 +229,11 @@ export default function Billing() {
                     {plan.hrSeatLimit == null
                       ? "Unlimited HR seats"
                       : `${plan.hrSeatLimit} HR seats`}
+                  </div>
+                  <div className="billing__seats">
+                    {plan.cvScreeningLimit == null
+                      ? "Unlimited CV screenings"
+                      : `${plan.cvScreeningLimit.toLocaleString("en-US")} CV screenings / month`}
                   </div>
                   <ul className="billing__features">
                     {plan.features

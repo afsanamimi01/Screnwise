@@ -8,6 +8,7 @@
     "dev": "nodemon server.js",
     "start": "node server.js",
     "free-port": "node scripts/free-port.js",
+    "keepalive": "node scripts/keepalive.js",
     "seed": "node scripts/seed.js",
     "fix:emails": "node scripts/clear-placeholder-emails.js",
     "rag:index": "node scripts/rag-index.js",

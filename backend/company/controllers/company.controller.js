@@ -6,6 +6,7 @@ import { logAudit } from "../../shared/utils/audit.js";
 import {
   PLAN_KEYS,
   activatePlan,
+  screeningStatus,
   seatConflict,
   seatLimitForPlan,
   seatUsage,
@@ -19,10 +20,13 @@ export async function getMyCompany(req, res, next) {
     if (!company) return res.status(404).json({ message: "Company not found" });
     const plan = await Plan.findOne({ key: company.plan });
     const seats = await seatUsage(company._id);
+    const screening = await screeningStatus(company);
     res.json({
       ...company.toJSON(), // `plan` here is the key string ("basic" | ...)
       hrSeatsUsed: seats.used,
       hrCount: seats.total,
+      cvScreeningUsed: screening.used,
+      cvScreeningRemaining: screening.remaining,
       planDetail: plan ? plan.toJSON() : null,
     });
   } catch (err) {

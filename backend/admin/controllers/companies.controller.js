@@ -67,6 +67,7 @@ export async function updateCompanyAccess(req, res, next) {
       // what makes the manager's console show the plan chooser again.
       company.plan = null;
       company.hrSeatLimit = 0;
+      company.cvScreeningLimit = 0;
       company.subscriptionStartedAt = null;
       company.subscriptionExpiresAt = null;
       company.status = "active";

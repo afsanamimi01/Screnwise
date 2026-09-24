@@ -1,10 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { AlertTriangle, CheckCircle2, UploadCloud } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { JobTabs } from "@/hr/components/JobTabs";
 import { Shell } from "@/hr/components/Shell";
-import { getJob, uploadCvs } from "@/shared/lib/api";
+import { getJob, getMyCompany, uploadCvs } from "@/shared/lib/api";
 import { usePageTitle } from "@/shared/lib/use-page-title";
 import { useWorkspaceBase } from "@/shared/lib/workspace";
 import "./JobUpload.css";
@@ -16,12 +17,18 @@ export default function JobUpload() {
   const { jobId = "" } = useParams();
   const navigate = useNavigate();
   const base = useWorkspaceBase();
+  const queryClient = useQueryClient();
   const jobQuery = useQuery({ queryKey: ["job", jobId], queryFn: () => getJob(jobId) });
+  const company = useQuery({ queryKey: ["company"], queryFn: getMyCompany });
   const [rows, setRows] = useState<Row[]>([]);
   const [dragging, setDragging] = useState(false);
 
+  const screeningLimit = company.data?.cvScreeningLimit ?? null;
+  const screeningRemaining = company.data?.cvScreeningRemaining ?? null;
+  const quotaExhausted = screeningLimit != null && (screeningRemaining ?? 0) <= 0;
+
   const process = async (files: File[]) => {
-    if (!files.length) return;
+    if (!files.length || quotaExhausted) return;
     const incoming: Row[] = files.map((f) => ({ name: f.name, status: "scoring" }));
     setRows((prev) => [...prev, ...incoming]);
     try {
@@ -34,10 +41,13 @@ export default function JobUpload() {
           return { ...r, status: hit.needsManualReview ? "review" : "scored", score: hit.score };
         }),
       );
-    } catch {
-      setRows((prev) =>
-        prev.map((r) => (incoming.some((x) => x.name === r.name) ? { ...r, status: "review" } : r)),
-      );
+      await queryClient.invalidateQueries({ queryKey: ["company"] });
+    } catch (err) {
+      // Nothing was screened - the whole batch was refused (e.g. the
+      // monthly screening limit), so drop the optimistic rows rather than
+      // showing them as scored-but-flagged.
+      setRows((prev) => prev.filter((r) => !incoming.some((x) => x.name === r.name)));
+      toast.error(err instanceof Error ? err.message : "Could not upload the CVs.");
     }
   };
 
@@ -61,12 +71,27 @@ export default function JobUpload() {
           </p>
         </div>
 
+        {company.data ? (
+          <div className="hr-upload__quota">
+            CV screenings this month:{" "}
+            <span className="hr-upload__quota-num">
+              {company.data.cvScreeningUsed}
+              {screeningLimit != null ? ` / ${screeningLimit}` : " (unlimited)"}
+            </span>
+            {quotaExhausted ? (
+              <span className="hr-upload__quota-warn">
+                Monthly limit reached - upgrade the plan to screen more this month
+              </span>
+            ) : null}
+          </div>
+        ) : null}
+
         <JobTabs jobId={jobId} />
 
         <label
           onDragOver={(e) => {
             e.preventDefault();
-            setDragging(true);
+            if (!quotaExhausted) setDragging(true);
           }}
           onDragLeave={() => setDragging(false)}
           onDrop={(e) => {
@@ -74,16 +99,23 @@ export default function JobUpload() {
             setDragging(false);
             process(Array.from(e.dataTransfer.files));
           }}
-          className={"hr-upload__drop" + (dragging ? " hr-upload__drop--active" : "")}
+          className={
+            "hr-upload__drop" +
+            (dragging ? " hr-upload__drop--active" : "") +
+            (quotaExhausted ? " hr-upload__drop--disabled" : "")
+          }
         >
           <UploadCloud size={28} className="hr-upload__drop-icon" />
-          <span className="hr-upload__drop-title">Drag and drop CVs here</span>
+          <span className="hr-upload__drop-title">
+            {quotaExhausted ? "Monthly screening limit reached" : "Drag and drop CVs here"}
+          </span>
           <span className="hr-upload__drop-hint">PDF and DOCX, as many files as you like</span>
           <input
             type="file"
             multiple
             accept=".pdf,.docx"
             className="hr-upload__file"
+            disabled={quotaExhausted}
             onChange={(e) => process(Array.from(e.target.files ?? []))}
           />
         </label>

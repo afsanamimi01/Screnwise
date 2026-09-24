@@ -31,6 +31,8 @@ const planSchema = new mongoose.Schema(
     featured: { type: Boolean, default: false },
     /** `null` = unlimited HR seats. */
     hrSeatLimit: { type: Number, default: null },
+    /** `null` = unlimited CV screenings per calendar month. */
+    cvScreeningLimit: { type: Number, default: null },
     features: { type: [featureSchema], default: [] },
     order: { type: Number, default: 0 },
   },

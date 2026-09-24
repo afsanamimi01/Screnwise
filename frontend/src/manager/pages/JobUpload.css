@@ -20,6 +20,28 @@
   color: #5e6b73;
 }
 
+.manager-upload__quota {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #5e6b73;
+}
+
+.manager-upload__quota-num {
+  font-weight: 600;
+  color: #1e313a;
+}
+
+.manager-upload__quota-warn {
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  background: #fbeecf;
+  color: #7a5a12;
+  font-size: 0.75rem;
+}
+
 .manager-upload__drop {
   display: flex;
   flex-direction: column;

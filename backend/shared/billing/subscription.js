@@ -1,15 +1,10 @@
-/**
- * Turning a plan choice into an active subscription.
- *
- * Two paths reach this: a manager picking a plan directly (when no gateway is
- * configured, or for the Custom plan that is agreed offline), and a confirmed
- * SSLCommerz payment. Both must apply the same seat limits and the same
- * expiry, so the rule lives here rather than in either controller.
- */
 import User from "../models/User.model.js";
 import Plan from "../models/Plan.model.js";
+import Job from "../models/Job.model.js";
+import Application from "../models/Application.model.js";
 
 const FALLBACK_SEATS = { basic: 2, advance: 5, custom: null };
+const FALLBACK_SCREENING = { basic: 150, advance: 2000, custom: null };
 export const SUBSCRIPTION_DAYS = 30;
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -46,6 +41,52 @@ export async function seatConflict(companyId, planKey) {
   return `The ${planKey} plan allows ${limit} HR seats but you have ${used} active. Deactivate some first.`;
 }
 
+/** CVs-screened cap the plan allows per calendar month, `null` for unlimited. */
+export async function screeningLimitForPlan(planKey) {
+  const plan = await Plan.findOne({ key: planKey });
+  if (plan) return plan.cvScreeningLimit ?? null;
+  return FALLBACK_SCREENING[planKey] ?? null;
+}
+
+/** `[start, end)` of the current UTC calendar month. */
+function currentMonthRange() {
+  const now = new Date();
+  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+  return { start, end };
+}
+
+/**
+ * CVs screened this calendar month, counting both HR bulk uploads and
+ * candidate self-applications - both run the same screening engine and
+ * count against the same plan cap. Applications have no `companyId` of
+ * their own, so this goes through the company's jobs, same as every other
+ * company-scoped application query in this codebase.
+ */
+export async function screeningUsage(companyId) {
+  const { start, end } = currentMonthRange();
+  const jobIds = await Job.find({ companyId }).distinct("_id");
+  const used = await Application.countDocuments({
+    jobId: { $in: jobIds },
+    appliedAt: { $gte: start, $lt: end },
+  });
+  return { used, periodStart: start, periodEnd: end };
+}
+
+/**
+ * Combines a company's snapshotted monthly cap with how much of it is used
+ * so far this month. The single place both enforcement (before screening)
+ * and display ("X left this month") read from, so they can never disagree.
+ *
+ * @returns {Promise<{ limit: number|null, used: number, remaining: number|null }>}
+ */
+export async function screeningStatus(company) {
+  const { used } = await screeningUsage(company._id);
+  const limit = company.cvScreeningLimit ?? null;
+  const remaining = limit == null ? null : Math.max(0, limit - used);
+  return { limit, used, remaining };
+}
+
 /**
  * Apply a plan to a company and start (or extend) its subscription.
  *
@@ -61,6 +102,7 @@ export async function activatePlan(company, planKey) {
 
   company.plan = planKey;
   company.hrSeatLimit = await seatLimitForPlan(planKey);
+  company.cvScreeningLimit = await screeningLimitForPlan(planKey);
 
   const current = company.subscriptionExpiresAt?.getTime() ?? 0;
   const from = Math.max(Date.now(), current);

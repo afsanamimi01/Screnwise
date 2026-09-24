@@ -82,6 +82,7 @@ export async function registerCompany(req, res, next) {
       name: companyName,
       plan: null,
       hrSeatLimit: 0,
+      cvScreeningLimit: 0,
       status: "active",
     });
 

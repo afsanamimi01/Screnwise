@@ -296,6 +296,10 @@ export function getMailStatus(): Promise<MailStatus> {
 export type CompanyOverview = Company & {
   hrSeatsUsed: number;
   hrCount: number;
+  /** CVs screened so far this calendar month (HR uploads + self-applies). */
+  cvScreeningUsed: number;
+  /** null = unlimited. */
+  cvScreeningRemaining: number | null;
   /** Full plan card for the current plan; `plan` (inherited) stays the key. */
   planDetail: Plan | null;
 };
