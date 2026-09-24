@@ -155,10 +155,9 @@ export type Payment = {
   tranId: string;
   amount: number;
   currency: string;
-  status: "pending" | "paid" | "failed" | "cancelled" | "invalid";
+  status: "pending" | "paid";
   gateway: string;
   cardType: string;
-  failReason: string;
   createdAt: string;
   paidAt: string | null;
 };
@@ -172,8 +171,6 @@ export type RevenueReport = {
     thisMonth: number;
     last30Days: number;
     paidCount: number;
-    attempted: number;
-    conversion: number;
     manualCount: number;
     manualAmount: number;
     payingCompanies: number;
@@ -181,7 +178,6 @@ export type RevenueReport = {
   };
   series: { month: string; amount: number; count: number }[];
   byPlan: { plan: PlanKey; amount: number; count: number }[];
-  byStatus: Record<string, number>;
   payments: (Payment & { companyName: string })[];
 };
 

@@ -135,57 +135,38 @@ export default function Revenue() {
               <RevenueTrend series={data.series} currency={currency} />
             ) : null}
 
-            <div className="revenue__split">
-              <section className="revenue__panel">
-                <div className="revenue__panel-head">
-                  <h2 className="revenue__panel-title">By plan</h2>
-                </div>
-                {data.byPlan.length === 0 ? (
-                  <p className="revenue__empty-note">Nothing collected yet.</p>
-                ) : (
-                  <div className="revenue__plans">
-                    {data.byPlan.map((row) => {
-                      const share = data.totals.collected
-                        ? Math.round((row.amount / data.totals.collected) * 100)
-                        : 0;
-                      return (
-                        <div key={row.plan} className="revenue__plan">
-                          <div className="revenue__plan-line">
-                            <span className="revenue__plan-name">{row.plan}</span>
-                            <span className="revenue__plan-amount">
-                              {money(row.amount, currency)}
-                            </span>
-                          </div>
-                          <div className="revenue__plan-track">
-                            <div className="revenue__plan-fill" style={{ width: `${share}%` }} />
-                          </div>
-                          <span className="revenue__plan-meta">
-                            {row.count} payment{row.count === 1 ? "" : "s"} · {share}% of revenue
+            <section className="revenue__panel">
+              <div className="revenue__panel-head">
+                <h2 className="revenue__panel-title">By plan</h2>
+              </div>
+              {data.byPlan.length === 0 ? (
+                <p className="revenue__empty-note">Nothing collected yet.</p>
+              ) : (
+                <div className="revenue__plans">
+                  {data.byPlan.map((row) => {
+                    const share = data.totals.collected
+                      ? Math.round((row.amount / data.totals.collected) * 100)
+                      : 0;
+                    return (
+                      <div key={row.plan} className="revenue__plan">
+                        <div className="revenue__plan-line">
+                          <span className="revenue__plan-name">{row.plan}</span>
+                          <span className="revenue__plan-amount">
+                            {money(row.amount, currency)}
                           </span>
                         </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </section>
-
-              <section className="revenue__panel">
-                <div className="revenue__panel-head">
-                  <h2 className="revenue__panel-title">Checkout outcomes</h2>
-                  <span className="revenue__panel-note">
-                    {data.totals.conversion}% of {data.totals.attempted} completed
-                  </span>
+                        <div className="revenue__plan-track">
+                          <div className="revenue__plan-fill" style={{ width: `${share}%` }} />
+                        </div>
+                        <span className="revenue__plan-meta">
+                          {row.count} payment{row.count === 1 ? "" : "s"} · {share}% of revenue
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="revenue__outcomes">
-                  {Object.entries(data.byStatus).map(([status, count]) => (
-                    <div key={status} className="revenue__outcome">
-                      <span className={`revenue__pill revenue__pill--${status}`}>{status}</span>
-                      <span className="revenue__outcome-count">{count}</span>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            </div>
+              )}
+            </section>
 
             <section className="revenue__panel">
               <div className="revenue__panel-head">
@@ -202,13 +183,11 @@ export default function Revenue() {
                 <div className="revenue__table">
                   {data.payments.map((p) => (
                     <div key={p.id} className="revenue__row">
-                      <span className={`revenue__pill revenue__pill--${p.status}`}>{p.status}</span>
                       <div className="revenue__row-main">
                         <span className="revenue__row-company">{p.companyName}</span>
                         <span className="revenue__row-meta">
                           {p.planKey} plan · {p.gateway}
                           {p.cardType ? ` · ${p.cardType}` : ""} · {p.tranId}
-                          {p.failReason ? ` · ${p.failReason}` : ""}
                         </span>
                       </div>
                       <div className="revenue__row-side">

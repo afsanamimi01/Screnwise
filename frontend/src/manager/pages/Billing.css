@@ -154,35 +154,6 @@
   background: #ffffff;
 }
 
-.billing__payment-status {
-  flex-shrink: 0;
-  padding: 0.125rem 0.5rem;
-  border-radius: 9999px;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  background: #ebf1f4;
-  color: #1e313a;
-}
-
-.billing__payment-status--paid {
-  background: #e4f6ee;
-  color: #14563c;
-}
-
-.billing__payment-status--failed,
-.billing__payment-status--invalid {
-  background: #ffe5e1;
-  color: #c92f33;
-}
-
-.billing__payment-status--cancelled,
-.billing__payment-status--pending {
-  background: #fdf6e6;
-  color: #7a5216;
-}
-
 .billing__payment-main {
   display: flex;
   flex-direction: column;

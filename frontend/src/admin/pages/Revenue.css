@@ -98,11 +98,6 @@
   color: #5e6b73;
 }
 
-.revenue__split {
-  display: grid;
-  gap: 1.25rem;
-}
-
 /* --- monthly trend -------------------------------------------- */
 .revenue__chart {
   margin-top: 1.25rem;
@@ -243,61 +238,6 @@
   color: #5e6b73;
 }
 
-/* --- outcomes -------------------------------------------------- */
-.revenue__outcomes {
-  margin-top: 1rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-
-.revenue__outcome {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #dee4e7;
-  border-radius: 0.5rem;
-  background: #f5f8fa;
-}
-
-.revenue__outcome-count {
-  font-size: 0.875rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: #0b1d27;
-}
-
-/* --- status pills: always carry the word, never colour alone --- */
-.revenue__pill {
-  flex-shrink: 0;
-  padding: 0.125rem 0.5rem;
-  border-radius: 9999px;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  background: #ebf1f4;
-  color: #1e313a;
-}
-
-.revenue__pill--paid {
-  background: #e4f6ee;
-  color: #14563c;
-}
-
-.revenue__pill--failed,
-.revenue__pill--invalid {
-  background: #ffe5e1;
-  color: #c92f33;
-}
-
-.revenue__pill--pending,
-.revenue__pill--cancelled {
-  background: #fdf6e6;
-  color: #7a5216;
-}
-
 /* --- payments table -------------------------------------------- */
 .revenue__table {
   margin-top: 1rem;
@@ -367,9 +307,5 @@
 @media (min-width: 900px) {
   .revenue__tiles {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .revenue__split {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

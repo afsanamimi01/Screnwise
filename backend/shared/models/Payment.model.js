@@ -3,11 +3,13 @@ import mongoose from "mongoose";
 /**
  * One attempt to buy a plan through the payment gateway.
  *
- * A row is written *before* the customer is sent to the gateway, so an
- * abandoned or failed checkout leaves a trace rather than vanishing. The plan
- * is only activated when the gateway's own validation API confirms the
- * transaction - never on the browser redirect alone, which a customer could
- * forge by opening the success URL themselves.
+ * A row is written *before* the customer is sent to the gateway, so we have
+ * something to look the transaction up by when the gateway calls back. The
+ * plan is only activated - and the row only ever marked `paid` - once the
+ * gateway's own validation API confirms the transaction; never on the browser
+ * redirect alone, which a customer could forge by opening the success URL
+ * themselves. There is no separate failed/cancelled/invalid state: a checkout
+ * that never completes just stays `pending` and is not shown as a payment.
  */
 const paymentSchema = new mongoose.Schema(
   {
@@ -24,7 +26,7 @@ const paymentSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["pending", "paid", "failed", "cancelled", "invalid"],
+      enum: ["pending", "paid"],
       default: "pending",
     },
     /** Which gateway handled it - `manual` means no gateway was configured. */
@@ -34,8 +36,6 @@ const paymentSchema = new mongoose.Schema(
     valId: { type: String, default: null },
     bankTranId: { type: String, default: null },
     cardType: { type: String, default: "" },
-    /** Why a payment was refused, in the gateway's words. */
-    failReason: { type: String, default: "" },
 
     paidAt: { type: Date, default: null },
   },

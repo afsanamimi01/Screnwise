@@ -1,12 +1,13 @@
 import Plan from "../../shared/models/Plan.model.js";
 import { logAudit } from "../../shared/utils/audit.js";
 
+/** Editable fields, in the same order the admin pricing card shows them. */
 const EDITABLE = [
   "name",
-  "tagline",
   "price",
   "period",
   "cta",
+  "tagline",
   "featured",
   "hrSeatLimit",
   "cvScreeningLimit",
@@ -16,8 +17,57 @@ const EDITABLE = [
 /** Public - feeds the marketing pricing page. */
 export async function listPlans(req, res, next) {
   try {
-    const plans = await Plan.find().sort({ order: 1 });
-    res.json(plans);
+    // ---- Sort config ----
+    const SORT_BY = "order asc";
+    const [sortField, sortWord] = SORT_BY.split(" ");
+    const sortOrder = sortWord === "desc" ? -1 : 1;
+
+    const allPlans = await Plan.find().sort({ [sortField]: sortOrder });
+
+    const rows = [];
+    for (const plan of allPlans) {
+      // ---- Field: Name ----
+      const name = plan.name;
+
+      // ---- Field: Price ----
+      const price = plan.price;
+
+      // ---- Field: Period ----
+      const period = plan.period;
+
+      // ---- Field: CTA label ----
+      const cta = plan.cta;
+
+      // ---- Field: Tagline ----
+      const tagline = plan.tagline;
+
+      // ---- Field: Featured ----
+      const featured = plan.featured;
+
+      // ---- Field: HR seat limit ----
+      const hrSeatLimit = plan.hrSeatLimit;
+
+      // ---- Field: CV screening limit ----
+      const cvScreeningLimit = plan.cvScreeningLimit;
+
+      // ---- Field: Features ----
+      const features = plan.features;
+
+      rows.push({
+        ...plan.toJSON(),
+        name,
+        price,
+        period,
+        cta,
+        tagline,
+        featured,
+        hrSeatLimit,
+        cvScreeningLimit,
+        features,
+      });
+    }
+
+    res.json(rows);
   } catch (err) {
     next(err);
   }

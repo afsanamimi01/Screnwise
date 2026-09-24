@@ -1,4 +1,3 @@
-
 import Payment from "../../shared/models/Payment.model.js";
 import Company from "../../shared/models/Company.model.js";
 import { gatewayStatus } from "../../shared/payment/sslcommerz.js";
@@ -11,44 +10,81 @@ function startOfMonth(date = new Date()) {
 }
 
 function sum(rows) {
-  return rows.reduce((total, r) => total + (r.amount ?? 0), 0);
+  let total = 0;
+  for (const row of rows) {
+    total = total + (row.amount ?? 0);
+  }
+  return total;
 }
 
 export async function getRevenue(req, res, next) {
   try {
+    // ---- Sort config ----
+    const SORT_BY = "createdAt desc";
+    const [sortField, sortWord] = SORT_BY.split(" ");
+    const sortOrder = sortWord === "desc" ? -1 : 1;
+
     const limit = Math.min(Number(req.query.limit) || 100, 500);
+    // Only paid rows count as revenue - a pending/abandoned checkout is never
+    // fetched here, so there is no status breakdown to calculate.
+    const payments = await Payment.find({ status: "paid" }).sort({ [sortField]: sortOrder });
+    const companies = await Company.find().select("name");
 
-    const payments = await Payment.find().sort({ createdAt: -1 });
-    const companies = await Company.find().select("name plan");
-    const companyName = new Map(companies.map((c) => [c._id.toString(), c.name]));
+    // Company name by id, looked up once instead of per row.
+    const nameById = {};
+    for (const company of companies) {
+      nameById[company._id.toString()] = company.name;
+    }
 
-    // Only confirmed money counts as revenue; `manual` rows are separated out
-    // so the demo's free activations never inflate the figures.
-    const settled = payments.filter((p) => p.status === "paid");
-    const real = settled.filter((p) => p.gateway !== "manual");
-    const manual = settled.filter((p) => p.gateway === "manual");
+    // `manual` rows are separated out so the demo's free activations never
+    // inflate the figures.
+    const real = payments.filter((p) => p.gateway !== "manual");
+    const manual = payments.filter((p) => p.gateway === "manual");
 
+    // ---- Section: Tiles (Collected / This month / Last 30 days / Paying companies) ----
     const monthStart = startOfMonth();
-    const thisMonth = real.filter((p) => (p.paidAt ?? p.createdAt) >= monthStart);
-    const last30 = real.filter(
-      (p) => (p.paidAt ?? p.createdAt) >= new Date(Date.now() - 30 * DAY),
-    );
+    const last30Start = new Date(Date.now() - 30 * DAY);
 
+    let collected = 0;
+    let thisMonth = 0;
+    let last30Days = 0;
+    const payingCompanyIds = new Set();
 
-    const earliest = real.reduce(
-      (oldest, p) => {
-        const at = p.paidAt ?? p.createdAt;
-        return !oldest || at < oldest ? at : oldest;
-      },
-      /** @type {Date|null} */ (null),
-    );
-    const monthsBack = earliest
-      ? Math.min(
-          11,
-          (new Date().getFullYear() - earliest.getFullYear()) * 12 +
-            (new Date().getMonth() - earliest.getMonth()),
-        )
-      : 0;
+    for (const p of real) {
+      const amount = p.amount ?? 0;
+      const at = p.paidAt ?? p.createdAt;
+
+      collected = collected + amount;
+      if (at >= monthStart) {
+        thisMonth = thisMonth + amount;
+      }
+      if (at >= last30Start) {
+        last30Days = last30Days + amount;
+      }
+      payingCompanyIds.add(p.companyId.toString());
+    }
+
+    const averagePayment = real.length ? Math.round(collected / real.length) : 0;
+
+    let manualAmount = 0;
+    for (const p of manual) {
+      manualAmount = manualAmount + (p.amount ?? 0);
+    }
+
+    // ---- Section: Trend chart (up to 12 months, starting from the first payment) ----
+    let earliest = null;
+    for (const p of real) {
+      const at = p.paidAt ?? p.createdAt;
+      if (!earliest || at < earliest) earliest = at;
+    }
+
+    let monthsBack = 0;
+    if (earliest) {
+      const now = new Date();
+      const yearsDiff = now.getFullYear() - earliest.getFullYear();
+      const monthsDiff = now.getMonth() - earliest.getMonth();
+      monthsBack = Math.min(11, yearsDiff * 12 + monthsDiff);
+    }
 
     const series = [];
     for (let i = monthsBack; i >= 0; i--) {
@@ -65,6 +101,7 @@ export async function getRevenue(req, res, next) {
       });
     }
 
+    // ---- Section: By plan ----
     const byPlan = {};
     for (const p of real) {
       byPlan[p.planKey] ??= { plan: p.planKey, amount: 0, count: 0 };
@@ -72,38 +109,29 @@ export async function getRevenue(req, res, next) {
       byPlan[p.planKey].count += 1;
     }
 
-    const byStatus = payments.reduce((acc, p) => {
-      acc[p.status] = (acc[p.status] ?? 0) + 1;
-      return acc;
-    }, {});
-
-    // How many checkouts that were actually attempted ended up paid.
-    const attempted = payments.filter((p) => p.gateway !== "manual").length;
-    const conversion = attempted ? Math.round((real.length / attempted) * 100) : 0;
+    // ---- Section: Payments list ----
+    const paymentRows = payments.slice(0, limit).map((p) => ({
+      ...p.toJSON(),
+      companyName: nameById[p.companyId.toString()] ?? "(deleted company)",
+    }));
 
     res.json({
       gateway: gatewayStatus(),
       currency: real[0]?.currency ?? "BDT",
       totals: {
-        collected: sum(real),
-        thisMonth: sum(thisMonth),
-        last30Days: sum(last30),
+        collected,
+        thisMonth,
+        last30Days,
+        payingCompanies: payingCompanyIds.size,
         paidCount: real.length,
-        attempted,
-        conversion,
+        averagePayment,
         /** Activated without payment, because no gateway was configured. */
         manualCount: manual.length,
-        manualAmount: sum(manual),
-        payingCompanies: new Set(real.map((p) => p.companyId.toString())).size,
-        averagePayment: real.length ? Math.round(sum(real) / real.length) : 0,
+        manualAmount,
       },
       series,
       byPlan: Object.values(byPlan).sort((a, b) => b.amount - a.amount),
-      byStatus,
-      payments: payments.slice(0, limit).map((p) => ({
-        ...p.toJSON(),
-        companyName: companyName.get(p.companyId.toString()) ?? "(deleted company)",
-      })),
+      payments: paymentRows,
     });
   } catch (err) {
     next(err);

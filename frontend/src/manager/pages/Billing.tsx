@@ -274,9 +274,6 @@ export default function Billing() {
             <div className="billing__history-list">
               {payments.data.map((p) => (
                 <div key={p.id} className="billing__payment">
-                  <span className={`billing__payment-status billing__payment-status--${p.status}`}>
-                    {p.status}
-                  </span>
                   <span className="billing__payment-main">
                     <span className="billing__payment-plan">
                       {p.planKey} plan · {money(p.amount, p.currency)}
@@ -284,7 +281,6 @@ export default function Billing() {
                     <span className="billing__payment-meta">
                       {p.paidAt ?? p.createdAt} · {p.tranId}
                       {p.cardType ? ` · ${p.cardType}` : ""}
-                      {p.failReason ? ` · ${p.failReason}` : ""}
                     </span>
                   </span>
                 </div>

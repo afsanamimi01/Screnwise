@@ -32,10 +32,10 @@ export async function getPaymentStatus(_req, res, next) {
   }
 }
 
-/** This company's checkout history, newest first. */
+/** This company's paid receipts, newest first. Abandoned checkouts never show up here. */
 export async function listPayments(req, res, next) {
   try {
-    const rows = await Payment.find({ companyId: req.user.companyId })
+    const rows = await Payment.find({ companyId: req.user.companyId, status: "paid" })
       .sort({ createdAt: -1 })
       .limit(25);
     res.json(rows.map((r) => r.toJSON()));
@@ -113,9 +113,8 @@ export async function startPayment(req, res, next) {
     });
 
     if (!session.ok) {
-      payment.status = "failed";
-      payment.failReason = session.error ?? "Gateway refused the session";
-      await payment.save();
+      // The gateway never saw this tranId, so there is nothing to reconcile later.
+      await payment.deleteOne();
       return res.status(502).json({ message: session.error ?? "Could not start the payment" });
     }
 
@@ -145,36 +144,27 @@ async function settlePayment(body) {
   // not activate anything twice.
   if (payment.status === "paid") return { ok: true, payment, reason: "Already settled" };
 
+  // Nothing below here is persisted: an unconfirmed checkout just stays
+  // `pending` so a later, genuine callback for the same tranId can still
+  // settle it - it is never labelled failed/cancelled/invalid in the database.
   if (!valId) {
-    payment.status = "invalid";
-    payment.failReason = "Callback carried no validation id";
-    await payment.save();
-    return { ok: false, payment, reason: payment.failReason };
+    return { ok: false, payment, reason: "Callback carried no validation id" };
   }
 
   const check = await validatePayment(valId);
   if (!check.ok) {
-    payment.status = "invalid";
-    payment.failReason = check.error ?? `Gateway reported ${check.status}`;
-    await payment.save();
-    return { ok: false, payment, reason: payment.failReason };
+    return { ok: false, payment, reason: check.error ?? `Gateway reported ${check.status}` };
   }
 
   // The gateway is the authority on what was paid; if it does not match what we
   // recorded, something is wrong and no plan is granted.
   if (check.amount == null || Math.abs(check.amount - payment.amount) > 0.01) {
-    payment.status = "invalid";
-    payment.failReason = `Paid ${check.amount} but the plan costs ${payment.amount}`;
-    await payment.save();
-    return { ok: false, payment, reason: payment.failReason };
+    return { ok: false, payment, reason: `Paid ${check.amount} but the plan costs ${payment.amount}` };
   }
 
   const company = await Company.findById(payment.companyId);
   if (!company) {
-    payment.status = "invalid";
-    payment.failReason = "Company no longer exists";
-    await payment.save();
-    return { ok: false, payment, reason: payment.failReason };
+    return { ok: false, payment, reason: "Company no longer exists" };
   }
 
   const { firstPick } = await activatePlan(company, payment.planKey);
@@ -213,31 +203,28 @@ export async function paymentSuccess(req, res, next) {
   }
 }
 
-/** The customer's card was declined, or the gateway rejected the payment. */
+/**
+ * The customer's card was declined, or the gateway rejected the payment.
+ *
+ * The row is left exactly as it is (still `pending`) instead of being marked
+ * failed - a genuine IPN for the same tranId can still arrive and settle it,
+ * and there is no failed state to record it under either way.
+ */
 export async function paymentFail(req, res, next) {
   try {
     const tranId = req.body?.tran_id ?? req.query?.tran_id;
     const payment = tranId ? await Payment.findOne({ tranId }) : null;
-    if (payment && payment.status === "pending") {
-      payment.status = "failed";
-      payment.failReason = req.body?.error || req.body?.failedreason || "The payment did not go through";
-      await payment.save();
-    }
     res.redirect(billingUrl({ payment: "failed", plan: payment?.planKey }));
   } catch (err) {
     next(err);
   }
 }
 
-/** The customer backed out on the gateway's page. */
+/** The customer backed out on the gateway's page. The row stays `pending`, same as a decline. */
 export async function paymentCancel(req, res, next) {
   try {
     const tranId = req.body?.tran_id ?? req.query?.tran_id;
     const payment = tranId ? await Payment.findOne({ tranId }) : null;
-    if (payment && payment.status === "pending") {
-      payment.status = "cancelled";
-      await payment.save();
-    }
     res.redirect(billingUrl({ payment: "cancelled", plan: payment?.planKey }));
   } catch (err) {
     next(err);

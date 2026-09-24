@@ -1055,20 +1055,17 @@ export async function seedDatabase({ reset = false } = {}) {
     const months = Math.min(12, Math.max(1, Math.round((Date.now() - company.createdAt) / (30 * DAY))));
     for (let i = months - 1; i >= 0; i--) {
       const paidAt = new Date(Date.now() - i * 30 * DAY);
-      // One declined attempt in the run, so the page shows a failure too.
-      const declined = i === 1 && company.plan === "advance";
       paymentDocs.push({
         companyId: company._id,
         planKey: company.plan,
         tranId: `SW-SEED-${String(company._id).slice(-6)}-${i}`.toUpperCase(),
         amount: plan.amount,
         currency: plan.currency || "BDT",
-        status: declined ? "failed" : "paid",
+        status: "paid",
         gateway: "sslcommerz",
-        cardType: declined ? "" : ["VISA-Dutch Bangla", "MASTER-City Bank", "bKash", "Nagad"][i % 4],
-        failReason: declined ? "Issuer declined the card" : "",
-        valId: declined ? null : `SEED${String(company._id).slice(-4)}${i}`,
-        paidAt: declined ? null : paidAt,
+        cardType: ["VISA-Dutch Bangla", "MASTER-City Bank", "bKash", "Nagad"][i % 4],
+        valId: `SEED${String(company._id).slice(-4)}${i}`,
+        paidAt,
         createdAt: paidAt,
       });
     }
