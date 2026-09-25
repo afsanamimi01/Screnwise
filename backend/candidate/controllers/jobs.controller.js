@@ -8,28 +8,37 @@ async function companyNames(jobs) {
   return Object.fromEntries(companies.map((c) => [c._id.toString(), c.name]));
 }
 
+/** Every open, publicly-applyable job, newest first, each with its company name. */
 export async function listPublicJobs(req, res, next) {
   try {
+    // ---- Step 1: open jobs that accept public applications, newest first ----
+    // Flip "desc" to "asc" here to change the sort - nothing else to touch.
     const jobs = await Job.find({
       status: "open",
       publicApplyEnabled: true,
       kind: { $ne: "screening" },
-    }).sort({ createdAt: -1 });
+    }).sort({ createdAt: "desc" });
+
+    // ---- Step 2: the companies behind those jobs, fetched independently ----
     const names = await companyNames(jobs);
-    res.json(
-      jobs.map((j) => {
-        const json = j.toJSON();
-        json.companyName = names[json.companyId] ?? null;
-        return json;
-      }),
-    );
+
+    // ---- Step 3: attach each job's company name ----
+    const rows = jobs.map((j) => {
+      const json = j.toJSON();
+      json.companyName = names[json.companyId] ?? null;
+      return json;
+    });
+
+    res.json(rows);
   } catch (err) {
     next(err);
   }
 }
 
+/** One open, publicly-applyable job, with its company name. */
 export async function getPublicJob(req, res, next) {
   try {
+    // ---- Step 1: the job, if it's open and accepting public applications ----
     const job = await Job.findOne({
       _id: req.params.id,
       status: "open",
@@ -39,9 +48,14 @@ export async function getPublicJob(req, res, next) {
     if (!job) {
       return res.status(404).json({ message: "Job not found or not open for applications" });
     }
+
+    // ---- Step 2: its company, fetched independently ----
     const names = await companyNames([job]);
+
+    // ---- Step 3: attach the company name ----
     const json = job.toJSON();
     json.companyName = names[json.companyId] ?? null;
+
     res.json(json);
   } catch (err) {
     next(err);

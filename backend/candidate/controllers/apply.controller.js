@@ -21,16 +21,19 @@ export async function submitApplication(req, res, next) {
   try {
     const { jobId, phone } = req.body;
 
+    // ---- Step 1: the target job, only if it's open and taking public applications ----
     const job = await Job.findOne({ _id: jobId, status: "open", publicApplyEnabled: true });
     if (!job) {
       return res.status(404).json({ message: "Job not found or not open for applications" });
     }
 
+    // ---- Step 2: block a second application to the same job ----
     const already = await Application.findOne({ jobId: job._id, candidateId: req.user._id });
     if (already) {
       return res.status(409).json({ message: "You've already applied to this role." });
     }
 
+    // ---- Step 3: the company's monthly screening cap, fetched independently ----
     // A self-applied CV runs through the same screening engine as an
     // HR bulk upload, so it counts against the same monthly cap - otherwise
     // the cap is meaningless, bypassed just by pointing candidates at the
@@ -45,9 +48,10 @@ export async function submitApplication(req, res, next) {
       }
     }
 
+    // ---- Step 4: this candidate's profile, fetched independently ----
     let profile = await Candidate.findOne({ userId: req.user._id });
 
-    // Resolve which CV to screen.
+    // ---- Step 5: resolve which CV to screen - an attached file, or the profile's own ----
     let cvBuffer;
     let cvFileName;
     let cvType;
@@ -77,8 +81,10 @@ export async function submitApplication(req, res, next) {
       });
     }
 
+    // ---- Step 6: run that CV through the local screening engine ----
     const result = await screenCv({ buffer: cvBuffer, fileName: cvFileName, mimeType: cvType }, job);
 
+    // ---- Step 7: create the application record ----
     const existingCount = await Application.countDocuments({ jobId: job._id });
     const application = await Application.create({
       jobId: job._id,
@@ -103,6 +109,7 @@ export async function submitApplication(req, res, next) {
       cvText: result.text ?? "",
     });
 
+    // ---- Step 8: queue it for the assistant's search index and respond ----
     rag.application(application._id);
 
     res.status(201).json({ trackingId: application._id.toString(), score: result.score });
