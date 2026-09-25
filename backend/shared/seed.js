@@ -27,9 +27,10 @@ const PLANS = [
     cta: "Start Basic",
     featured: false,
     hrSeatLimit: 2,
-    cvScreeningLimit: 150,
+    cvScreeningLimit: 500,
     order: 0,
     features: [
+      { label: "Up to 500 CVs screened / month", included: true },
       { label: "Blind screening by default", included: true },
       { label: "Explainable match scores", included: true },
       { label: "2 active job openings", included: true },
@@ -49,9 +50,10 @@ const PLANS = [
     cta: "Get Advance",
     featured: true,
     hrSeatLimit: 5,
-    cvScreeningLimit: 2000,
+    cvScreeningLimit: 2500,
     order: 1,
     features: [
+      { label: "Up to 2,500 CVs screened / month", included: true },
       { label: "Unlimited job openings", included: true },
       { label: "Custom scoring weights per role", included: true },
       { label: "Shortlist collaboration & notes", included: true },

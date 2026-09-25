@@ -88,6 +88,48 @@ export async function shortlistCandidates(req, res, next) {
 }
 
 /**
+ * Undo a shortlist: back to "screened", so the candidate returns to the blind
+ * rank board and drops off this shortlist page. HR-only, same as shortlisting
+ * itself - see `hr/routes/shortlist.routes.js`.
+ */
+export async function unshortlistCandidates(req, res, next) {
+  try {
+    // ---- Step 1: only applications that belong to the caller's company ----
+    const { applicationIds = [] } = req.body;
+    const apps = await Application.find({ _id: { $in: applicationIds } }).populate("jobId");
+
+    const companyId = req.user.companyId?.toString();
+    const allowed = apps.filter((a) => a.jobId?.companyId?.toString() === companyId);
+
+    // ---- Step 2: move them back to "screened" ----
+    await Application.updateMany(
+      { _id: { $in: allowed.map((a) => a._id) } },
+      { $set: { status: "screened" } },
+    );
+
+    // ---- Step 3: re-index and log, same as a shortlist does ----
+    if (allowed.length) {
+      // Reversing a shortlist hides the identity these documents describe
+      // again, so the affected ones are re-indexed - same reasoning as
+      // shortlisting itself.
+      for (const app of allowed) rag.application(app._id);
+
+      const jobTitle = allowed[0].jobId?.title ?? "a job";
+      await logAudit(
+        req.user.name,
+        "Candidate unshortlisted",
+        `${allowed.length} candidate(s) on ${jobTitle}`,
+        req.user.companyId,
+      );
+    }
+
+    res.json({ unshortlisted: allowed.length });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
  * Serve a shortlisted candidate's own CV to the recruiter who shortlisted them.
  *
  * This is the one place the full document is readable by HR, and the gate is

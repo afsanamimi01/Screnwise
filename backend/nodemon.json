@@ -1,5 +1,5 @@
 {
-  "watch": ["server.js", "auth", "admin", "candidate", "company", "hr", "shared"],
+  "watch": ["server.js", "assistant", "auth", "admin", "candidate", "company", "hr", "manager", "shared"],
   "ext": "js,mjs,cjs,json",
   "ignore": ["node_modules/**", "scripts/**", "uploads/**", "**/*.test.js"],
   "delay": 500,

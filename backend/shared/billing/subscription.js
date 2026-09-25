@@ -4,7 +4,7 @@ import Job from "../models/Job.model.js";
 import Application from "../models/Application.model.js";
 
 const FALLBACK_SEATS = { basic: 2, advance: 5, custom: null };
-const FALLBACK_SCREENING = { basic: 150, advance: 2000, custom: null };
+const FALLBACK_SCREENING = { basic: 500, advance: 2500, custom: null };
 export const SUBSCRIPTION_DAYS = 30;
 const DAY = 24 * 60 * 60 * 1000;
 

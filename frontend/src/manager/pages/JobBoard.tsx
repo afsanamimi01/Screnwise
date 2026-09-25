@@ -1,37 +1,17 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { AlertTriangle, ChevronDown, Copy, EyeOff, Info, Lock } from "lucide-react";
-import { useMemo, useState } from "react";
-import { toast } from "sonner";
+import { useState } from "react";
 import { Shell } from "@/manager/components/Shell";
 import { JobTabs } from "@/manager/components/JobTabs";
 import { ScoreExplainDrawer } from "@/manager/components/ScoreExplainDrawer";
 import { scoreBand } from "@/shared/components/ScoreBadge";
 import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
-import {
-  getManagerApplicationsForJob,
-  getManagerJob,
-  shortlistCandidateAsManager,
-} from "@/shared/lib/api";
+import { getManagerApplicationsForJob, getManagerJob } from "@/shared/lib/api";
 import { canViewBoard, useAuth } from "@/shared/lib/auth";
 import { SCORE_THRESHOLD, type Application, type Job } from "@/shared/lib/types";
 import { usePageTitle } from "@/shared/lib/use-page-title";
-import { useManagerAccess } from "@/manager/lib/access";
 import "./JobBoard.css";
-
-/** Options for the "Source" filter dropdown. */
-const SOURCE_OPTIONS = [
-  { value: "all", label: "All sources" },
-  { value: "self-applied", label: "Self-applied" },
-  { value: "HR-uploaded", label: "HR-uploaded" },
-] as const;
-
-/** Options for the "Sort by" dropdown. */
-const SORT_OPTIONS = [
-  { value: "score", label: "Match score" },
-  { value: "experience", label: "Years of experience" },
-  { value: "date", label: "Date applied" },
-] as const;
 
 /**
  * The four tiles in the summary strip above the board, in display order.
@@ -56,12 +36,15 @@ const SUMMARY_TILES: { key: string; label: string; value: (apps: Application[]) 
   },
 ];
 
+/**
+ * A manager's rank board is read-only: shortlisting and un-shortlisting are
+ * HR-only actions (see `hr/pages/JobBoard.tsx`), since a manager's job here is
+ * to review scores, not to run the pipeline.
+ */
 export default function JobBoard() {
   usePageTitle("Rank board - Screenwise");
   const { jobId = "" } = useParams();
   const { user } = useAuth();
-  const { locked } = useManagerAccess();
-  const queryClient = useQueryClient();
 
   const jobQuery = useQuery({ queryKey: ["job", jobId], queryFn: () => getManagerJob(jobId) });
   const canView = canViewBoard(user, jobQuery.data?.companyId ?? "");
@@ -71,47 +54,15 @@ export default function JobBoard() {
     enabled: Boolean(jobQuery.data) && canView,
   });
 
-  const [minScore, setMinScore] = useState(0);
-  const [source, setSource] = useState("all");
-  const [skill, setSkill] = useState("");
-  const [sort, setSort] = useState("score");
   const [showBelow, setShowBelow] = useState(false);
-  const [selected, setSelected] = useState<string[]>([]);
   const [drawerApp, setDrawerApp] = useState<Application | null>(null);
 
   const job = jobQuery.data;
+  // Already sorted by score, highest first - see SORT_BY in the board controller.
   const apps = appsQuery.data ?? [];
 
-  const filtered = useMemo(() => {
-    const list = apps.filter((a) => {
-      if (a.score < minScore) return false;
-      if (source !== "all" && a.source !== source) return false;
-      if (skill && !a.matchedSkills.some((s) => s.toLowerCase().includes(skill.toLowerCase())))
-        return false;
-      return true;
-    });
-    return list.sort((a, b) => {
-      if (sort === "experience") return b.yearsExperience - a.yearsExperience;
-      if (sort === "date") return b.appliedAt.localeCompare(a.appliedAt);
-      return b.score - a.score;
-    });
-  }, [apps, minScore, source, skill, sort]);
-
-  const above = filtered.filter((a) => a.score >= SCORE_THRESHOLD || a.needsManualReview);
-  const below = filtered.filter((a) => a.score < SCORE_THRESHOLD && !a.needsManualReview);
-
-  const toggle = (id: string) =>
-    setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-
-  const shortlist = async (ids: string[]) => {
-    if (!ids.length) return;
-    await shortlistCandidateAsManager(ids);
-    await queryClient.invalidateQueries({ queryKey: ["applications", jobId] });
-    setSelected([]);
-    toast.success(
-      `${ids.length} candidate${ids.length > 1 ? "s" : ""} shortlisted. Identities are now visible on the shortlist page.`,
-    );
-  };
+  const above = apps.filter((a) => a.score >= SCORE_THRESHOLD || a.needsManualReview);
+  const below = apps.filter((a) => a.score < SCORE_THRESHOLD && !a.needsManualReview);
 
   const denied = job && !canView;
 
@@ -121,7 +72,7 @@ export default function JobBoard() {
         <div className="manager-board__intro">
           <h1 className="manager-board__intro-title">{job ? job.title : "Rank board"}</h1>
           <p className="manager-board__intro-text">
-            Screening is blind: identity stays hidden until you shortlist.
+            Screening is blind: identity stays hidden until HR shortlists a candidate.
           </p>
         </div>
 
@@ -159,106 +110,17 @@ export default function JobBoard() {
               ))}
             </div>
 
-            <div className="manager-board__filters">
-              <div className="manager-board__filter">
-                <span className="manager-board__filter-label">
-                  Minimum score: <span className="manager-board__num">{minScore}%</span>
-                </span>
-                <input
-                  type="range"
-                  className="manager-board__range"
-                  value={minScore}
-                  max={100}
-                  step={5}
-                  onChange={(e) => setMinScore(Number(e.target.value))}
-                />
-              </div>
-              <div className="manager-board__filter">
-                <span className="manager-board__filter-label">Source</span>
-                <select
-                  className="manager-board__select"
-                  value={source}
-                  onChange={(e) => setSource(e.target.value)}
-                >
-                  {SOURCE_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="manager-board__filter">
-                <label className="manager-board__filter-label" htmlFor="skill">
-                  Skill
-                </label>
-                <input
-                  id="skill"
-                  className="manager-board__input"
-                  value={skill}
-                  onChange={(e) => setSkill(e.target.value)}
-                  placeholder="e.g. Docker"
-                />
-              </div>
-              <div className="manager-board__filter">
-                <span className="manager-board__filter-label">Sort by</span>
-                <select
-                  className="manager-board__select"
-                  value={sort}
-                  onChange={(e) => setSort(e.target.value)}
-                >
-                  {SORT_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            <div className="manager-board__hintbar">
+              <p className="manager-board__hintbar-text">
+                <EyeOff size={16} /> Names, photos, age, address, nationality and university are
+                hidden while screening.
+              </p>
             </div>
-
-            {selected.length > 0 ? (
-              <div className="manager-board__bulkbar">
-                <span className="manager-board__bulkbar-count">{selected.length} selected</span>
-                <div className="manager-board__bulkbar-actions">
-                  <button
-                    type="button"
-                    className="manager-board__btn manager-board__btn--ghost"
-                    onClick={() => setSelected([])}
-                  >
-                    Clear
-                  </button>
-                  <button
-                    type="button"
-                    className="manager-board__btn"
-                    onClick={() => shortlist(selected)}
-                    disabled={locked}
-                    title={locked ? "Activate a plan to shortlist" : undefined}
-                  >
-                    Shortlist selected
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="manager-board__hintbar">
-                <p className="manager-board__hintbar-text">
-                  <EyeOff size={16} /> Names, photos, age, address, nationality and university are
-                  hidden while screening.
-                </p>
-                <button
-                  type="button"
-                  className="manager-board__btn manager-board__btn--ghost"
-                  onClick={() => shortlist(above.slice(0, 20).map((a) => a.id))}
-                  disabled={locked}
-                  title={locked ? "Activate a plan to shortlist" : undefined}
-                >
-                  Shortlist top 20
-                </button>
-              </div>
-            )}
 
             {above.length === 0 && below.length === 0 ? (
               <EmptyState
-                title="No candidates match these filters"
-                description="Loosen the minimum score or clear the skill filter - nobody has been removed from the board."
+                title="No candidates yet"
+                description="Nobody has applied to this job yet."
               />
             ) : null}
 
@@ -269,10 +131,7 @@ export default function JobBoard() {
                   app={app}
                   job={job}
                   rank={i + 1}
-                  selected={selected.includes(app.id)}
-                  onToggle={() => toggle(app.id)}
                   onExplain={() => setDrawerApp(app)}
-                  onShortlist={() => shortlist([app.id])}
                 />
               ))}
             </div>
@@ -301,7 +160,7 @@ export default function JobBoard() {
                   <div className="manager-board__below-body">
                     <p className="manager-board__below-note">
                       These candidates scored under {SCORE_THRESHOLD}%. They are collapsed, never
-                      removed - you can shortlist any of them.
+                      removed from the board.
                     </p>
                     {below.map((app, i) => (
                       <CandidateRow
@@ -309,10 +168,7 @@ export default function JobBoard() {
                         app={app}
                         job={job}
                         rank={above.length + i + 1}
-                        selected={selected.includes(app.id)}
-                        onToggle={() => toggle(app.id)}
                         onExplain={() => setDrawerApp(app)}
-                        onShortlist={() => shortlist([app.id])}
                       />
                     ))}
                   </div>
@@ -337,29 +193,15 @@ function CandidateRow({
   app,
   job,
   rank,
-  selected,
-  onToggle,
   onExplain,
-  onShortlist,
 }: {
   app: Application;
   job: Job;
   rank: number;
-  selected: boolean;
-  onToggle: () => void;
   onExplain: () => void;
-  onShortlist: () => void;
 }) {
-  const { locked } = useManagerAccess();
   return (
     <div className="manager-board__row">
-      <input
-        type="checkbox"
-        className="manager-board__row-check"
-        checked={selected}
-        onChange={onToggle}
-        aria-label={`Select ${app.alias}`}
-      />
       <span className="manager-board__row-rank">{rank}</span>
       {app.needsManualReview ? (
         <span className="manager-board__score manager-board__score--na">n/a</span>
@@ -408,15 +250,6 @@ function CandidateRow({
           onClick={onExplain}
         >
           Why this score
-        </button>
-        <button
-          type="button"
-          className="manager-board__btn"
-          onClick={onShortlist}
-          disabled={app.status === "shortlisted" || locked}
-          title={locked ? "Activate a plan to shortlist" : undefined}
-        >
-          {app.status === "shortlisted" ? "On shortlist" : "Shortlist"}
         </button>
       </div>
     </div>

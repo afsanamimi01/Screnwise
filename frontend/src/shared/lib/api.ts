@@ -13,7 +13,9 @@ import type {
   Candidate,
   Company,
   Job,
+  JobWithStats,
   MailStatus,
+  ManagerDashboard,
   Payment,
   PaymentStatus,
   Plan,
@@ -232,6 +234,16 @@ export function shortlistCandidate(applicationIds: string[]): Promise<{ shortlis
   return request("/hr/shortlist", { method: "POST", body: body({ applicationIds }) });
 }
 
+/** Undo a shortlist - HR-only, same as shortlisting itself. */
+export function unshortlistCandidate(
+  applicationIds: string[],
+): Promise<{ unshortlisted: number }> {
+  return request("/hr/shortlist/unshortlist", {
+    method: "POST",
+    body: body({ applicationIds }),
+  });
+}
+
 /**
  * The full CV of a shortlisted, self-applied candidate.
  *
@@ -356,16 +368,16 @@ export function startPayment(
  * manager can shortlist candidates but cannot create/edit jobs, upload CVs or
  * send emails - those stay HR-only.
  */
-export function getManagerDashboard(): Promise<{ jobs: Job[]; apps: Application[] }> {
+export function getManagerDashboard(): Promise<ManagerDashboard> {
   return request("/manager/dashboard");
 }
 
-export function getManagerJobs(): Promise<Job[]> {
-  return request<Job[]>("/manager/jobs");
+export function getManagerJobs(): Promise<JobWithStats[]> {
+  return request<JobWithStats[]>("/manager/jobs");
 }
 
-export function getManagerScreenings(): Promise<Job[]> {
-  return request<Job[]>("/manager/jobs?kind=screening");
+export function getManagerScreenings(): Promise<JobWithStats[]> {
+  return request<JobWithStats[]>("/manager/jobs?kind=screening");
 }
 
 export function getManagerJob(jobId: string): Promise<Job> {
@@ -380,12 +392,6 @@ export function getManagerShortlist(
   jobId: string,
 ): Promise<{ app: Application; candidate: Candidate }[]> {
   return request(`/manager/shortlist/${jobId}`);
-}
-
-export function shortlistCandidateAsManager(
-  applicationIds: string[],
-): Promise<{ shortlisted: number }> {
-  return request("/manager/shortlist", { method: "POST", body: body({ applicationIds }) });
 }
 
 export async function fetchManagerApplicationCv(applicationId: string): Promise<string> {

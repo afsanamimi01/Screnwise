@@ -35,10 +35,19 @@ export async function getPaymentStatus(_req, res, next) {
 /** This company's paid receipts, newest first. Abandoned checkouts never show up here. */
 export async function listPayments(req, res, next) {
   try {
+    // ---- Sort config ----
+    // Flip to "createdAt asc" to show the oldest receipts first - nothing else to touch.
+    const SORT_BY = "createdAt desc";
+    const [sortField, sortWord] = SORT_BY.split(" ");
+    const sortOrder = sortWord === "desc" ? -1 : 1;
+
     const rows = await Payment.find({ companyId: req.user.companyId, status: "paid" })
-      .sort({ createdAt: -1 })
+      .sort({ [sortField]: sortOrder })
       .limit(25);
-    res.json(rows.map((r) => r.toJSON()));
+
+    const payments = [];
+    for (const r of rows) payments.push(r.toJSON());
+    res.json(payments);
   } catch (err) {
     next(err);
   }
@@ -53,11 +62,13 @@ export async function listPayments(req, res, next) {
  */
 export async function startPayment(req, res, next) {
   try {
+    // ---- Step 1: the plan must be one of the three real plan keys ----
     const { plan: planKey } = req.body;
     if (!PLAN_KEYS.includes(planKey)) {
       return res.status(400).json({ message: "plan must be basic, advance or custom" });
     }
 
+    // ---- Step 2: the company, its priced plan and the manager, fetched independently ----
     const [company, plan, manager] = await Promise.all([
       Company.findById(req.user.companyId),
       Plan.findOne({ key: planKey }),
@@ -65,10 +76,11 @@ export async function startPayment(req, res, next) {
     ]);
     if (!company) return res.status(404).json({ message: "Company not found" });
 
-    // Refuse a downgrade that could not be applied, before taking any money.
+    // ---- Step 3: refuse a downgrade that could not be applied, before taking any money ----
     const conflict = await seatConflict(company._id, planKey);
     if (conflict) return res.status(409).json({ message: conflict });
 
+    // ---- Step 4: this plan must actually be sold online ----
     const amount = plan?.amount ?? 0;
     if (amount <= 0) {
       return res.status(400).json({
@@ -77,6 +89,7 @@ export async function startPayment(req, res, next) {
       });
     }
 
+    // ---- Step 5: record the pending payment ----
     const tranId = newTransactionId(company._id);
     const payment = await Payment.create({
       companyId: company._id,
@@ -88,6 +101,7 @@ export async function startPayment(req, res, next) {
       gateway: activeDriver(),
     });
 
+    // ---- Step 6: no gateway configured - activate the plan on the spot ----
     if (activeDriver() === "manual") {
       const { firstPick } = await activatePlan(company, planKey);
       payment.status = "paid";
@@ -103,6 +117,7 @@ export async function startPayment(req, res, next) {
       return res.status(201).json({ paid: true, redirectUrl: null, payment: payment.toJSON() });
     }
 
+    // ---- Step 7: a gateway is configured - start the real checkout session ----
     const session = await initiatePayment({
       tranId,
       amount,
@@ -133,6 +148,7 @@ export async function startPayment(req, res, next) {
  * @returns {Promise<{ok: boolean, payment: object|null, reason: string}>}
  */
 async function settlePayment(body) {
+  // ---- Step 1: the callback must carry a transaction id we know about ----
   const tranId = body?.tran_id;
   const valId = body?.val_id;
   if (!tranId) return { ok: false, payment: null, reason: "No transaction id in the callback" };
@@ -140,33 +156,37 @@ async function settlePayment(body) {
   const payment = await Payment.findOne({ tranId });
   if (!payment) return { ok: false, payment: null, reason: "Unknown transaction" };
 
-  // Already settled - a second callback (IPN after redirect, or a retry) must
-  // not activate anything twice.
+  // ---- Step 2: already settled - a second callback must not activate anything twice ----
   if (payment.status === "paid") return { ok: true, payment, reason: "Already settled" };
 
   // Nothing below here is persisted: an unconfirmed checkout just stays
   // `pending` so a later, genuine callback for the same tranId can still
   // settle it - it is never labelled failed/cancelled/invalid in the database.
+  // ---- Step 3: the callback must carry a validation id ----
   if (!valId) {
     return { ok: false, payment, reason: "Callback carried no validation id" };
   }
 
+  // ---- Step 4: the gateway must confirm that validation id ----
   const check = await validatePayment(valId);
   if (!check.ok) {
     return { ok: false, payment, reason: check.error ?? `Gateway reported ${check.status}` };
   }
 
+  // ---- Step 5: what the gateway says was paid must match what we recorded ----
   // The gateway is the authority on what was paid; if it does not match what we
   // recorded, something is wrong and no plan is granted.
   if (check.amount == null || Math.abs(check.amount - payment.amount) > 0.01) {
     return { ok: false, payment, reason: `Paid ${check.amount} but the plan costs ${payment.amount}` };
   }
 
+  // ---- Step 6: the company must still exist ----
   const company = await Company.findById(payment.companyId);
   if (!company) {
     return { ok: false, payment, reason: "Company no longer exists" };
   }
 
+  // ---- Step 7: activate the plan and record the payment as paid ----
   const { firstPick } = await activatePlan(company, payment.planKey);
 
   payment.status = "paid";
@@ -176,6 +196,7 @@ async function settlePayment(body) {
   payment.paidAt = new Date();
   await payment.save();
 
+  // ---- Step 8: log who it was for and return ----
   const manager = await User.findById(payment.initiatedBy);
   await logAudit(
     manager?.name ?? "Payment gateway",

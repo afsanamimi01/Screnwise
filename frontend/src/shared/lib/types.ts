@@ -93,6 +93,10 @@ export type Job = {
   newSinceLastVisit: number;
 };
 
+/** A job/screening row from the manager jobs table - counts are pre-computed
+ * by the backend so the table doesn't fetch each job's applications itself. */
+export type JobWithStats = Job & { applicantCount: number; shortlistedCount: number };
+
 export type ApplicationStatus =
   | "applied"
   | "screened"
@@ -125,6 +129,18 @@ export type Application = {
   status: ApplicationStatus;
   appliedAt: string;
   cvFileName: string;
+};
+
+/** Everything the manager dashboard reads - pre-computed by the backend, in
+ * the same order the page renders it (KPI cards, then jobs, then chart). */
+export type ManagerDashboard = {
+  kpis: {
+    activeJobs: number;
+    totalApplicants: number;
+    shortlistRate: number;
+  };
+  jobs: (Job & { applicantCount: number; shortlistedCount: number })[];
+  chart: { name: string; selfApplied: number; hrUploaded: number }[];
 };
 
 export type Candidate = {

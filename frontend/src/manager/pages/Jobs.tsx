@@ -4,11 +4,7 @@ import { ArrowUpDown } from "lucide-react";
 import { useState } from "react";
 import { Shell } from "@/manager/components/Shell";
 import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
-import {
-  getManagerApplicationsForJob,
-  getManagerJobs,
-  getManagerScreenings,
-} from "@/shared/lib/api";
+import { getManagerJobs, getManagerScreenings } from "@/shared/lib/api";
 import { useAuth } from "@/shared/lib/auth";
 import { usePageTitle } from "@/shared/lib/use-page-title";
 import { useWorkspaceBase } from "@/shared/lib/workspace";
@@ -38,27 +34,17 @@ export default function Jobs() {
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["jobs-table", isScreening ? "screening" : "job", user?.id],
     enabled: Boolean(user),
-    queryFn: async () => {
-      const jobs = isScreening ? await getManagerScreenings() : await getManagerJobs();
-      return Promise.all(
-        jobs.map(async (job) => {
-          const apps = await getManagerApplicationsForJob(job.id);
-          return {
-            job,
-            applicants: apps.length,
-            shortlisted: apps.filter((a) => a.status === "shortlisted").length,
-          };
-        }),
-      );
-    },
+    // Applicant and shortlisted counts come pre-computed on each job - the
+    // table itself does no per-job fetching or math.
+    queryFn: () => (isScreening ? getManagerScreenings() : getManagerJobs()),
   });
 
   const rows = [...(data ?? [])].sort((a, b) => {
     const dir = asc ? 1 : -1;
-    if (sort === "title") return a.job.title.localeCompare(b.job.title) * dir;
-    if (sort === "applicants") return (a.applicants - b.applicants) * dir;
-    if (sort === "shortlisted") return (a.shortlisted - b.shortlisted) * dir;
-    return a.job.createdAt.localeCompare(b.job.createdAt) * dir;
+    if (sort === "title") return a.title.localeCompare(b.title) * dir;
+    if (sort === "applicants") return (a.applicantCount - b.applicantCount) * dir;
+    if (sort === "shortlisted") return (a.shortlistedCount - b.shortlistedCount) * dir;
+    return a.createdAt.localeCompare(b.createdAt) * dir;
   });
 
   const sortBy = (key: SortKey) => {
@@ -123,7 +109,7 @@ export default function Jobs() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map(({ job, applicants, shortlisted }) => {
+                {rows.map((job) => {
                   const sub = [job.department, job.location].filter(Boolean).join(" · ");
                   return (
                     <tr
@@ -145,8 +131,8 @@ export default function Jobs() {
                           {job.status}
                         </span>
                       </td>
-                      <td className="manager-jobs__num">{applicants}</td>
-                      <td className="manager-jobs__num">{shortlisted}</td>
+                      <td className="manager-jobs__num">{job.applicantCount}</td>
+                      <td className="manager-jobs__num">{job.shortlistedCount}</td>
                       <td className="manager-jobs__cell--muted">{job.createdAt}</td>
                     </tr>
                   );

@@ -8,7 +8,12 @@ import { JobTabs } from "@/hr/components/JobTabs";
 import { scoreBand } from "@/shared/components/ScoreBadge";
 import { ScoreExplainDrawer } from "@/hr/components/ScoreExplainDrawer";
 import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
-import { getApplicationsForJob, getJob, shortlistCandidate } from "@/shared/lib/api";
+import {
+  getApplicationsForJob,
+  getJob,
+  shortlistCandidate,
+  unshortlistCandidate,
+} from "@/shared/lib/api";
 import { canViewBoard, useAuth } from "@/shared/lib/auth";
 import { SCORE_THRESHOLD, type Application, type Job } from "@/shared/lib/types";
 import { usePageTitle } from "@/shared/lib/use-page-title";
@@ -104,6 +109,16 @@ export default function JobBoard() {
     setSelected([]);
     toast.success(
       `${ids.length} candidate${ids.length > 1 ? "s" : ""} shortlisted. Identities are now visible on the shortlist page.`,
+    );
+  };
+
+  /** The reverse of `shortlist` - same one-at-a-time use as the row's toggle button. */
+  const unshortlist = async (ids: string[]) => {
+    if (!ids.length) return;
+    await unshortlistCandidate(ids);
+    await queryClient.invalidateQueries({ queryKey: ["applications", jobId] });
+    toast.success(
+      `${ids.length} candidate${ids.length > 1 ? "s" : ""} removed from the shortlist.`,
     );
   };
 
@@ -263,6 +278,7 @@ export default function JobBoard() {
                   onToggle={() => toggle(app.id)}
                   onExplain={() => setDrawerApp(app)}
                   onShortlist={() => shortlist([app.id])}
+                  onUnshortlist={() => unshortlist([app.id])}
                 />
               ))}
             </div>
@@ -302,6 +318,7 @@ export default function JobBoard() {
                         onToggle={() => toggle(app.id)}
                         onExplain={() => setDrawerApp(app)}
                         onShortlist={() => shortlist([app.id])}
+                        onUnshortlist={() => unshortlist([app.id])}
                       />
                     ))}
                   </div>
@@ -330,6 +347,7 @@ function CandidateRow({
   onToggle,
   onExplain,
   onShortlist,
+  onUnshortlist,
 }: {
   app: Application;
   job: Job;
@@ -338,6 +356,7 @@ function CandidateRow({
   onToggle: () => void;
   onExplain: () => void;
   onShortlist: () => void;
+  onUnshortlist: () => void;
 }) {
   return (
     <div className="hr-board__row">
@@ -393,13 +412,16 @@ function CandidateRow({
         <button type="button" className="hr-board__btn hr-board__btn--ghost" onClick={onExplain}>
           Why this score
         </button>
+        {/* One button, two directions: shortlist when not yet on it, unshortlist
+            once it is - so a click always does the opposite of the current state. */}
         <button
           type="button"
-          className="hr-board__btn"
-          onClick={onShortlist}
-          disabled={app.status === "shortlisted"}
+          className={
+            "hr-board__btn" + (app.status === "shortlisted" ? " hr-board__btn--ghost" : "")
+          }
+          onClick={app.status === "shortlisted" ? onUnshortlist : onShortlist}
         >
-          {app.status === "shortlisted" ? "On shortlist" : "Shortlist"}
+          {app.status === "shortlisted" ? "Unshortlist" : "Shortlist"}
         </button>
       </div>
     </div>

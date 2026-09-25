@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import { Eye, FileText, Mail } from "lucide-react";
 import { useState } from "react";
@@ -7,7 +7,12 @@ import { JobTabs } from "@/hr/components/JobTabs";
 import { scoreBand } from "@/shared/components/ScoreBadge";
 import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
 import { Shell } from "@/hr/components/Shell";
-import { fetchApplicationCv, getJob, getShortlist } from "@/shared/lib/api";
+import {
+  fetchApplicationCv,
+  getJob,
+  getShortlist,
+  unshortlistCandidate,
+} from "@/shared/lib/api";
 import { usePageTitle } from "@/shared/lib/use-page-title";
 import { useWorkspaceBase } from "@/shared/lib/workspace";
 import "./JobShortlist.css";
@@ -16,6 +21,7 @@ export default function JobShortlist() {
   usePageTitle("Shortlist - Screenwise");
   const { jobId = "" } = useParams();
   const base = useWorkspaceBase();
+  const queryClient = useQueryClient();
   const jobQuery = useQuery({ queryKey: ["job", jobId], queryFn: () => getJob(jobId) });
   const query = useQuery({
     queryKey: ["shortlist", jobId],
@@ -23,6 +29,7 @@ export default function JobShortlist() {
   });
 
   const [opening, setOpening] = useState<string | null>(null);
+  const [removing, setRemoving] = useState<string | null>(null);
 
   /**
    * The CV is served as bytes behind the JWT, so it can't be a plain link:
@@ -39,6 +46,20 @@ export default function JobShortlist() {
       toast.error(err instanceof Error ? err.message : "We couldn't open that CV.");
     } finally {
       setOpening(null);
+    }
+  };
+
+  /** Removes the candidate from this page - screening goes blind again. */
+  const unshortlist = async (applicationId: string) => {
+    setRemoving(applicationId);
+    try {
+      await unshortlistCandidate([applicationId]);
+      await queryClient.invalidateQueries({ queryKey: ["shortlist", jobId] });
+      toast.success("Candidate removed from the shortlist.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "We couldn't unshortlist that candidate.");
+    } finally {
+      setRemoving(null);
     }
   };
 
@@ -132,6 +153,14 @@ export default function JobShortlist() {
                 >
                   Message
                 </Link>
+                <button
+                  type="button"
+                  className="hr-shortlist__btn hr-shortlist__btn--ghost"
+                  onClick={() => unshortlist(app.id)}
+                  disabled={removing === app.id}
+                >
+                  {removing === app.id ? "Removing…" : "Unshortlist"}
+                </button>
               </div>
             </div>
           ))}
