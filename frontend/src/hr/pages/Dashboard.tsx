@@ -15,33 +15,26 @@ import { Shell } from "@/hr/components/Shell";
 import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
 import { getDashboard } from "@/shared/lib/api";
 import { useAuth } from "@/shared/lib/auth";
-import type { Application, Job } from "@/shared/lib/types";
+import type { RecruiterDashboard } from "@/shared/lib/types";
 import { usePageTitle } from "@/shared/lib/use-page-title";
 import { useWorkspaceBase } from "@/shared/lib/workspace";
 import "./Dashboard.css";
 
-/** KPI cards across the top, in display order - reorder the array to reorder. */
+/** KPI cards across the top, in display order - reorder the array to reorder.
+ *  Values come straight from the backend's `kpis` object - no math here. */
 const KPI_CARDS: {
   key: string;
   label: string;
   icon: typeof Briefcase;
-  value: (ctx: { jobs: Job[]; apps: Application[] }) => string | number;
+  value: (kpis: RecruiterDashboard["kpis"]) => string | number;
 }[] = [
-  {
-    key: "activeJobs",
-    label: "Active jobs",
-    icon: Briefcase,
-    value: ({ jobs }) => jobs.filter((j) => j.status === "open").length,
-  },
-  { key: "applicants", label: "Total applicants", icon: Users, value: ({ apps }) => apps.length },
+  { key: "activeJobs", label: "Active jobs", icon: Briefcase, value: (k) => k.activeJobs },
+  { key: "applicants", label: "Total applicants", icon: Users, value: (k) => k.totalApplicants },
   {
     key: "shortlistRate",
     label: "Shortlist rate",
     icon: TrendingUp,
-    value: ({ apps }) => {
-      const s = apps.filter((a) => a.status === "shortlisted").length;
-      return `${apps.length ? Math.round((s / apps.length) * 100) : 0}%`;
-    },
+    value: (k) => `${k.shortlistRate}%`,
   },
 ];
 
@@ -79,22 +72,20 @@ export default function Dashboard() {
         {isError ? (
           <ErrorState message="We couldn't load your dashboard." onRetry={() => refetch()} />
         ) : null}
-        {data ? <Body jobs={data.jobs} apps={data.apps} /> : null}
+        {data ? <Body kpis={data.kpis} jobs={data.jobs} chart={data.chart} /> : null}
       </div>
     </Shell>
   );
 }
 
-function Body({ jobs, apps }: { jobs: Job[]; apps: Application[] }) {
+function Body({ kpis, jobs, chart }: RecruiterDashboard) {
   const base = useWorkspaceBase();
-  const chartData = jobs.map((job) => {
-    const jobApps = apps.filter((a) => a.jobId === job.id);
-    return {
-      name: job.title.length > 18 ? job.title.slice(0, 17) + "…" : job.title,
-      selfApplied: jobApps.filter((a) => a.source === "self-applied").length,
-      hrUploaded: jobApps.filter((a) => a.source === "HR-uploaded").length,
-    };
-  });
+  // Truncating a long title for the chart's x-axis label is display-only,
+  // so it stays here rather than in the backend's data.
+  const chartData = chart.map((point) => ({
+    ...point,
+    name: point.name.length > 18 ? point.name.slice(0, 17) + "…" : point.name,
+  }));
 
   return (
     <>
@@ -105,7 +96,7 @@ function Body({ jobs, apps }: { jobs: Job[]; apps: Application[] }) {
               <card.icon size={20} />
             </span>
             <div>
-              <div className="hr-dashboard__kpi-value">{card.value({ jobs, apps })}</div>
+              <div className="hr-dashboard__kpi-value">{card.value(kpis)}</div>
               <div className="hr-dashboard__kpi-label">{card.label}</div>
             </div>
           </div>
@@ -122,38 +113,33 @@ function Body({ jobs, apps }: { jobs: Job[]; apps: Application[] }) {
             />
           ) : (
             <div className="hr-dashboard__jobs">
-              {jobs.map((job) => {
-                const jobApps = apps.filter((a) => a.jobId === job.id);
-                return (
-                  <Link key={job.id} to={`${base}/${job.id}/board`} className="hr-dashboard__job">
+              {jobs.map((job) => (
+                <Link key={job.id} to={`${base}/${job.id}/board`} className="hr-dashboard__job">
+                  <div>
+                    <div className="hr-dashboard__job-title-row">
+                      <span className="hr-dashboard__job-title">{job.title}</span>
+                      {job.newSinceLastVisit > 0 ? (
+                        <span className="hr-dashboard__new">
+                          {job.newSinceLastVisit} new since last visit
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="hr-dashboard__job-meta">
+                      {job.department} · {job.location}
+                    </div>
+                  </div>
+                  <div className="hr-dashboard__job-stats">
                     <div>
-                      <div className="hr-dashboard__job-title-row">
-                        <span className="hr-dashboard__job-title">{job.title}</span>
-                        {job.newSinceLastVisit > 0 ? (
-                          <span className="hr-dashboard__new">
-                            {job.newSinceLastVisit} new since last visit
-                          </span>
-                        ) : null}
-                      </div>
-                      <div className="hr-dashboard__job-meta">
-                        {job.department} · {job.location}
-                      </div>
+                      <div className="hr-dashboard__stat-value">{job.applicantCount}</div>
+                      <div className="hr-dashboard__stat-label">applicants</div>
                     </div>
-                    <div className="hr-dashboard__job-stats">
-                      <div>
-                        <div className="hr-dashboard__stat-value">{jobApps.length}</div>
-                        <div className="hr-dashboard__stat-label">applicants</div>
-                      </div>
-                      <div>
-                        <div className="hr-dashboard__stat-value">
-                          {jobApps.filter((a) => a.status === "shortlisted").length}
-                        </div>
-                        <div className="hr-dashboard__stat-label">shortlisted</div>
-                      </div>
+                    <div>
+                      <div className="hr-dashboard__stat-value">{job.shortlistedCount}</div>
+                      <div className="hr-dashboard__stat-label">shortlisted</div>
                     </div>
-                  </Link>
-                );
-              })}
+                  </div>
+                </Link>
+              ))}
             </div>
           )}
         </section>

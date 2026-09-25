@@ -34,16 +34,19 @@ function looksLikeAPersonsName(value) {
  */
 export async function uploadCvs(req, res, next) {
   try {
+    // ---- Step 1: the job, scoped to the caller's company ----
     const { jobId } = req.params;
 
     const job = await Job.findOne({ _id: jobId, ...tenantFilter(req) });
     if (!job) return res.status(404).json({ message: "Job not found" });
 
+    // ---- Step 2: at least one file must actually be attached ----
     const files = req.files || [];
     if (!files.length) {
       return res.status(400).json({ message: "Attach one or more PDF, DOCX or TXT files (field name: cvs)" });
     }
 
+    // ---- Step 3: refuse the whole batch up front if it would bust the monthly limit ----
     // Refuse the whole batch up front rather than screening some and
     // rejecting the rest partway through - cheaper (no wasted engine runs)
     // and leaves no ambiguity about which files actually got screened.
@@ -58,6 +61,7 @@ export async function uploadCvs(req, res, next) {
       });
     }
 
+    // ---- Step 4: screen every file, one at a time, counting the unreadable ones ----
     const existingCount = await Application.countDocuments({ jobId });
     const docs = [];
     let unreadableCount = 0;
@@ -68,7 +72,9 @@ export async function uploadCvs(req, res, next) {
         { buffer: file.buffer, fileName: file.originalname, mimeType: file.mimetype },
         job,
       );
-      if (result.score === 0 && result.scoreBreakdown[0]?.dimension === "File") unreadableCount++;
+      if (result.score === 0 && result.scoreBreakdown[0]?.dimension === "File") {
+        unreadableCount = unreadableCount + 1;
+      }
 
       // Identity comes from the CV itself. An address is never invented: with
       // none printed in the file the record keeps an empty one and the email
@@ -105,6 +111,7 @@ export async function uploadCvs(req, res, next) {
       });
     }
 
+    // ---- Step 5: save the batch, re-index it, and log it ----
     const created = await Application.insertMany(docs);
 
     // One re-index for the batch rather than one per CV. Fire-and-forget: the
@@ -120,14 +127,16 @@ export async function uploadCvs(req, res, next) {
       req.user.companyId,
     );
 
-    // The rank board is blind - strip identity before returning.
-    const blind = created.map((a) => {
+    // ---- Step 6: the rank board is blind - strip identity before returning ----
+    const blind = [];
+    for (const a of created) {
       const json = a.toJSON();
       delete json.name;
       delete json.email;
       delete json.phone;
-      return json;
-    });
+      blind.push(json);
+    }
+
     res.status(201).json(blind);
   } catch (err) {
     next(err);

@@ -22,20 +22,30 @@ export async function getMailStatus(_req, res, next) {
  * `recipients` array of addresses is still accepted for older clients.
  */
 async function resolveRecipients({ applicationIds, recipients, job }) {
+  // ---- Step 1: prefer application ids - they carry the candidate's own name ----
   if (Array.isArray(applicationIds) && applicationIds.length) {
     const apps = await Application.find({ _id: { $in: applicationIds }, jobId: job._id });
-    return apps
-      .filter((a) => isEmailAddress(a.email))
-      .map((a) => ({ email: a.email.trim(), name: a.name ?? "", applicationId: a._id }));
+    const targets = [];
+    for (const a of apps) {
+      if (isEmailAddress(a.email)) {
+        targets.push({ email: a.email.trim(), name: a.name ?? "", applicationId: a._id });
+      }
+    }
+    return targets;
   }
 
-  return (Array.isArray(recipients) ? recipients : [])
-    .filter(isEmailAddress)
-    .map((email) => ({ email: email.trim(), name: "", applicationId: null }));
+  // ---- Step 2: fall back to a plain list of addresses, no names attached ----
+  const addresses = Array.isArray(recipients) ? recipients : [];
+  const targets = [];
+  for (const email of addresses) {
+    if (isEmailAddress(email)) targets.push({ email: email.trim(), name: "", applicationId: null });
+  }
+  return targets;
 }
 
 export async function sendShortlistEmail(req, res, next) {
   try {
+    // ---- Step 1: the message must have a subject and a body ----
     const { jobId } = req.params;
     const { subject, body, template, recipients = [], applicationIds = [] } = req.body;
 
@@ -43,9 +53,11 @@ export async function sendShortlistEmail(req, res, next) {
       return res.status(400).json({ message: "Subject and body are both required" });
     }
 
+    // ---- Step 2: the job, scoped to the caller's company ----
     const job = await Job.findOne({ _id: jobId, ...tenantFilter(req) });
     if (!job) return res.status(404).json({ message: "Job not found" });
 
+    // ---- Step 3: who it's actually going to ----
     const targets = await resolveRecipients({ applicationIds, recipients, job });
     if (!targets.length) {
       return res
@@ -63,6 +75,7 @@ export async function sendShortlistEmail(req, res, next) {
       ? `Sent by ${req.user.name} at ${companyName} via Screenwise. Reply to this email to reach the hiring team.`
       : `Sent by ${req.user.name} via Screenwise. Reply to this email to reach the hiring team.`;
 
+    // ---- Step 4: send one message per candidate ----
     // Sequential on purpose: one message per candidate so the greeting is
     // personal and nobody sees the rest of the shortlist, and so the mailer can
     // pace itself under the provider's rate limit.
@@ -92,15 +105,23 @@ export async function sendShortlistEmail(req, res, next) {
       });
     }
 
-    const sentCount = deliveries.filter((d) => d.status === "sent").length;
+    // ---- Step 5: tally how many actually went out ----
+    let sentCount = 0;
+    for (const d of deliveries) {
+      if (d.status === "sent") sentCount = sentCount + 1;
+    }
     const status = sentCount === 0 ? "failed" : sentCount === deliveries.length ? "sent" : "partial";
+
+    // ---- Step 6: record the send and log it ----
+    const recipientAddresses = [];
+    for (const d of deliveries) recipientAddresses.push(d.email);
 
     const email = await SentEmail.create({
       jobId: job._id,
       subject,
       body,
       template,
-      recipients: deliveries.map((d) => d.email),
+      recipients: recipientAddresses,
       deliveries,
       driver,
       status,
@@ -120,11 +141,21 @@ export async function sendShortlistEmail(req, res, next) {
   }
 }
 
+/** Every email sent for this job, newest first. */
 export async function listSentEmails(req, res, next) {
   try {
+    // ---- Sort config ----
+    // Flip to "sentAt asc" to show the oldest email first - nothing else to touch.
+    const SORT_BY = "sentAt desc";
+    const [sortField, sortWord] = SORT_BY.split(" ");
+    const sortOrder = sortWord === "desc" ? -1 : 1;
+
+    // ---- Step 1: the job, scoped to the caller's company ----
     const job = await Job.findOne({ _id: req.params.jobId, ...tenantFilter(req) });
     if (!job) return res.status(404).json({ message: "Job not found" });
-    const emails = await SentEmail.find({ jobId: job._id }).sort({ sentAt: -1 });
+
+    // ---- Step 2: every email sent for it ----
+    const emails = await SentEmail.find({ jobId: job._id }).sort({ [sortField]: sortOrder });
     res.json(emails);
   } catch (err) {
     next(err);

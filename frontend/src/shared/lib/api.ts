@@ -15,11 +15,11 @@ import type {
   Job,
   JobWithStats,
   MailStatus,
-  ManagerDashboard,
   Payment,
   PaymentStatus,
   Plan,
   PlanKey,
+  RecruiterDashboard,
   RevenueReport,
   SentEmail,
   User,
@@ -189,7 +189,7 @@ export async function getProfileCvBlob(): Promise<Blob> {
 
 /* ----------------------------------- hr --------------------------------- */
 
-export function getDashboard(): Promise<{ jobs: Job[]; apps: Application[] }> {
+export function getDashboard(): Promise<RecruiterDashboard> {
   return request("/hr/dashboard");
 }
 
@@ -368,7 +368,7 @@ export function startPayment(
  * manager can shortlist candidates but cannot create/edit jobs, upload CVs or
  * send emails - those stay HR-only.
  */
-export function getManagerDashboard(): Promise<ManagerDashboard> {
+export function getManagerDashboard(): Promise<RecruiterDashboard> {
   return request("/manager/dashboard");
 }
 

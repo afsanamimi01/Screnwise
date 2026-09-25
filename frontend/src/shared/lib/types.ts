@@ -131,9 +131,10 @@ export type Application = {
   cvFileName: string;
 };
 
-/** Everything the manager dashboard reads - pre-computed by the backend, in
- * the same order the page renders it (KPI cards, then jobs, then chart). */
-export type ManagerDashboard = {
+/** Everything the manager's and HR's dashboard pages read - pre-computed by
+ * the backend, in the same order each page renders it (KPI cards, then jobs,
+ * then chart). Both `/manager/dashboard` and `/hr/dashboard` return this shape. */
+export type RecruiterDashboard = {
   kpis: {
     activeJobs: number;
     totalApplicants: number;

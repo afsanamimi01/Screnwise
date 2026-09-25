@@ -15,7 +15,7 @@ import { Shell } from "@/manager/components/Shell";
 import { EmptyState, ErrorState, LoadingRows } from "@/shared/components/StateViews";
 import { getManagerDashboard } from "@/shared/lib/api";
 import { useAuth } from "@/shared/lib/auth";
-import type { ManagerDashboard } from "@/shared/lib/types";
+import type { RecruiterDashboard } from "@/shared/lib/types";
 import { usePageTitle } from "@/shared/lib/use-page-title";
 import { useWorkspaceBase } from "@/shared/lib/workspace";
 import "./Dashboard.css";
@@ -26,7 +26,7 @@ const KPI_CARDS: {
   key: string;
   label: string;
   icon: typeof Briefcase;
-  value: (kpis: ManagerDashboard["kpis"]) => string | number;
+  value: (kpis: RecruiterDashboard["kpis"]) => string | number;
 }[] = [
   { key: "activeJobs", label: "Active jobs", icon: Briefcase, value: (k) => k.activeJobs },
   { key: "applicants", label: "Total applicants", icon: Users, value: (k) => k.totalApplicants },
@@ -71,7 +71,7 @@ export default function Dashboard() {
   );
 }
 
-function Body({ kpis, jobs, chart }: ManagerDashboard) {
+function Body({ kpis, jobs, chart }: RecruiterDashboard) {
   const base = useWorkspaceBase();
   // Truncating a long title for the chart's x-axis label is display-only,
   // so it stays here rather than in the backend's data.

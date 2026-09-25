@@ -8,30 +8,45 @@ import { rag } from "../../shared/rag/indexer.js";
 /** Identities are revealed only here, once a candidate has been shortlisted. */
 export async function getShortlist(req, res, next) {
   try {
+    // ---- Sort config ----
+    // Flip to "score asc" to show the lowest scores first - nothing else to touch.
+    const SORT_BY = "score desc";
+    const [sortField, sortWord] = SORT_BY.split(" ");
+    const sortOrder = sortWord === "desc" ? -1 : 1;
+
+    // ---- Step 1: this job, scoped to the caller's company ----
     const { jobId } = req.params;
     const job = await Job.findOne({ _id: jobId, ...tenantFilter(req) });
     if (!job) return res.status(404).json({ message: "Job not found" });
 
+    // ---- Step 2: every shortlisted application on it ----
     const apps = await Application.find({
       jobId,
       status: "shortlisted",
-    }).sort({ score: -1 });
+    }).sort({ [sortField]: sortOrder });
 
+    // ---- Step 3: which of those candidates have a CV on file, fetched independently ----
     // A self-applied candidate's CV lives on their profile, so one lookup for
     // the whole page tells us which rows have a file to open. HR-uploaded CVs
     // are parsed in memory and never stored, so those rows have none.
-    const candidateIds = apps.map((a) => a.candidateId).filter(Boolean);
+    const candidateIds = [];
+    for (const a of apps) {
+      if (a.candidateId) candidateIds.push(a.candidateId);
+    }
     const profiles = candidateIds.length
       ? await Candidate.find({ userId: { $in: candidateIds } }).select("userId cv.fileName cv.size")
       : [];
-    const cvByUser = new Map(profiles.map((p) => [p.userId.toString(), p.cv]));
+    const cvByUser = new Map();
+    for (const p of profiles) cvByUser.set(p.userId.toString(), p.cv);
 
-    const rows = apps.map((a) => {
+    // ---- Step 4: pair each application with its candidate and CV info ----
+    const rows = [];
+    for (const a of apps) {
       // The submission's own copy wins over the profile: it is the document
       // that produced this score.
       const cv =
         a.cv?.fileName ? a.cv : a.candidateId ? cvByUser.get(a.candidateId.toString()) : null;
-      return {
+      rows.push({
         app: a.toJSON(),
         candidate: {
           id: (a.candidateId ?? a._id).toString(),
@@ -43,8 +58,9 @@ export async function getShortlist(req, res, next) {
           cvAvailable: !!cv?.fileName,
           cvFileName: cv?.fileName ?? "",
         },
-      };
-    });
+      });
+    }
+
     res.json(rows);
   } catch (err) {
     next(err);
@@ -53,18 +69,22 @@ export async function getShortlist(req, res, next) {
 
 export async function shortlistCandidates(req, res, next) {
   try {
+    // ---- Step 1: only applications that belong to the caller's company ----
     const { applicationIds = [] } = req.body;
     const apps = await Application.find({ _id: { $in: applicationIds } }).populate("jobId");
 
-    // Only applications whose job belongs to the caller's company.
     const companyId = req.user.companyId?.toString();
-    const allowed = apps.filter((a) => a.jobId?.companyId?.toString() === companyId);
+    const allowed = [];
+    for (const a of apps) {
+      if (a.jobId?.companyId?.toString() === companyId) allowed.push(a);
+    }
 
-    await Application.updateMany(
-      { _id: { $in: allowed.map((a) => a._id) } },
-      { $set: { status: "shortlisted" } },
-    );
+    // ---- Step 2: move them to "shortlisted" ----
+    const allowedIds = [];
+    for (const a of allowed) allowedIds.push(a._id);
+    await Application.updateMany({ _id: { $in: allowedIds } }, { $set: { status: "shortlisted" } });
 
+    // ---- Step 3: re-index and log ----
     if (allowed.length) {
       // Shortlisting changes who these documents describe, not what they say,
       // so their hashes move and the affected ones are re-indexed. The CV text
@@ -99,13 +119,15 @@ export async function unshortlistCandidates(req, res, next) {
     const apps = await Application.find({ _id: { $in: applicationIds } }).populate("jobId");
 
     const companyId = req.user.companyId?.toString();
-    const allowed = apps.filter((a) => a.jobId?.companyId?.toString() === companyId);
+    const allowed = [];
+    for (const a of apps) {
+      if (a.jobId?.companyId?.toString() === companyId) allowed.push(a);
+    }
 
     // ---- Step 2: move them back to "screened" ----
-    await Application.updateMany(
-      { _id: { $in: allowed.map((a) => a._id) } },
-      { $set: { status: "screened" } },
-    );
+    const allowedIds = [];
+    for (const a of allowed) allowedIds.push(a._id);
+    await Application.updateMany({ _id: { $in: allowedIds } }, { $set: { status: "screened" } });
 
     // ---- Step 3: re-index and log, same as a shortlist does ----
     if (allowed.length) {
@@ -143,6 +165,7 @@ export async function unshortlistCandidates(req, res, next) {
  */
 export async function getApplicationCv(req, res, next) {
   try {
+    // ---- Step 1: the application, scoped to the caller's company via its job ----
     const { applicationId } = req.params;
 
     const application = await Application.findById(applicationId);
@@ -152,6 +175,7 @@ export async function getApplicationCv(req, res, next) {
     const job = await Job.findOne({ _id: application.jobId, ...tenantFilter(req) });
     if (!job) return res.status(404).json({ message: "Application not found" });
 
+    // ---- Step 2: refuse until this candidate has actually been shortlisted ----
     if (application.status !== "shortlisted") {
       return res.status(403).json({
         message: "The CV opens once this candidate is shortlisted - screening stays blind until then.",
@@ -159,8 +183,7 @@ export async function getApplicationCv(req, res, next) {
       });
     }
 
-    // Prefer the copy attached to this submission; fall back to the CV on the
-    // candidate's profile for applications recorded before that was kept.
+    // ---- Step 3: resolve the file - the submission's own copy first, then the profile's ----
     let cv = application.cv?.data ? application.cv : null;
     if (!cv && application.candidateId) {
       const profile = await Candidate.findOne({ userId: application.candidateId });
@@ -176,6 +199,7 @@ export async function getApplicationCv(req, res, next) {
       });
     }
 
+    // ---- Step 4: log the view, then send the file ----
     await logAudit(
       req.user.name,
       "CV viewed",
