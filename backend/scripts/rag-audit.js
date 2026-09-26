@@ -5,19 +5,7 @@ import User from "../shared/models/User.model.js";
 import RagDocument from "../shared/models/RagDocument.model.js";
 import { visibleFilter } from "../shared/rag/visibility.js";
 
-/**
- * Prove the retrieval boundary holds, against the real store.
- *
- * These are the failures that matter most in a multi-tenant assistant, and the
- * ones least likely to be noticed: a leak produces a *better* answer, not an
- * error. Each check asks the visibility filter for everything a given account
- * could ever retrieve, then looks for something in there that account must
- * never see.
- *
- *   node scripts/rag-audit.js
- *
- * Exits non-zero on any failure so it can gate a deploy.
- */
+/** Prove the retrieval boundary holds, against the real store. */
 const results = [];
 const check = (name, passed, detail = "") => {
   results.push({ name, passed, detail });
@@ -48,7 +36,7 @@ async function main() {
     return;
   }
 
-  // ---- tenant wall -------------------------------------------------------
+  // Tenant wall
   const hrDocs = await reachable(hrA, "companyId sourceType");
   const foreign = hrDocs.filter(
     (d) => d.companyId && String(d.companyId) !== String(hrA.companyId),
@@ -70,7 +58,7 @@ async function main() {
     results.pop();
   }
 
-  // ---- the blind board ---------------------------------------------------
+  // The blind board
   const cvDocs = hrDocs.filter((d) => d.sourceType === "cv");
   const withNames = await RagDocument.find({ sourceType: "cv" }).select("content title").lean();
   const emailLike = withNames.filter((d) => /[\w.+-]+@[\w-]+\.[a-z]{2,}/i.test(d.content));
@@ -80,7 +68,7 @@ async function main() {
     emailLike.length ? `${emailLike.length} of ${withNames.length}` : `${cvDocs.length} CV docs in HR scope`,
   );
 
-  // ---- candidate isolation ----------------------------------------------
+  // Candidate isolation
   const [candA, candB] = candidates;
   const candDocs = await reachable(candA, "sourceType companyId visibleToUserId publicRead");
   const privateToOthers = candDocs.filter(
@@ -108,7 +96,7 @@ async function main() {
     check("a second candidate reaches none of the first's", crossed.length === 0);
   }
 
-  // ---- the platform operator --------------------------------------------
+  // The platform operator
   const adminDocs = await reachable(admin, "companyId sourceType visibleToUserId");
   const tenantOwned = adminDocs.filter((d) => d.companyId);
   const personal = adminDocs.filter((d) => d.visibleToUserId);

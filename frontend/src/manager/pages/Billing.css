@@ -86,46 +86,6 @@
   color: #0b1d27;
 }
 
-/* --- payment gateway banner ---------------------------------- */
-.billing__gateway {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border-radius: 0.75rem;
-  border: 1px solid #dee4e7;
-  background: #f5f8fa;
-  font-size: 0.875rem;
-  line-height: 1.5;
-  color: #1e313a;
-}
-
-.billing__gateway svg {
-  flex-shrink: 0;
-  margin-top: 0.125rem;
-}
-
-/* Live money: the strongest signal on the page. */
-.billing__gateway--live {
-  border-color: #a7d9c6;
-  background: #e4f6ee;
-  color: #14563c;
-}
-
-/* Sandbox: working checkout, no real money. */
-.billing__gateway--sandbox {
-  border-color: #bfe3ea;
-  background: #dcf4f8;
-  color: #084c57;
-}
-
-/* No gateway at all - plans activate without payment. */
-.billing__gateway--off {
-  border-color: #f3d9a4;
-  background: #fdf6e6;
-  color: #7a5216;
-}
-
 /* --- payment history ------------------------------------------ */
 .billing__history {
   margin-top: 0.5rem;

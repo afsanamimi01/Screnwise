@@ -1,20 +1,4 @@
-/**
- * SSLCommerz checkout for plan purchases.
- *
- * Two drivers, chosen by what is configured - the same shape as
- * `shared/mail/mailer.js`, so switching is an environment change:
- *
- *   sslcommerz  Real checkout. Set SSLCOMMERZ_STORE_ID and
- *               SSLCOMMERZ_STORE_PASSWORD; sandbox unless
- *               SSLCOMMERZ_LIVE=true.
- *   manual      Nothing configured. The plan activates immediately and the
- *               payment is recorded as `manual` - the demo still works, and
- *               the billing page says in as many words that no money moved.
- *
- * Money is never taken from the client: the amount comes from the Plan record
- * on the server, and a plan is only activated after SSLCommerz's own
- * validation API confirms the transaction.
- */
+/** SSLCommerz checkout for plan purchases. */
 
 const SANDBOX = {
   init: "https://sandbox.sslcommerz.com/gwprocess/v4/api.php",
@@ -57,10 +41,7 @@ export function clientBaseUrl() {
   return env("CLIENT_URL", "http://localhost:8080");
 }
 
-/**
- * What the billing page shows about payments. Reports configuration only -
- * never the store password.
- */
+/** What the billing page shows about payments. */
 export function gatewayStatus() {
   const driver = activeDriver();
   if (driver === "manual") {
@@ -97,11 +78,7 @@ function form(fields) {
   return body;
 }
 
-/**
- * Open a checkout session.
- *
- * @returns {Promise<{ok: boolean, redirectUrl: string|null, sessionKey: string|null, error: string|null}>}
- */
+/** Open a checkout session. */
 export async function initiatePayment({ tranId, amount, currency = "BDT", plan, company, customer }) {
   const api = apiBaseUrl();
 
@@ -164,16 +141,7 @@ export async function initiatePayment({ tranId, amount, currency = "BDT", plan, 
   }
 }
 
-/**
- * Confirm a transaction with the gateway itself.
- *
- * The browser is redirected to our success URL by SSLCommerz, but anyone can
- * open that URL - so nothing is trusted until this call, made from our server
- * to theirs with our store credentials, says the transaction is valid and
- * reports the amount actually paid.
- *
- * @returns {Promise<{ok: boolean, status: string, amount: number|null, currency: string|null, tranId: string|null, bankTranId: string|null, cardType: string, error: string|null}>}
- */
+/** Confirm a transaction with the gateway itself. */
 export async function validatePayment(valId) {
   const url = new URL(endpoints().validate);
   url.searchParams.set("val_id", valId);

@@ -16,16 +16,16 @@ import { activeDriver } from "../../shared/payment/sslcommerz.js";
 /** The caller's own company, with plan detail and seat usage. */
 export async function getMyCompany(req, res, next) {
   try {
-    // ---- Step 1: the company itself ----
+    // Find company
     const company = await Company.findById(req.user.companyId);
     if (!company) return res.status(404).json({ message: "Company not found" });
 
-    // ---- Step 2: its priced plan, seat usage and screening usage, fetched independently ----
+    // Fetch usage
     const plan = await Plan.findOne({ key: company.plan });
     const seats = await seatUsage(company._id);
     const screening = await screeningStatus(company);
 
-    // ---- Step 3: combine them into one response ----
+    // Combine response
     res.json({
       ...company.toJSON(), // `plan` here is the key string ("basic" | ...)
       hrSeatsUsed: seats.used,
@@ -59,13 +59,13 @@ export async function listHr(req, res, next) {
 
 export async function createHr(req, res, next) {
   try {
-    // ---- Step 1: the request must name a new HR account in full ----
+    // Require fields
     const { name, email, password } = req.body;
     if (!name || !email || !password) {
       return res.status(400).json({ message: "name, email and password are required" });
     }
 
-    // ---- Step 2: the company must have a plan with a free seat ----
+    // Check seat
     const company = await Company.findById(req.user.companyId);
     if (!company.plan) {
       return res.status(409).json({ message: "Choose a plan before adding HR accounts." });
@@ -79,13 +79,13 @@ export async function createHr(req, res, next) {
       }
     }
 
-    // ---- Step 3: the email must not already belong to someone ----
+    // Check email unique
     const existing = await User.findOne({ email: email.toLowerCase() });
     if (existing) {
       return res.status(409).json({ message: "An account with this email already exists" });
     }
 
-    // ---- Step 4: create the account and log it ----
+    // Create and log
     const passwordHash = await bcrypt.hash(password, 10);
     const user = await User.create({
       name,
@@ -104,7 +104,7 @@ export async function createHr(req, res, next) {
 
 export async function updateHr(req, res, next) {
   try {
-    // ---- Step 1: the HR account, scoped to the caller's own company ----
+    // Find HR account
     const user = await User.findOne({
       _id: req.params.id,
       companyId: req.user.companyId,
@@ -114,7 +114,7 @@ export async function updateHr(req, res, next) {
 
     const { active, name } = req.body;
 
-    // ---- Step 2: re-activating needs a free seat; deactivating never does ----
+    // Check seat
     if (active === true && user.active === false) {
       const company = await Company.findById(req.user.companyId);
       if (company.hrSeatLimit != null) {
@@ -127,7 +127,7 @@ export async function updateHr(req, res, next) {
       }
     }
 
-    // ---- Step 3: apply the change and log it ----
+    // Apply and log
     if (active !== undefined) user.active = Boolean(active);
     if (name !== undefined) user.name = name;
     await user.save();
@@ -144,22 +144,16 @@ export async function updateHr(req, res, next) {
   }
 }
 
-/**
- * Switch plan without paying.
- *
- * Only legitimate for the Custom plan (agreed offline) and when no payment
- * gateway is configured at all. With a gateway live, a paid plan has to go
- * through checkout - otherwise this endpoint would be a free upgrade.
- */
+/** Switch plan without paying - Custom plan only. */
 export async function changePlan(req, res, next) {
   try {
-    // ---- Step 1: the plan must be one of the three real plan keys ----
+    // Validate plan
     const { plan } = req.body;
     if (!PLAN_KEYS.includes(plan)) {
       return res.status(400).json({ message: "plan must be basic, advance or custom" });
     }
 
-    // ---- Step 2: a paid plan must go through checkout instead, if a gateway is live ----
+    // Require checkout
     const priced = await Plan.findOne({ key: plan });
     if (activeDriver() !== "manual" && (priced?.amount ?? 0) > 0) {
       return res.status(402).json({
@@ -168,12 +162,12 @@ export async function changePlan(req, res, next) {
       });
     }
 
-    // ---- Step 3: the switch must not leave the company over its new seat limit ----
+    // Check seat limit
     const company = await Company.findById(req.user.companyId);
     const conflict = await seatConflict(company._id, plan);
     if (conflict) return res.status(409).json({ message: conflict });
 
-    // ---- Step 4: activate it and log whether this was a first pick or a change ----
+    // Activate and log
     const { firstPick } = await activatePlan(company, plan);
     await logAudit(
       req.user.name,

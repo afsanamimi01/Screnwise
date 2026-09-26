@@ -1,21 +1,4 @@
-/**
- * Give every self-applied demo application the CV its numbers imply.
- *
- * The seeded dataset described candidates with no document behind them: a row
- * said "self-applied, 82%, 6 years, Bachelor's" and there was nothing for a
- * recruiter to open after shortlisting. This builds that document from the
- * row's own facts (`shared/demo/cv.js`), then screens it with the real engine
- * and stores the result - so the score on the board comes from a file that
- * exists, and the breakdown can be checked against it line by line.
- *
- * Skipped:
- *   - HR-uploaded rows: the product deliberately does not keep those bytes.
- *   - `needsManualReview` rows: they stand in for CVs that could not be read.
- *   - anything that already has a CV attached.
- *
- *   node scripts/backfill-demo-cvs.js          # report the drift, write nothing
- *   node scripts/backfill-demo-cvs.js --apply  # attach the CVs and re-score
- */
+/** Give every self-applied demo application the CV its numbers imply. */
 import "dotenv/config";
 import mongoose from "mongoose";
 import { connectDB } from "../shared/config/db.js";
@@ -67,9 +50,7 @@ try {
     const job = jobs.get(app.jobId.toString());
     if (!job) continue;
 
-    // Fit the document to the score the row already shows, so the board's
-    // ranking survives the change and every number becomes checkable. On a dry
-    // run the mutation stays in memory and is never saved.
+    // Fit document to the existing score so ranking survives.
     const before = app.score;
     const { unreadable } = await attachFittedCv(app, job, (file) => screenCv(file, job));
     if (unreadable) {

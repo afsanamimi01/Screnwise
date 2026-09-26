@@ -1,13 +1,6 @@
 import mongoose from "mongoose";
 
-/**
- * A paying organisation. Every `manager` and `hr` user belongs to exactly one
- * company; `candidate` and `superadmin` users have `companyId: null`.
- *
- * Access is gated on `status` (a super admin can revoke) AND on
- * `subscriptionExpiresAt` (a lapsed subscription blocks the whole company until
- * a super admin renews it).
- */
+/** A paying organisation. */
 const companySchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },

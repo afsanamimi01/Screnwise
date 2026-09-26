@@ -38,11 +38,7 @@ const jobSchema = new mongoose.Schema(
     weights: { type: weightsSchema, default: () => ({}) },
     publicApplyEnabled: { type: Boolean, default: false },
     status: { type: String, enum: ["open", "closed"], default: "open" },
-    /**
-     * "job"       - a real posting on the platform (public board, dashboard).
-     * "screening" - an internal batch: CVs sourced elsewhere, scored against a
-     *               role that never appears on the public board or dashboard.
-     */
+    /** "job" = public posting; "screening" = internal batch. */
     kind: { type: String, enum: ["job", "screening"], default: "job" },
     /** Owning organisation - every member of this company can see and manage it. */
     companyId: { type: mongoose.Schema.Types.ObjectId, ref: "Company", required: true },

@@ -16,12 +16,7 @@ function readCollapsed() {
   }
 }
 
-/**
- * Desktop workspace sidebar shared by the HR, manager and candidate shells:
- * brand, nav links, a role note, the account block, and a collapse toggle that
- * shrinks the whole thing to an icon rail. Collapse state is remembered in
- * localStorage so it survives navigation and reloads.
- */
+/** Desktop workspace sidebar shared by HR, manager, candidate shells. */
 export function WorkspaceSidebar({
   navItems,
   note,

@@ -1,11 +1,4 @@
-/**
- * Template rendering for candidate emails.
- *
- * The composer writes one message with `{{variables}}` in it; this fills them
- * in per recipient, so every candidate gets their own name rather than the
- * literal placeholder. Unknown placeholders are left untouched - that reads as
- * an obvious mistake in the preview instead of silently vanishing.
- */
+/** Template rendering for candidate emails. */
 
 /** Placeholders the composer offers. Keep in sync with the UI hint. */
 export const TEMPLATE_VARIABLES = ["candidate_name", "job_title", "company_name", "hr_name"];
@@ -27,11 +20,7 @@ function escapeHtml(text) {
     .replaceAll('"', "&quot;");
 }
 
-/**
- * Wraps the composer's plain-text body in a plain, inline-styled HTML layout.
- * Email clients strip <style> blocks and support almost no modern CSS, so
- * everything here is inline and deliberately conservative.
- */
+/** Wraps composer's plain-text body in inline-styled HTML. */
 export function textToHtml(text, { title = "", footer = "" } = {}) {
   const paragraphs = String(text ?? "")
     .split(/\n{2,}/)

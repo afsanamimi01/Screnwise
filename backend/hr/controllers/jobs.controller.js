@@ -1,4 +1,5 @@
 import Job from "../../shared/models/Job.model.js";
+import Application from "../../shared/models/Application.model.js";
 import { logAudit } from "../../shared/utils/audit.js";
 import { rag } from "../../shared/rag/indexer.js";
 import { tenantFilter } from "../../shared/middleware/auth.middleware.js";
@@ -28,27 +29,41 @@ function pickEditableFields(body) {
   return out;
 }
 
-/**
- * Every job/screening owned by the caller's company (all members share
- * visibility). `?kind=screening` returns the internal screening batches;
- * anything else returns real job postings only.
- */
+/** Jobs list with applicant counts. */
 export async function listJobs(req, res, next) {
   try {
-    // ---- Sort config ----
-    // Flip to "createdAt asc" to show the oldest jobs first - nothing else to touch.
+    
     const SORT_BY = "createdAt desc";
     const [sortField, sortWord] = SORT_BY.split(" ");
     const sortOrder = sortWord === "desc" ? -1 : 1;
 
-    // ---- Step 1: this company's jobs (or its screening batches, from ?kind=) ----
+    // Fetch jobs
     const kindFilter =
       req.query.kind === "screening" ? { kind: "screening" } : { kind: { $ne: "screening" } };
     const jobs = await Job.find({ ...tenantFilter(req), ...kindFilter }).sort({
       [sortField]: sortOrder,
     });
 
-    res.json(jobs);
+    // Fetch applications
+    const jobIds = jobs.map((j) => j._id);
+    const apps = await Application.find({ jobId: { $in: jobIds } }).select("jobId status");
+
+    // Count applicants
+    const rows = [];
+    for (const job of jobs) {
+      let applicantCount = 0;
+      let shortlistedCount = 0;
+
+      for (const app of apps) {
+        if (String(app.jobId) !== String(job._id)) continue;
+        applicantCount = applicantCount + 1;
+        if (app.status === "shortlisted") shortlistedCount = shortlistedCount + 1;
+      }
+
+      rows.push({ ...job.toJSON(), applicantCount, shortlistedCount });
+    }
+
+    res.json(rows);
   } catch (err) {
     next(err);
   }
@@ -56,7 +71,7 @@ export async function listJobs(req, res, next) {
 
 export async function createJob(req, res, next) {
   try {
-    // ---- Step 1: create it, marking a screening batch as never publicly applyable ----
+    // Create job
     const isScreening = req.body.kind === "screening";
     const job = await Job.create({
       ...pickEditableFields(req.body),
@@ -66,7 +81,7 @@ export async function createJob(req, res, next) {
       createdBy: req.user._id,
     });
 
-    // ---- Step 2: log it and index it for the assistant ----
+    // Log and index
     await logAudit(
       req.user.name,
       isScreening ? "Screening created" : "Job created",
@@ -93,18 +108,16 @@ export async function getJobById(req, res, next) {
 
 export async function updateJob(req, res, next) {
   try {
-    // ---- Step 1: the job, scoped to the caller's company ----
+    // Find job
     const job = await Job.findOne({ _id: req.params.id, ...tenantFilter(req) });
     if (!job) return res.status(404).json({ message: "Job not found" });
 
-    // ---- Step 2: apply only the editable fields that were actually sent ----
+    // Apply updates
     Object.assign(job, pickEditableFields(req.body));
     await job.save();
 
-    // ---- Step 3: log it and re-index for the assistant ----
+    // Log and reindex
     await logAudit(req.user.name, "Job updated", job.title, req.user.companyId);
-    // Editing required skills or weights changes what the post means, and the
-    // assistant answers "what does this role need" from it.
     rag.job(job._id);
 
     res.json(job);

@@ -172,7 +172,7 @@ export default function Profile() {
 
         {data && details ? (
           <>
-            {/* --- CV ------------------------------------------------ */}
+            {/* CV */}
             <section className="candidate-profile__cv">
               <div className="candidate-profile__section-title">CV / resume</div>
               {data.cv ? (
@@ -231,7 +231,7 @@ export default function Profile() {
             </section>
             
 
-            {/* --- details --------------------------------------------- */}
+            {/* Details */}
             <form className="candidate-profile__form" onSubmit={saveDetails}>
               <div className="candidate-profile__section-title">Details</div>
 

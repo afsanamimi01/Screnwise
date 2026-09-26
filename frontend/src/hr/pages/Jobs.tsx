@@ -38,11 +38,11 @@ export default function Jobs() {
       const jobs = isScreening ? await getScreenings() : await getJobs();
       return Promise.all(
         jobs.map(async (job) => {
-          const apps = await getApplicationsForJob(job.id);
+          const { summary } = await getApplicationsForJob(job.id);
           return {
             job,
-            applicants: apps.length,
-            shortlisted: apps.filter((a) => a.status === "shortlisted").length,
+            applicants: summary.totalApplicants,
+            shortlisted: summary.shortlisted,
           };
         }),
       );

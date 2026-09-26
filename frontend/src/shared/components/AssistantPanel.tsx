@@ -12,20 +12,7 @@ import {
 } from "@/shared/lib/api";
 import "./AssistantPanel.css";
 
-/**
- * The assistant, as a panel that follows the user across every signed-in page.
- *
- * It is deliberately not a route. The questions it answers are about whatever
- * is already on screen - this board, this score, this role - and sending
- * someone to a separate page to ask about the page they just left is the wrong
- * shape.
- *
- * Threads are stored server-side and belong to one account. Nothing here
- * decides who may read what: every call is scoped by the signed-in user on the
- * server, so this component never holds another person's conversation to
- * filter out. Switching account switches the whole list, because it is a
- * different owner asking.
- */
+/** The assistant, as a panel following the user across signed-in pages. */
 
 /** Openers, chosen per role - an empty chat box gets asked nothing. */
 const PROMPTS: Record<string, string[]> = {
@@ -258,11 +245,7 @@ export default function AssistantPanel() {
           </div>
         )}
 
-        {/*
-          A chat box that fails on first use is worse than one that says why.
-          The same reason the email composer names its mail driver instead of
-          pretending a message went out.
-        */}
+        {/* Say why it can't answer yet, like the composer's mail driver notice. */}
         {status && !status.configured && (
           <p className="assistant__notice">
             The assistant is not switched on for this server yet. An administrator needs to set

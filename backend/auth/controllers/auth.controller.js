@@ -12,12 +12,7 @@ function issueToken(user) {
   );
 }
 
-/**
- * Returns a blocking message if this company user should not be let in, or
- * `null` if they're fine. HR needs a fully provisioned company; a manager is
- * only blocked when access is revoked or a chosen plan has lapsed (a manager
- * with no plan yet still signs in - to go pick one).
- */
+/** Blocking reason for a company user, if any. */
 function companyBlockReason(user, company) {
   if (!company) return "Your account is not attached to a company";
   if (company.status === "revoked") {
@@ -60,10 +55,7 @@ export async function register(req, res, next) {
   }
 }
 
-/**
- * Organisation signup. Creates a plan-less Company plus its single `manager`
- * account - the manager picks a plan on first sign-in.
- */
+/** Organisation signup - creates Company + manager. */
 export async function registerCompany(req, res, next) {
   try {
     const { companyName, name, email, password } = req.body;

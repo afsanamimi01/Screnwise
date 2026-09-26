@@ -1,15 +1,4 @@
-/**
- * Build a demo CV that stands behind an application's numbers.
- *
- * The seeded dataset described candidates it had no documents for: a row said
- * "self-applied, 82%, 6 years, Bachelor's", and there was nothing to open. This
- * writes the document that row implies - the matched skills present, the missing
- * ones genuinely absent, a date range that spans the stated years, and a degree
- * line the education ladder recognises - so re-screening it lands on roughly the
- * score the row already carried.
- *
- * Demo data only. Nothing here runs in the product path.
- */
+/** Build a demo CV that stands behind an application's numbers. */
 import { renderPdf } from "./pdf.js";
 
 /** A phrase for each rung of the engine's education ladder. */
@@ -37,11 +26,7 @@ function ratioFor(app, dimension) {
   return Math.max(0, Math.min(1, row.scored / row.weight));
 }
 
-/**
- * A skill must not leak into the prose if the row says the candidate lacks it -
- * the engine matches on the whole document, so a stray mention would silently
- * turn a missing skill into a matched one.
- */
+/** A skill must not leak into prose if the row says it's missing. */
 function mentionsMissing(text, missingSkills) {
   const haystack = String(text).toLowerCase();
   return missingSkills.some((s) => haystack.includes(String(s).toLowerCase()));
@@ -51,20 +36,7 @@ function safeJoin(values, missingSkills) {
   return values.filter((v) => v && !mentionsMissing(v, missingSkills)).join(", ");
 }
 
-/**
- * Compose the CV for one application.
- *
- * `options` are the dials `fitCvToScore` turns to land on a target score: how
- * many of the job's required skills the candidate can show, how long they have
- * been working, which degree they hold, and how much of the job's own
- * vocabulary their summary echoes. Left out, the application's stored facts are
- * used as they are.
- *
- * @param {object} app  the application document (plain or mongoose)
- * @param {object} job  the job it was submitted to
- * @param {{ skillCount?: number, years?: number, educationLabel?: string, echo?: number }} [options]
- * @returns {{ buffer: Buffer, fileName: string, contentType: string }}
- */
+/** Compose the CV for one application. */
 export function buildCv(app, job, options = {}) {
   const now = new Date().getFullYear();
   const required = job.requiredSkills ?? [];
@@ -183,24 +155,7 @@ export function buildCv(app, job, options = {}) {
 /** Education rungs, weakest first - the search only ever walks this downwards. */
 const EDUCATION_RUNGS = ["High school", "Diploma", "Bachelor's degree", "Master's degree", "PhD"];
 
-/**
- * Build the CV that makes the engine reproduce a target score.
- *
- * The seeded rows carried scores that were never produced by the engine, so a
- * faithful CV for one of them scores well above the number on the board. Rather
- * than let the demo's whole ranking drift upwards, this searches the dials for
- * the document that actually earns the score the row claims: fewer of the
- * required skills evidenced, a shorter history, a lower degree, a summary that
- * reads less like the posting.
- *
- * Coarse pass on the skill count (which carries the most weight), then a finer
- * pass over the remaining dials, keeping whichever combination came closest.
- *
- * @param {object} app
- * @param {object} job
- * @param {(file: object) => Promise<object>} screen  runs the engine on a file
- * @param {{ target?: number, tolerance?: number }} [opts]
- */
+/** Build the CV that makes the engine reproduce a target score. */
 export async function fitCvToScore(app, job, screen, opts = {}) {
   const target = opts.target ?? app.score ?? 0;
   const tolerance = opts.tolerance ?? 2;
@@ -249,16 +204,7 @@ export async function fitCvToScore(app, job, screen, opts = {}) {
   return { ...best, evaluations };
 }
 
-/**
- * Attach a fitted CV to one application and re-score it from that document.
- *
- * Mutates `app` (it is a mongoose doc in both callers) and returns the drift
- * from the score the row carried before. Used by the seed and by
- * `scripts/backfill-demo-cvs.js`, so a fresh seed and an existing database end
- * up with the same property: every self-applied score has a file behind it.
- *
- * @returns {Promise<{ drift: number, unreadable: boolean }>}
- */
+/** Attach a fitted CV to one application, re-score it. */
 export async function attachFittedCv(app, job, screen) {
   const before = app.score;
   const { cv, result } = await fitCvToScore(app, job, screen);

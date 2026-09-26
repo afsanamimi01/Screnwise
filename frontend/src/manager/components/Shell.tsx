@@ -9,13 +9,7 @@ import { Footer } from "./Footer";
 import { PreviewBanner } from "./PreviewBanner";
 import "./Shell.css";
 
-/**
- * Company-manager console skeleton - sidebar + (navbar / page / footer) + the
- * sign-in gate. A manager whose company has no plan yet stays in "preview
- * mode": every screen is reachable, but actions are disabled and a banner
- * points them at the plan chooser (see `useManagerAccess`). Every manager page
- * renders its own heading, so this is a bare frame.
- */
+/** Company-manager console skeleton. */
 export function Shell({ children, allow = ["manager"] }: { children: ReactNode; allow?: Role[] }) {
   const { user, ready } = useAuth();
   const navigate = useNavigate();

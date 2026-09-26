@@ -15,10 +15,7 @@ import "./Sidebar.css";
 
 type NavItem = { to: string; label: string; icon: LucideIcon };
 
-/**
- * Candidate workspace nav. The array order is the menu order - to rearrange the
- * sidebar, just move an entry up or down here.
- */
+/** Candidate workspace nav. */
 const NAV_ITEMS: NavItem[] = [
   { to: "/my-applications", label: "My applications", icon: FileStack },
   { to: "/open-roles", label: "Open roles", icon: Briefcase },
@@ -35,12 +32,7 @@ function readCollapsed() {
   }
 }
 
-/**
- * Candidate sidebar - independent of the other actors. Brand, nav links, and a
- * pinned footer block (collapse toggle, "signed in as", a link to the public
- * site, sign out). Collapses to an icon rail; the choice is remembered in
- * localStorage. Desktop only.
- */
+/** Candidate sidebar. */
 export function Sidebar() {
   const pathname = useLocation().pathname;
   const navigate = useNavigate();

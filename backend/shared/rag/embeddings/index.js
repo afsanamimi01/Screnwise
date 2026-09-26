@@ -5,12 +5,7 @@ import { HashingEmbeddingClient } from "./hashing.js";
 
 let cached;
 
-/**
- * The one embedding client, shared by both sides of the pipeline.
- *
- * It must be the same on both: a question embedded by a different model than
- * the documents lands in an unrelated space, and every score is meaningless.
- */
+/** The one embedding client, shared by both sides. */
 export function embeddingClient() {
   if (cached) return cached;
   const { driver, local, gemini, hashing } = ragConfig.embeddings;

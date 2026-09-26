@@ -1,28 +1,11 @@
 import mongoose from "mongoose";
 
-/**
- * One document in the assistant's knowledge base - a CV passage, a job, an
- * application's own score notes, or a paragraph of product documentation.
- *
- * Visibility is columns, not convention. Retrieval filters on these BEFORE any
- * similarity maths runs, so another company's CV is never a low-ranked result:
- * it is not a candidate at all. A `$match` cannot be talked out of its filter;
- * a sentence in a system prompt can.
- *
- * Three axes, because Screenwise has three separate walls:
- *   companyId        the tenant wall - mirrors `tenantFilter`
- *   jobId            scopes a CV to the pile it was screened into
- *   identityRevealed the blind board - false until the candidate is shortlisted
- */
+/** One document in the assistant's knowledge base. */
 const ragDocumentSchema = new mongoose.Schema(
   {
     /** cv | job | application | policy | profile */
     sourceType: { type: String, required: true },
-    /**
-     * Stable identity of the thing this was built from, unique per source type
-     * - `"<applicationId>#2"` for the third chunk of a CV. Re-indexing upserts
-     * on the pair rather than piling up duplicates.
-     */
+    /** Stable identity per source type, e.g. `"<id>#2"`. */
     sourceId: { type: String, required: true },
 
     title: { type: String, default: "" },
@@ -38,26 +21,12 @@ const ragDocumentSchema = new mongoose.Schema(
     visibleToRole: { type: String, default: "all" },
     /** Open, publicly-applyable jobs - readable by any signed-in candidate. */
     publicRead: { type: Boolean, default: false },
-    /**
-     * Whether this document may name its candidate. Written redacted either
-     * way; this only governs whether the *title* carries a name, and lets the
-     * assistant know it is allowed to say one.
-     */
+    /** Whether this document may name its candidate. */
     identityRevealed: { type: Boolean, default: false },
 
-    /**
-     * The vector, packed as float32 rather than a BSON array of doubles: an
-     * array costs 8 bytes plus per-element key overhead, and retrieval pulls
-     * every candidate's vector over the wire. At 768 dimensions this is the
-     * difference between ~3 KB and ~13 KB per document, on every question.
-     */
+    /** Vector, packed as float32 to keep documents small. */
     embedding: { type: Buffer, default: null },
-    /**
-     * Which model made it. Vectors from two models sit in unrelated spaces and
-     * comparing across them returns confident nonsense, so a mismatch is
-     * skipped rather than scored - a model switch degrades to keyword-only
-     * retrieval instead of going blank until a re-index finishes.
-     */
+    /** Which model made the embedding - mismatches are skipped, not scored. */
     embeddingModel: { type: String, default: null },
     dimensions: { type: Number, default: null },
 

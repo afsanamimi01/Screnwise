@@ -1,17 +1,9 @@
-/**
- * The five scoring dimensions, each a pure function of the CV text and the
- * job's own criteria. Every function returns a 0..1 fraction plus whatever
- * detail the breakdown note needs.
- */
+/** The five scoring dimensions, pure functions of CV + criteria. */
 import { normalize, tokenize, levenshtein, cosineSimilarity, clamp } from "./text.js";
 
 /* --------------------------------------------------------------- skills --- */
 
-/**
- * Aliases so a CV that says "JS" still matches a job asking for "JavaScript".
- * Keys and values are compared normalised (lowercase). Bidirectional - a hit
- * on any variant counts.
- */
+/** Aliases so "JS" matches "JavaScript". */
 const SKILL_ALIASES = {
   /* --- software / IT --- */
   javascript: ["js", "ecmascript", "es6", "es2015"],
@@ -133,9 +125,7 @@ function mentions(cvNorm, phrase) {
   return new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`, "i").test(cvNorm);
 }
 
-/** One skill is present if any variant is mentioned, or (for single words of
- *  5+ chars) a CV token is within one edit of it - catches "kubernetes" vs a
- *  typo'd "kubernetese". */
+/** Present if any variant is mentioned, or a near-typo of it. */
 function skillPresent(cvNorm, cvTokens, skill) {
   const variants = variantsFor(skill);
   if (variants.some((v) => mentions(cvNorm, v))) return true;
@@ -166,13 +156,7 @@ const YEAR = /\b(19|20)\d{2}\b/;
 const RANGE = /\b((?:19|20)\d{2})\s*(?:[-–]|to|until)\s*((?:19|20)\d{2}|present|current|now|date)\b/gi;
 const PHRASE = /\b(\d{1,2})\s*\+?\s*(?:years?|yrs?)\b(?:[^.]{0,30}\bexperien)?/gi;
 
-/**
- * Best-effort years of experience. Two independent signals, the larger wins:
- *   1. the widest "2019 – 2023" / "2020 – present" date range on the page
- *   2. the largest "N years [experience]" phrase
- * Date arithmetic on free-text CVs is the weakest part of the engine - treat
- * the number as approximate.
- */
+/** Best-effort years of experience from date ranges or phrases. */
 export function estimateYears(cvNorm, rawText = cvNorm) {
   const now = new Date().getFullYear();
   let widest = 0;
@@ -243,12 +227,7 @@ export function scoreCertifications(cvNorm, certifications = []) {
 
 /* ----------------------------------------------------------- keyword fit --- */
 
-/**
- * Cosine similarity of the CV against the job's own words (title, description,
- * skill lists). Raw cosine on documents this short sits low (~0.05–0.35), so
- * it is stretched by 2.5× and capped - a rough "does this read like the job"
- * signal, nothing more.
- */
+/** Cosine similarity of CV against job's own words. */
 export function scoreKeywords(jobText, cvRawText) {
   const raw = cosineSimilarity(jobText, cvRawText);
   return { score01: clamp(raw * 2.5, 0, 1), raw };

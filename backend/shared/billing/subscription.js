@@ -25,14 +25,7 @@ export async function seatUsage(companyId) {
   return { used, total };
 }
 
-/**
- * Would this plan leave the company over its seat limit?
- *
- * Checked before payment as well as before a free switch - taking money for a
- * downgrade that then cannot be applied would be worse than refusing early.
- *
- * @returns {Promise<string|null>} the reason to refuse, or null if it is fine
- */
+/** Would this plan leave company over its seat limit? */
 export async function seatConflict(companyId, planKey) {
   const limit = await seatLimitForPlan(planKey);
   if (limit == null) return null;
@@ -56,13 +49,7 @@ function currentMonthRange() {
   return { start, end };
 }
 
-/**
- * CVs screened this calendar month, counting both HR bulk uploads and
- * candidate self-applications - both run the same screening engine and
- * count against the same plan cap. Applications have no `companyId` of
- * their own, so this goes through the company's jobs, same as every other
- * company-scoped application query in this codebase.
- */
+/** CVs screened this calendar month. */
 export async function screeningUsage(companyId) {
   const { start, end } = currentMonthRange();
   const jobIds = await Job.find({ companyId }).distinct("_id");
@@ -73,13 +60,7 @@ export async function screeningUsage(companyId) {
   return { used, periodStart: start, periodEnd: end };
 }
 
-/**
- * Combines a company's snapshotted monthly cap with how much of it is used
- * so far this month. The single place both enforcement (before screening)
- * and display ("X left this month") read from, so they can never disagree.
- *
- * @returns {Promise<{ limit: number|null, used: number, remaining: number|null }>}
- */
+/** Company's monthly cap plus usage so far. */
 export async function screeningStatus(company) {
   const { used } = await screeningUsage(company._id);
   const limit = company.cvScreeningLimit ?? null;
@@ -87,15 +68,7 @@ export async function screeningStatus(company) {
   return { limit, used, remaining };
 }
 
-/**
- * Apply a plan to a company and start (or extend) its subscription.
- *
- * A renewal of the same plan extends from whichever is later: now, or the
- * current expiry - so paying early never costs the customer the days they
- * already have.
- *
- * @returns {Promise<{ firstPick: boolean, renewal: boolean }>}
- */
+/** Apply a plan to a company and start its subscription. */
 export async function activatePlan(company, planKey) {
   const firstPick = !company.plan;
   const renewal = company.plan === planKey;

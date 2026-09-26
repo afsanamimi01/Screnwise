@@ -10,10 +10,7 @@ import type { Job } from "@/shared/lib/types";
 import { usePageTitle } from "@/shared/lib/use-page-title";
 import "./OpenRoles.css";
 
-/**
- * Quick facts shown under a role's title. The array order is the display order -
- * move an entry to rearrange. Each `render` returns `null` when it has nothing.
- */
+/** Quick facts shown under a role's title. */
 const JOB_FACTS: { key: string; render: (job: Job) => ReactNode }[] = [
   {
     key: "company",

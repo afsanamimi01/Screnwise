@@ -31,10 +31,7 @@ function readCollapsed() {
   }
 }
 
-/**
- * HR / recruiter sidebar - independent of the other actors. Brand, nav, and a
- * pinned footer block (collapse toggle + "signed in as" + sign out). Desktop only.
- */
+/** HR / recruiter sidebar. */
 export function Sidebar() {
   const pathname = useLocation().pathname;
   const navigate = useNavigate();

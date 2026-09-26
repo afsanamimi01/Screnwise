@@ -4,25 +4,11 @@ import { DocumentDraft } from "../draft.js";
 import { chunkText } from "../chunk.js";
 import { redactCv } from "../redact.js";
 
-/**
- * CV passages - the corpus the whole feature exists for.
- *
- * The screening engine can only match the vocabulary an HR user typed into the
- * job form; these documents are what let the assistant answer the questions the
- * form never anticipated ("who has fintech experience", "anyone who has led a
- * team"). Every passage is redacted before it is stored, so the blind board
- * survives retrieval - see `redact.js` for why that happens here and not at
- * answer time.
- *
- * `cvText` is `select: false` on the model, so it has to be asked for by name.
- */
+/** CV passages - the corpus retrieval exists for. */
 export const cvBuilder = {
   sourceType: "cv",
 
-  /**
-   * @param {object} [filter] narrows to one job or one application for a
-   *   targeted re-index; omitted, it rebuilds everything.
-   */
+  /** Filter narrows to one job/application; omitted rebuilds all. */
   async build(filter = {}) {
     const applications = await Application.find(filter)
       .select("+cvText jobId alias status score currentTitle educationLevel yearsExperience")
@@ -51,9 +37,7 @@ export const cvBuilder = {
           new DocumentDraft({
             sourceType: "cv",
             sourceId: `${app._id}#${index}`,
-            // The heading gives an otherwise anonymous passage something to be
-            // cited by, and carries the facts a recruiter filters on into the
-            // embedded text itself.
+            // Heading carries filterable facts into the embedded text.
             title:
               `${alias} - CV extract ${index + 1} of ${chunks.length}` +
               ` (applied to ${job.title}, score ${app.score}` +

@@ -9,7 +9,7 @@ const RENEW_DAYS = 30;
 
 export async function listCompanies(req, res, next) {
   try {
-    // ---- Sort config ----
+    // Sort config
     const SORT_BY = "createdAt desc";
     const [sortField, sortWord] = SORT_BY.split(" ");
     const sortOrder = sortWord === "desc" ? -1 : 1;
@@ -18,19 +18,19 @@ export async function listCompanies(req, res, next) {
 
     const rows = [];
     for (const company of allCompanies) {
-      // ---- Column: Company ----
+      // Company
       const companyName = company.name;
 
-      // ---- Column: Manager ----
+      // Manager
       const manager = await User.findOne({ companyId: company._id, role: "manager" }).select(
         "name email",
       );
       const managerInfo = manager ? { name: manager.name, email: manager.email } : null;
 
-      // ---- Column: Plan ----
+      // Plan
       const plan = company.plan;
 
-      // ---- Column: HR seats ----
+      // HR seats
       const allHr = await User.find({ companyId: company._id, role: "hr" });
       let hrTotal = 0;
       let hrActive = 0;
@@ -41,17 +41,17 @@ export async function listCompanies(req, res, next) {
         }
       }
 
-      // ---- Column: Jobs ----
+      // Jobs
       const allJobs = await Job.find({ companyId: company._id });
       let jobCount = 0;
       for (const job of allJobs) {
         jobCount = jobCount + 1;
       }
 
-      // ---- Column: Expires ----
+      // Expires
       const subscriptionExpiresAt = company.toJSON().subscriptionExpiresAt;
 
-      // ---- Column: Status ----
+      // Status
       // "status" and "accessible" (a virtual) come straight off the company.
       const status = company.status;
       const accessible = company.accessible;
@@ -85,7 +85,7 @@ export async function updateCompanyAccess(req, res, next) {
     let auditLabel = "";
     let auditDetail = company.name;
 
-    // ---- Action: Renew ----
+    // Renew
     if (action === "renew") {
       company.status = "active";
 

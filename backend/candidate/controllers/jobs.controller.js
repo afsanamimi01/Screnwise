@@ -11,18 +11,17 @@ async function companyNames(jobs) {
 /** Every open, publicly-applyable job, newest first, each with its company name. */
 export async function listPublicJobs(req, res, next) {
   try {
-    // ---- Step 1: open jobs that accept public applications, newest first ----
-    // Flip "desc" to "asc" here to change the sort - nothing else to touch.
+    // Fetch open jobs
     const jobs = await Job.find({
       status: "open",
       publicApplyEnabled: true,
       kind: { $ne: "screening" },
     }).sort({ createdAt: "desc" });
 
-    // ---- Step 2: the companies behind those jobs, fetched independently ----
+    // Fetch companies
     const names = await companyNames(jobs);
 
-    // ---- Step 3: attach each job's company name ----
+    // Attach company name
     const rows = jobs.map((j) => {
       const json = j.toJSON();
       json.companyName = names[json.companyId] ?? null;
@@ -38,7 +37,7 @@ export async function listPublicJobs(req, res, next) {
 /** One open, publicly-applyable job, with its company name. */
 export async function getPublicJob(req, res, next) {
   try {
-    // ---- Step 1: the job, if it's open and accepting public applications ----
+    // Find job
     const job = await Job.findOne({
       _id: req.params.id,
       status: "open",
@@ -49,10 +48,10 @@ export async function getPublicJob(req, res, next) {
       return res.status(404).json({ message: "Job not found or not open for applications" });
     }
 
-    // ---- Step 2: its company, fetched independently ----
+    // Fetch company
     const names = await companyNames([job]);
 
-    // ---- Step 3: attach the company name ----
+    // Attach company name
     const json = job.toJSON();
     json.companyName = names[json.companyId] ?? null;
 

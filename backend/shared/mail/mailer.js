@@ -1,21 +1,4 @@
-/**
- * Outbound email for Screenwise.
- *
- * One `sendMail()` on top of three interchangeable drivers, so switching
- * provider is an environment change, never a code change:
- *
- *   resend   HTTPS API (api.resend.com). The recommended default - one API
- *            key, nothing to install, and no SMTP ports to get blocked by a
- *            host or an ISP.
- *   smtp     Any SMTP server through nodemailer - Gmail / Google Workspace,
- *            Mailtrap, Amazon SES, Office 365, a company relay.
- *   console  Nothing configured. Messages are logged to the server console and
- *            never delivered - the old sandbox behaviour, kept as the fallback
- *            so a fresh clone still runs.
- *
- * `MAIL_DRIVER` forces one; otherwise the first driver that has credentials
- * wins. See backend/.env.example for the full variable list.
- */
+/** Outbound email for Screenwise. */
 import nodemailer from "nodemailer";
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
@@ -153,10 +136,7 @@ function usesSharedSender() {
   return /@resend\.dev\b/i.test(fromAddress());
 }
 
-/**
- * Cheapest authenticated call Resend offers, used purely to tell a working key
- * from a rejected one. Cached, because the composer asks on every page load.
- */
+/** Cheapest call to tell a working key from a rejected one. */
 let resendProbe = { at: 0, status: null };
 
 async function probeResend() {
@@ -177,12 +157,7 @@ async function probeResend() {
 
 /* ----------------------------------- api ---------------------------------- */
 
-/**
- * Delivers one message. Never throws - callers get a result they can persist
- * per recipient, so one bad address can't abort a whole batch.
- *
- * @returns {Promise<{ok: boolean, driver: string, messageId: string|null, error: string|null}>}
- */
+/** Delivers one message - never throws. */
 export async function sendMail({ to, subject, text, html, replyTo }) {
   const driver = activeDriver();
   const send = DRIVERS[driver];
@@ -201,10 +176,7 @@ export async function sendMail({ to, subject, text, html, replyTo }) {
   }
 }
 
-/**
- * What the HR console shows in its delivery banner. Reports configuration only
- * - never the API key or the SMTP password.
- */
+/** What the HR console shows in its delivery banner. */
 export async function mailerStatus() {
   const driver = activeDriver();
   const from = fromAddress();
@@ -255,9 +227,7 @@ export async function mailerStatus() {
       };
     }
 
-    // Resend's shared onboarding sender needs no verified domain, but it only
-    // ever delivers to the address that owns the Resend account. Saying "live"
-    // without that caveat would mislead exactly like the old sandbox banner.
+    // Shared sender only delivers to the account owner's address.
     if (usesSharedSender()) {
       return {
         driver,

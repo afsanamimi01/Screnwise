@@ -7,10 +7,7 @@ import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
 import "./Shell.css";
 
-/**
- * HR / recruiter-workspace skeleton - sidebar + (navbar / page / footer) + the
- * sign-in gate. Every HR page renders its own heading, so this is a bare frame.
- */
+/** HR / recruiter workspace skeleton. */
 export function Shell({
   children,
   allow = ["hr", "manager"],

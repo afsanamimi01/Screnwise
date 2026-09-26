@@ -1,18 +1,7 @@
 import Job from "../../models/Job.model.js";
 import { DocumentDraft } from "../draft.js";
 
-/**
- * Job posts, rendered as prose rather than dumped as fields.
- *
- * A row printed as `requiredSkills: ["Node.js","AWS"]` embeds badly - the
- * vector model has to work out that a JSON fragment describes a role. Written
- * as a sentence, it lands near the questions people actually ask about it.
- *
- * These serve both sides of the product: an HR user asking what a role requires,
- * and a candidate asking which open roles suit them. The second is why
- * `publicRead` exists - an open, publicly-applyable post is readable by any
- * signed-in candidate, while a `kind: "screening"` batch never leaves its tenant.
- */
+/** Job posts, rendered as prose rather than fields. */
 export const jobBuilder = {
   sourceType: "job",
 

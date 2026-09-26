@@ -15,7 +15,7 @@ import {
   unshortlistCandidate,
 } from "@/shared/lib/api";
 import { canViewBoard, useAuth } from "@/shared/lib/auth";
-import { SCORE_THRESHOLD, type Application, type Job } from "@/shared/lib/types";
+import { SCORE_THRESHOLD, type Application, type BoardSummary, type Job } from "@/shared/lib/types";
 import { usePageTitle } from "@/shared/lib/use-page-title";
 import "./JobBoard.css";
 
@@ -33,28 +33,20 @@ const SORT_OPTIONS = [
   { value: "date", label: "Date applied" },
 ] as const;
 
-/**
- * The four tiles in the summary strip above the board, in display order.
- * `value` receives the loaded applications for this job.
- */
-const SUMMARY_TILES: { key: string; label: string; value: (apps: Application[]) => number }[] = [
-  { key: "total", label: "Total applicants", value: (apps) => apps.length },
-  {
-    key: "aboveThreshold",
-    label: `Above ${SCORE_THRESHOLD}%`,
-    value: (apps) => apps.filter((a) => a.score >= SCORE_THRESHOLD).length,
-  },
-  {
-    key: "shortlisted",
-    label: "Shortlisted",
-    value: (apps) => apps.filter((a) => a.status === "shortlisted").length,
-  },
-  {
-    key: "needsReview",
-    label: "Needs manual review",
-    value: (apps) => apps.filter((a) => a.needsManualReview).length,
-  },
+/** The four summary tiles above the board, in display order - values come from the backend's summary. */
+const SUMMARY_TILES: { key: keyof BoardSummary; label: string }[] = [
+  { key: "totalApplicants", label: "Total applicants" },
+  { key: "aboveThreshold", label: `Above ${SCORE_THRESHOLD}%` },
+  { key: "shortlisted", label: "Shortlisted" },
+  { key: "needsManualReview", label: "Needs manual review" },
 ];
+
+const EMPTY_SUMMARY: BoardSummary = {
+  totalApplicants: 0,
+  aboveThreshold: 0,
+  shortlisted: 0,
+  needsManualReview: 0,
+};
 
 export default function JobBoard() {
   usePageTitle("Rank board - Screenwise");
@@ -79,7 +71,8 @@ export default function JobBoard() {
   const [drawerApp, setDrawerApp] = useState<Application | null>(null);
 
   const job = jobQuery.data;
-  const apps = appsQuery.data ?? [];
+  const apps = appsQuery.data?.applications ?? [];
+  const summary = appsQuery.data?.summary ?? EMPTY_SUMMARY;
 
   const filtered = useMemo(() => {
     const list = apps.filter((a) => {
@@ -162,7 +155,7 @@ export default function JobBoard() {
             <div className="hr-board__tiles">
               {SUMMARY_TILES.map((tile) => (
                 <div key={tile.key} className="hr-board__tile">
-                  <div className="hr-board__tile-value">{tile.value(apps)}</div>
+                  <div className="hr-board__tile-value">{summary[tile.key]}</div>
                   <div className="hr-board__tile-label">{tile.label}</div>
                 </div>
               ))}

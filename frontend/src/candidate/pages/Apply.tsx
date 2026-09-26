@@ -155,7 +155,7 @@ export default function Apply() {
                   />
                 </div>
 
-                {/* --- CV: from profile, or upload --------------------- */}
+                {/* CV: from profile, or upload */}
                 <div className="apply__field apply__field--full">
                   <span className="apply__label">CV</span>
 

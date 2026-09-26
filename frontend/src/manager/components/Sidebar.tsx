@@ -16,11 +16,7 @@ import "./Sidebar.css";
 
 type NavItem = { to: string; label: string; icon: LucideIcon };
 
-/**
- * Company-manager nav - array order is the menu order. Managers don't screen
- * CVs (that's bulk-uploading + creating jobs, both HR-only) so "Screen CVs"
- * is an HR-only nav item and isn't listed here.
- */
+/** Company-manager nav. */
 const NAV_ITEMS: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/jobs", label: "Jobs", icon: ClipboardList },
@@ -38,12 +34,7 @@ function readCollapsed() {
   }
 }
 
-/**
- * Company-manager sidebar - independent of the other actors. Brand, nav, and a
- * pinned footer block (collapse toggle + "signed in as" + sign out). Every
- * section stays visible in "preview mode" (`locked`) so a plan-less manager can
- * see what the product does; a small lock marks the gated ones. Desktop only.
- */
+/** Company-manager sidebar. */
 export function Sidebar({ locked = false }: { locked?: boolean }) {
   const pathname = useLocation().pathname;
   const navigate = useNavigate();

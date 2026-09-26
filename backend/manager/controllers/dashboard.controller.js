@@ -2,11 +2,7 @@ import Job from "../../shared/models/Job.model.js";
 import Application from "../../shared/models/Application.model.js";
 import { tenantFilter } from "../../shared/middleware/auth.middleware.js";
 
-/**
- * Manager dashboard: everything is computed here, in the same order the
- * frontend shows it - KPI cards, then the job list, then the applicant-source
- * chart - so the page itself only has to render what it's given.
- */
+/** Manager dashboard: KPIs, jobs, chart. */
 export async function getDashboard(req, res, next) {
   try {
     // ---- Sort config ----
@@ -15,16 +11,16 @@ export async function getDashboard(req, res, next) {
     const [sortField, sortWord] = SORT_BY.split(" ");
     const sortOrder = sortWord === "desc" ? -1 : 1;
 
-    // ---- Step 1: this manager's jobs (screening batches never show here) ----
+    // Fetch jobs
     const jobs = await Job.find({ ...tenantFilter(req), kind: { $ne: "screening" } }).sort({
       [sortField]: sortOrder,
     });
 
-    // ---- Step 2: every application against those jobs, fetched independently ----
+    // Fetch applications
     const jobIds = jobs.map((j) => j._id);
     const apps = await Application.find({ jobId: { $in: jobIds } }).select("jobId status source");
 
-    // ---- Section: KPI cards, in the order the dashboard shows them ----
+    // KPI cards
     let activeJobs = 0;
     for (const job of jobs) {
       if (job.status === "open") activeJobs = activeJobs + 1;
@@ -41,8 +37,7 @@ export async function getDashboard(req, res, next) {
 
     const kpis = { activeJobs, totalApplicants, shortlistRate };
 
-    // ---- Section: job postings list and the applicant-source chart ----
-    // One pass per job, counting with plain +1s - nothing fancier needed here.
+    // Job list and chart
     const jobRows = [];
     const chart = [];
 

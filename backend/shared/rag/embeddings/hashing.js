@@ -1,20 +1,6 @@
 import { normalizeVector } from "../vector.js";
 
-/**
- * A deterministic, offline embedder - no API key, no network, the same vector
- * every time for the same text.
- *
- * This is what development and the seed run on. It is a hashing vectoriser over
- * words and character trigrams, not a learned model: it captures LEXICAL
- * overlap ("Kubernetes" matches "Kubernetes") and knows nothing of meaning
- * ("led a team" does not match "leadership").
- *
- * That limit is the point of it being a separate driver rather than a fallback.
- * Screenwise's whole reason for retrieval is the semantic gap the screening
- * engine already documents - running this in production would rebuild a
- * slightly better TF-IDF cosine and fix nothing. It exists so the pipeline can
- * be exercised end to end for free, not so it can be shipped.
- */
+/** Deterministic, offline embedder - lexical overlap only. */
 export class HashingEmbeddingClient {
   constructor({ dimensions = 256 } = {}) {
     this.dimensions = dimensions;

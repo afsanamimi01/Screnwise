@@ -2,22 +2,7 @@ import Application from "../../models/Application.model.js";
 import Job from "../../models/Job.model.js";
 import { DocumentDraft } from "../draft.js";
 
-/**
- * An application's own score, written out as the explanation it already is.
- *
- * The engine emits human-readable notes per dimension ("Matched 6 of 8 required
- * skills: React, TypeScript...") and today they stop at the recruiter. This
- * document is what lets a candidate ask why they scored what they did and what
- * would move it - the free tier's reason to come back.
- *
- * It is pinned to the candidate AND to the company, which the visibility filter
- * handles without special-casing: the company clause matches on `companyId`,
- * the candidate clause on `visibleToUserId`, and one document can satisfy
- * either. HR-uploaded rows have no account behind them, so they carry no
- * `visibleToUserId` and stay company-only.
- *
- * Never split - a score is one fact, and half a breakdown is a misleading one.
- */
+/** An application's own score, as its already-written explanation. */
 export const applicationBuilder = {
   sourceType: "application",
 

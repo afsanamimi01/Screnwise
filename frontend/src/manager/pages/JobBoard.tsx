@@ -13,10 +13,7 @@ import { SCORE_THRESHOLD, type Application, type Job } from "@/shared/lib/types"
 import { usePageTitle } from "@/shared/lib/use-page-title";
 import "./JobBoard.css";
 
-/**
- * The four tiles in the summary strip above the board, in display order.
- * `value` receives the loaded applications for this job.
- */
+/** The four summary tiles above the board. */
 const SUMMARY_TILES: { key: string; label: string; value: (apps: Application[]) => number }[] = [
   { key: "total", label: "Total applicants", value: (apps) => apps.length },
   {
@@ -36,11 +33,7 @@ const SUMMARY_TILES: { key: string; label: string; value: (apps: Application[]) 
   },
 ];
 
-/**
- * A manager's rank board is read-only: shortlisting and un-shortlisting are
- * HR-only actions (see `hr/pages/JobBoard.tsx`), since a manager's job here is
- * to review scores, not to run the pipeline.
- */
+/** Manager's rank board is read-only. */
 export default function JobBoard() {
   usePageTitle("Rank board - Screenwise");
   const { jobId = "" } = useParams();

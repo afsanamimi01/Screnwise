@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
-import { FlaskConical, MailCheck, Send, TriangleAlert } from "lucide-react";
+import { Send } from "lucide-react";
 import { toast } from "sonner";
 import { Shell } from "@/manager/components/Shell";
 import { JobTabs } from "@/manager/components/JobTabs";
@@ -141,25 +141,6 @@ export default function JobEmail() {
         </div>
 
         <JobTabs jobId={jobId} />
-
-        {mail ? (
-          <div
-            className={`manager-email__status ${
-              mail.live && !mail.restricted
-                ? "manager-email__status--live"
-                : "manager-email__status--warn"
-            }`}
-          >
-            {mail.live && !mail.restricted ? (
-              <MailCheck size={16} />
-            ) : mail.driver === "console" ? (
-              <FlaskConical size={16} />
-            ) : (
-              <TriangleAlert size={16} />
-            )}
-            <span>{mail.message}</span>
-          </div>
-        ) : null}
 
         {query.isLoading ? <LoadingRows rows={3} /> : null}
         {query.isError ? (

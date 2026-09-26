@@ -3,14 +3,7 @@ import { Home, LogOut } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { roleLabels, useAuth } from "@/shared/lib/auth";
 
-/**
- * Account section of the sidebar footer block: who you're signed in as and the
- * sign-out button. The footer's border/padding is owned by the parent so the
- * collapse toggle and this section read as one block.
- *
- * Candidates also get a "Site" link to the public job board (their only reason
- * to leave the workspace); staff roles just get a full-width sign-out button.
- */
+/** Account section of the sidebar footer block. */
 export function SidebarAccount({ collapsed = false }: { collapsed?: boolean }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();

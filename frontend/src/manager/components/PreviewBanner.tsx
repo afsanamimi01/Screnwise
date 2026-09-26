@@ -2,11 +2,7 @@ import { Link } from "react-router-dom";
 import { Lock } from "lucide-react";
 import "./PreviewBanner.css";
 
-/**
- * Shown at the top of every manager screen while the company has no plan. The
- * console is fully browsable in this state; the banner explains why the actions
- * are disabled and points at the plan chooser.
- */
+/** Shown when the company has no plan yet. */
 export function PreviewBanner({ reason }: { reason: string }) {
   return (
     <div className="manager-preview" role="status">

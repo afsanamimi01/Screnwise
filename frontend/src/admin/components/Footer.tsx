@@ -6,10 +6,7 @@ import "./Footer.css";
 type FooterLink = { label: string; to?: string; href?: string };
 type FooterColumn = { heading: string; links: FooterLink[] };
 
-/**
- * Footer for the admin actor. Independent of the shared SiteFooter - edit the
- * columns freely; the "Contact" details are hard-coded here.
- */
+/** Footer for the admin actor. */
 const COLUMNS: FooterColumn[] = [
   {
     heading: "Console",

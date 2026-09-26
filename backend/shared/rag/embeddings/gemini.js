@@ -2,32 +2,9 @@ import { normalizeVector } from "../vector.js";
 
 const BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
-/**
- * Task instructions. `gemini-embedding-2` dropped the `taskType` parameter and
- * takes no instruction parameter at all, and `gemini-embedding-001` still takes
- * `taskType`, so that path is kept for it.
- *
- * What v2 does NOT get is a prepended instruction sentence. That was tried here
- * and measurably made retrieval worse: a fixed ~9-word prefix on every document
- * is a large share of a short CV passage, so every vector is pulled toward the
- * prefix's own direction and the spread between a match and a non-match
- * collapses. Measured on this corpus, "who has leadership experience" against
- * five passages:
- *
- *   without prefix   target 0.621 ... nonsense 0.499   (spread 0.122, correct order)
- *   with prefix      nonsense 0.759 ... target 0.740   (spread 0.076, WRONG order)
- *
- * A control sentence ("the quick brown fox...") ranked first with the prefix
- * and last without it. Both sides are embedded as raw text; `scripts/rag-check.js`
- * keeps that control in place so a regression here is caught before an index.
- */
+/** Task instructions for gemini-embedding-2 vs -001. */
 
-/**
- * Texts per batch call. A batch appears to count as one request per TEXT
- * against the free tier's per-minute quota, not one per call, so this is kept
- * modest and paced rather than maximised - a smaller batch that succeeds beats
- * a larger one that 429s and has to be repeated.
- */
+/** Texts per batch call, paced under the free tier quota. */
 const BATCH_SIZE = Number(process.env.RAG_EMBED_BATCH || 25);
 /** Pause between batches. Free tier needs it; a paid key can set this to 0. */
 const PACE_MS = Number(process.env.RAG_EMBED_PACE_MS || 1500);
@@ -37,32 +14,13 @@ const MAX_BACKOFF_MS = 70000;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/**
- * Google returns the wait it wants in the error body as a RetryInfo detail
- * (`"retryDelay": "34s"`). Honouring it is far better than guessing, because it
- * is the actual time until the quota window rolls over.
- */
+/** Google returns its requested wait in the error body. */
 function retryDelayFrom(body) {
   const match = /"retryDelay"\s*:\s*"(\d+(?:\.\d+)?)s"/.exec(body ?? "");
   return match ? Math.ceil(Number(match[1]) * 1000) : null;
 }
 
-/**
- * Google's Gemini embedding API.
- *
- * Two things here are not obvious from the docs:
- *
- * The output dimensionality field has been documented in two shapes - top-level
- * `outputDimensionality` and nested `embedContentConfig` - and Google's JSON
- * parser rejects an unknown field outright rather than ignoring it. Rather than
- * bet on one, the first call tries one shape and falls back to the other, then
- * remembers which worked for the rest of the process.
- *
- * And a truncated vector is not a unit vector. These models are Matryoshka:
- * asking for 768 of 3072 dimensions returns a usable prefix, but its magnitude
- * is no longer 1, and comparing un-normalised truncations skews every score.
- * `normalizeVector` repairs that at embed time.
- */
+/** Google's Gemini embedding API. */
 export class GeminiEmbeddingClient {
   constructor({ apiKey, model = "gemini-embedding-2", dimensions = 768 } = {}) {
     if (!apiKey) throw new Error("GEMINI_API_KEY is required for the gemini embedding driver");
@@ -114,13 +72,7 @@ export class GeminiEmbeddingClient {
 
       const text = await response.text().catch(() => "");
 
-      // The free tier's quota is low enough that indexing a real corpus WILL
-      // meet it, so this is a normal path rather than an exceptional one.
-      // Backing off far enough is the difference between a slow index and a
-      // half-written one - and the window that matters is per MINUTE, so a
-      // doubling sequence that tops out in single-digit seconds never clears
-      // it. Google returns the wait it wants in the error body; that is used
-      // when present and a long ceiling applied when it is not.
+      // Free tier quota is expected - back off using Google's requested wait.
       if (response.status === 429 || response.status >= 500) {
         if (attempt === MAX_RETRIES) {
           throw new Error(
@@ -141,10 +93,7 @@ export class GeminiEmbeddingClient {
     }
   }
 
-  /**
-   * Send a batch, probing the dimensionality field shape on the first call.
-   * @param {string[]} texts @param {"document"|"query"} kind
-   */
+  /** Send a batch, probing the dimensionality field shape. */
   async send(texts, kind) {
     const shapes = this.configShape ? [this.configShape] : ["flat", "nested"];
     let lastError;

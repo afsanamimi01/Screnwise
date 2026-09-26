@@ -3,22 +3,7 @@ import Application from "../../models/Application.model.js";
 import { retrieve } from "../retriever.js";
 import { tenantFilter } from "../../middleware/auth.middleware.js";
 
-/**
- * What the assistant is allowed to look up.
- *
- * Every fact in a reply comes back from one of these. The model chooses WHICH
- * lookup to run and how to word the answer; it never supplies the scope. Each
- * tool re-derives that from the signed-in user, so a model that invents a
- * `companyId` - or is talked into one by a candidate's question - still reads
- * only that user's own data.
- *
- * The split matters: `search_knowledge_base` is the semantic half, for
- * questions the schema never anticipated ("who has led a team"). The rest are
- * ordinary scoped queries, because counts, scores and rankings should be
- * computed by the database, not paraphrased out of retrieved passages. Asking a
- * vector search "how many candidates scored above 70" gets a confident guess;
- * asking Mongo gets the number.
- */
+/** What the assistant is allowed to look up. */
 
 /** Applications are ranked blind - identity is never in a tool result. */
 const blindRow = (app) => ({
@@ -265,11 +250,7 @@ export function declarationsFor(user) {
     .map((tool) => tool.declaration);
 }
 
-/**
- * Run one tool call. A name the role may not call is reported as an error to
- * the model rather than thrown - it must come back as a result, or the
- * conversation is left waiting on an answer that never arrives.
- */
+/** Run one tool call - unavailable names error, never throw. */
 export async function dispatch(name, args, user) {
   const tool = TOOLS[name];
   if (!tool || !tool.roles.includes(user.role)) {

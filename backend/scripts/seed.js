@@ -1,10 +1,4 @@
-/**
- * Rebuilds the database from `shared/seed.js` - clears every collection, then
- * inserts the full demo dataset (users for every role, jobs, applications
- * across the whole pipeline, sent emails and an audit history).
- *
- *   npm run seed
- */
+/** Rebuilds the database from shared/seed.js. */
 import "dotenv/config";
 import mongoose from "mongoose";
 import { connectDB } from "../shared/config/db.js";

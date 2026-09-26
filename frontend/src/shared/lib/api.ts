@@ -1,15 +1,10 @@
-/**
- * REST client for the Screenwise backend (Express + MongoDB).
- *
- * Every call goes to `VITE_API_BASE_URL` (see `.env`) with the signed-in
- * user's JWT attached. Shapes returned here match the `types.ts` models the
- * pages expect.
- */
+/** REST client for the Screenwise backend. */
 import { getToken } from "./auth-storage";
 import type {
   Application,
   ApplicationStatus,
   AuditEntry,
+  BoardSummary,
   Candidate,
   Company,
   Job,
@@ -107,11 +102,7 @@ export function getPublicJob(jobId: string): Promise<Job> {
   return request<Job>(`/candidate/jobs/${jobId}`);
 }
 
-/**
- * Apply to a role. The CV comes from the candidate's profile unless `cv` is
- * given here (a one-off file for this application, which the server also saves
- * to the profile if there isn't one yet).
- */
+/** Apply to a role. */
 export function submitApplication(payload: {
   jobId: string;
   phone?: string;
@@ -218,9 +209,11 @@ export function updateJob(job: Job): Promise<Job> {
   return request<Job>(`/hr/jobs/${job.id}`, { method: "PUT", body: body(job) });
 }
 
-/** Blind rank board - identity fields are stripped by the server. */
-export function getApplicationsForJob(jobId: string): Promise<Application[]> {
-  return request<Application[]>(`/hr/board/${jobId}`);
+/** Blind rank board - identity fields are stripped and tile counts summed by the server. */
+export function getApplicationsForJob(
+  jobId: string,
+): Promise<{ summary: BoardSummary; applications: Application[] }> {
+  return request<{ summary: BoardSummary; applications: Application[] }>(`/hr/board/${jobId}`);
 }
 
 /** Shortlisted-and-beyond candidates with identities revealed. */
@@ -244,13 +237,7 @@ export function unshortlistCandidate(
   });
 }
 
-/**
- * The full CV of a shortlisted, self-applied candidate.
- *
- * Served as bytes behind the JWT, so a plain link can't fetch it - the caller
- * gets an object URL to open in a tab and must revoke it when done. The server
- * refuses with 403 until the candidate is shortlisted.
- */
+/** Full CV of a shortlisted, self-applied candidate. */
 export async function fetchApplicationCv(applicationId: string): Promise<string> {
   const token = getToken();
   const res = await fetch(`${BASE_URL}/hr/shortlist/cv/${applicationId}`, {
@@ -266,23 +253,14 @@ export async function fetchApplicationCv(applicationId: string): Promise<string>
   return URL.createObjectURL(await res.blob());
 }
 
-/**
- * Upload CV files for one job/screening. The server parses and scores each one
- * with the local screening engine and returns the (blind) ranked records.
- */
+/** Upload CV files for one job/screening. */
 export function uploadCvs(jobId: string, files: File[]): Promise<Application[]> {
   const form = new FormData();
   for (const file of files) form.append("cvs", file);
   return request<Application[]>(`/hr/upload/${jobId}`, { method: "POST", body: form });
 }
 
-/**
- * Sends one personalised message per shortlisted candidate. Recipients travel
- * as application ids - the server looks up each address and fills in the
- * `{{variables}}` per person, so no candidate sees the rest of the shortlist.
- * Resolves even when delivery fails: check `status` and `deliveries` on the
- * returned record.
- */
+/** Sends one personalised message per shortlisted candidate. */
 export function sendShortlistEmails(payload: {
   jobId: string;
   subject: string;
@@ -350,24 +328,14 @@ export function getPayments(): Promise<Payment[]> {
   return request<Payment[]>("/manager/payments");
 }
 
-/**
- * Start a plan purchase.
- *
- * With a gateway configured this returns the SSLCommerz page to send the
- * customer to; with none, the plan is already active and `paid` is true.
- */
+/** Start a plan purchase. */
 export function startPayment(
   plan: PlanKey,
 ): Promise<{ paid: boolean; redirectUrl: string | null; tranId?: string }> {
   return request("/manager/payments", { method: "POST", body: body({ plan }) });
 }
 
-/**
- * Manager's own read-only view of jobs, the rank board and the shortlist -
- * served by `backend/manager`, independent of the HR endpoints above. A
- * manager can shortlist candidates but cannot create/edit jobs, upload CVs or
- * send emails - those stay HR-only.
- */
+/** Manager's own read-only view of jobs, board, shortlist. */
 export function getManagerDashboard(): Promise<RecruiterDashboard> {
   return request("/manager/dashboard");
 }
@@ -456,11 +424,7 @@ export function getCompanies(): Promise<CompanyRow[]> {
   return request<CompanyRow[]>("/admin/companies");
 }
 
-/**
- * `clear` removes the subscription without blocking the company: it goes back
- * to the state a newly registered one starts in, and the manager picks a plan
- * again. Their jobs, candidates and HR accounts are untouched.
- */
+/** `clear` resets the subscription without blocking the company. */
 export function updateCompanyAccess(
   id: string,
   action: "renew" | "revoke" | "clear",
@@ -507,11 +471,7 @@ export interface AssistantStatus {
   documents: number;
   model: string;
   embeddingModel: string;
-  /**
-   * False means retrieval is keyword-only, because the server is running the
-   * offline development embedder. Worth showing: it is the difference between
-   * "who has led a team" working and not.
-   */
+  /** False means retrieval is keyword-only. */
   semanticSearch: boolean;
   retrievalMode: string;
 }
@@ -560,13 +520,7 @@ export function getAssistantStatus(): Promise<AssistantStatus> {
   return request<AssistantStatus>("/assistant/status");
 }
 
-/**
- * Ask a question, optionally continuing a thread.
- *
- * History is NOT sent: the server owns the transcript and reads prior turns
- * from the stored thread. A client that could supply "what was said earlier"
- * could put words in the assistant's mouth.
- */
+/** Ask a question, optionally continuing a thread. */
 export function askAssistant(
   question: string,
   conversationId?: string | null,

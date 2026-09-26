@@ -4,19 +4,7 @@ import { connectDB } from "../shared/config/db.js";
 import User from "../shared/models/User.model.js";
 import Conversation from "../shared/models/Conversation.model.js";
 
-/**
- * Prove one account's assistant threads are unreachable by any other.
- *
- * This is the same class of check as `rag-audit.js`, applied to the transcript
- * rather than the knowledge base - and it needs its own file because the two
- * fail differently. A retrieval leak shows up as a better answer; a thread leak
- * shows up as someone else's questions rendered in your sidebar.
- *
- * The checks below deliberately query the way the controller does, so they
- * exercise the real ownership filter rather than a restatement of it.
- *
- *   node scripts/rag-chat-audit.js
- */
+/** Prove one account's assistant threads are unreachable by others. */
 const results = [];
 const check = (name, passed, detail = "") => {
   results.push({ name, passed, detail });
@@ -53,7 +41,7 @@ async function main() {
   });
 
   try {
-    // --- the core rule ----------------------------------------------------
+    // Core rule
     check(
       "an account can open its own thread",
       !!(await Conversation.findOne(own(a, threadA._id))),
@@ -64,7 +52,7 @@ async function main() {
       "knowing the id is not enough",
     );
 
-    // --- listing ----------------------------------------------------------
+    // Listing
     const listB = await Conversation.find({ userId: b._id }).select("_id").lean();
     check(
       "a thread list contains only its owner's threads",
@@ -72,24 +60,24 @@ async function main() {
       `${listB.length} threads for that account`,
     );
 
-    // --- deletion ---------------------------------------------------------
+    // Deletion
     const stolenDelete = await Conversation.deleteOne(own(b, threadA._id));
     check(
       "an account CANNOT delete another's thread",
       stolenDelete.deletedCount === 0 && !!(await Conversation.findById(threadA._id)),
     );
 
-    // --- ownership is immutable from outside ------------------------------
+    // Ownership is immutable
     const reassigned = await Conversation.findOne({ _id: threadA._id, userId: b._id });
     check("ownership cannot be assumed by asking for it", !reassigned);
 
-    // --- no thread is ownerless -------------------------------------------
+    // No ownerless thread
     const orphans = await Conversation.countDocuments({
       $or: [{ userId: null }, { userId: { $exists: false } }],
     });
     check("no thread exists without an owner", orphans === 0, `${orphans} found`);
 
-    // --- deleted accounts --------------------------------------------------
+    // Deleted accounts
     const userIds = new Set((await User.find().select("_id").lean()).map((u) => String(u._id)));
     const all = await Conversation.find().select("userId").lean();
     const dangling = all.filter((c) => !userIds.has(String(c.userId)));

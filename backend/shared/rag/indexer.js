@@ -4,33 +4,14 @@ import { packVector } from "./vector.js";
 import { builders, builderByType } from "./builders/index.js";
 import { ragConfig } from "./config.js";
 
-/**
- * Ingestion: sources -> documents -> vectors -> knowledge base.
- *
- * Two things keep it cheap enough to run often. Each draft carries a hash of
- * its own text and visibility, so a document that has not moved is skipped
- * without being re-embedded; and documents are embedded in batches rather than
- * one request each. On a free API tier that difference is the whole feasibility
- * of indexing a 200-CV upload.
- *
- * A full rebuild is the script. The narrow `reindex*` calls at the bottom are
- * what keep the store honest between rebuilds, and they matter more here than
- * in a documentation-only RAG: a PDF sits still, but an application is
- * shortlisted, a job's required skills are edited, and a stale document would
- * have the assistant confidently describing a state the record has left.
- */
+/** Ingestion: sources -> documents -> vectors -> knowledge base. */
 
 /** Documents embedded per API call. */
 const EMBED_BATCH = 64;
 /** Documents written per bulk call. */
 const WRITE_BATCH = 200;
 
-/**
- * Embed a set of drafts and upsert them.
- *
- * @param {import("./draft.js").DocumentDraft[]} drafts
- * @returns {Promise<number>} how many were written
- */
+/** Embed a set of drafts and upsert them. */
 export async function embedAndStore(drafts) {
   if (!drafts.length) return 0;
   const client = embeddingClient();
@@ -76,18 +57,7 @@ export async function embedAndStore(drafts) {
   return written;
 }
 
-/**
- * Bring one source's documents in line with what its builder now produces.
- *
- * `scope` is the set of stored documents this run is authoritative for, and it
- * must match `filter`. A full rebuild owns every document of its type and may
- * delete anything the builder no longer produces; a re-index of one application
- * owns only that application's documents, and must not treat every other
- * application's as stale. Getting this pair wrong empties the store, so the
- * narrow entry points below always pass both together.
- *
- * @returns {Promise<{written: number, unchanged: number, removed: number}>}
- */
+/** Bring one source's documents in line with its builder. */
 export async function syncSource(builder, { filter = {}, scope = null, force = false } = {}) {
   const drafts = await builder.build(filter);
   const ownership = scope ?? { sourceType: builder.sourceType };
@@ -136,10 +106,7 @@ export async function syncSource(builder, { filter = {}, scope = null, force = f
   return { written, unchanged, removed };
 }
 
-/**
- * Rebuild the whole knowledge base.
- * @returns {Promise<Record<string, {written: number, unchanged: number, removed: number}>>}
- */
+/** Rebuild the whole knowledge base. */
 export async function rebuildAll({ force = false, only = null } = {}) {
   const report = {};
   for (const builder of builders) {
@@ -151,13 +118,7 @@ export async function rebuildAll({ force = false, only = null } = {}) {
 
 const escape = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
 
-/**
- * Fire-and-forget re-index used by controllers.
- *
- * Indexing must never be the reason a user's upload or edit fails: the record
- * is already saved by the time this runs, and a failed embedding call means a
- * temporarily stale assistant, not a lost application. So it logs and swallows.
- */
+/** Fire-and-forget re-index used by controllers. */
 function background(label, work) {
   if (!ragConfig.autoReindex) return;
   Promise.resolve()

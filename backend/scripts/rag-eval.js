@@ -6,24 +6,7 @@ import { retrieve } from "../shared/rag/retriever.js";
 import { embeddingClient } from "../shared/rag/embeddings/index.js";
 import { ragConfig } from "../shared/rag/config.js";
 
-/**
- * Measure retrieval, rather than assume it.
- *
- * Hybrid search is two methods that fail in opposite directions, and the whole
- * argument for fusing them is that each rescues questions the other misses.
- * That is a claim about this corpus, not a general truth - so this runs the
- * same questions through `vector`, `lexical` and `hybrid` and prints what each
- * found.
- *
- *   node scripts/rag-eval.js
- *   node scripts/rag-eval.js --verbose      show the winning passage per mode
- *
- * The paraphrase questions are the ones to watch. "Who has led a team" cannot
- * be answered by keyword search over a CV that says "managed six engineers",
- * and it is exactly the gap the screening engine documents in itself. If the
- * vector column is empty for those, retrieval is not yet earning its place -
- * check that a real embedding model is configured, not the offline one.
- */
+/** Measure retrieval, rather than assume it. */
 
 const QUESTIONS = {
   hr: [

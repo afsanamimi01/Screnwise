@@ -28,11 +28,7 @@ export default function JobShortlist() {
 
   const [opening, setOpening] = useState<string | null>(null);
 
-  /**
-   * The CV is served as bytes behind the JWT, so it can't be a plain link:
-   * fetch it, hand the tab an object URL, and release it once the viewer has
-   * had time to load.
-   */
+  /** CV is served as bytes - fetch, open, revoke. */
   const openCv = async (applicationId: string) => {
     setOpening(applicationId);
     try {

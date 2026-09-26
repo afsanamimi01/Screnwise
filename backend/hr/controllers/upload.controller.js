@@ -16,42 +16,35 @@ function nameFromFileName(fileName, index) {
   return words.map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
 }
 
-/**
- * The file name is a fallback, not a source of truth: a dataset drop is named
- * `10554236.pdf` and a real one `jordan-blake-cv.pdf`. Digits-only or
- * single-word results are not a person's name, so the CV's own header wins.
- */
+/** File name is a fallback, not the source of truth. */
 function looksLikeAPersonsName(value) {
   return /\s/.test(value.trim()) && !/\d/.test(value);
 }
 
-/**
- * Bulk CV upload for one job / screening batch.
- *
- * Each file is parsed and scored inline by the local screening engine
- * (`shared/engine`) - no external API. For very large drops this runs long;
- * moving it onto a queue is the documented next step (docs/screening-engine.md).
- */
+/** Bulk CV upload for one job/batch. */
 export async function uploadCvs(req, res, next) {
   try {
-    // ---- Step 1: the job, scoped to the caller's company ----
+    // Find job
     const { jobId } = req.params;
 
     const job = await Job.findOne({ _id: jobId, ...tenantFilter(req) });
     if (!job) return res.status(404).json({ message: "Job not found" });
 
-    // ---- Step 2: at least one file must actually be attached ----
+    // Require files
     const files = req.files || [];
     if (!files.length) {
       return res.status(400).json({ message: "Attach one or more PDF, DOCX or TXT files (field name: cvs)" });
     }
 
-    // ---- Step 3: refuse the whole batch up front if it would bust the monthly limit ----
-    // Refuse the whole batch up front rather than screening some and
-    // rejecting the rest partway through - cheaper (no wasted engine runs)
-    // and leaves no ambiguity about which files actually got screened.
+    // Count files
+    let fileCount = 0;
+    for (const file of files) {
+      fileCount = fileCount + 1;
+    }
+
+    // Check limit
     const { limit, used, remaining } = await screeningStatus(req.company);
-    if (limit != null && files.length > remaining) {
+    if (limit != null && fileCount > remaining) {
       return res.status(409).json({
         code: "SCREENING_LIMIT_REACHED",
         message:
@@ -61,7 +54,7 @@ export async function uploadCvs(req, res, next) {
       });
     }
 
-    // ---- Step 4: screen every file, one at a time, counting the unreadable ones ----
+    // Screen files
     const existingCount = await Application.countDocuments({ jobId });
     const docs = [];
     let unreadableCount = 0;
@@ -76,10 +69,7 @@ export async function uploadCvs(req, res, next) {
         unreadableCount = unreadableCount + 1;
       }
 
-      // Identity comes from the CV itself. An address is never invented: with
-      // none printed in the file the record keeps an empty one and the email
-      // composer refuses to write to that candidate, rather than sending a
-      // real message to a plausible-looking address that nobody reads.
+      // Identity from CV only, never invented.
       const contact = result.contact ?? { email: "", phone: "", name: "" };
       const fromFileName = nameFromFileName(file.originalname, existingCount + i);
       const name =
@@ -111,23 +101,21 @@ export async function uploadCvs(req, res, next) {
       });
     }
 
-    // ---- Step 5: save the batch, re-index it, and log it ----
+    // Save batch
     const created = await Application.insertMany(docs);
 
-    // One re-index for the batch rather than one per CV. Fire-and-forget: the
-    // applications are already saved, and a failed embedding call must not turn
-    // a successful upload into an error.
+    // Re-index batch, fire-and-forget.
     rag.jobApplications(job._id);
 
     await logAudit(
       req.user.name,
       "CVs uploaded",
-      `${files.length} file${files.length === 1 ? "" : "s"} to ${job.title}` +
+      `${fileCount} file${fileCount === 1 ? "" : "s"} to ${job.title}` +
         (unreadableCount ? ` · ${unreadableCount} unreadable` : ""),
       req.user.companyId,
     );
 
-    // ---- Step 6: the rank board is blind - strip identity before returning ----
+    // Strip identity
     const blind = [];
     for (const a of created) {
       const json = a.toJSON();

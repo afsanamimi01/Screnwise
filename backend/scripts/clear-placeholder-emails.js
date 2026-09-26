@@ -1,19 +1,4 @@
-/**
- * One-off repair for CVs uploaded before the parser read contact details.
- *
- * The old uploader built an address out of the file name
- * (`jordan-blake-cv.pdf` -> `jordan.blake@example.com`). Those addresses look
- * real in the composer but belong to nobody, so a send goes nowhere - or, worse,
- * to a stranger who happens to own the address. This clears them, which is the
- * state an unparsed CV should have had all along: the composer then shows the
- * candidate as unreachable rather than offering to write to them.
- *
- * Only HR-uploaded rows on a reserved test domain are touched. Self-applied
- * candidates keep the address they registered with.
- *
- *   node scripts/clear-placeholder-emails.js          # report only
- *   node scripts/clear-placeholder-emails.js --apply  # write the change
- */
+/** One-off repair for CVs uploaded before parsing contact details. */
 import "dotenv/config";
 import mongoose from "mongoose";
 import { connectDB } from "../shared/config/db.js";

@@ -10,13 +10,7 @@ const scoreBreakdownItemSchema = new mongoose.Schema(
   { _id: false },
 );
 
-/**
- * The CV this application was screened from, when the bytes are kept.
- *
- * Self-applied candidates also have a CV on their profile; this is the copy
- * that belongs to *this* submission, which is what a recruiter should read
- * after shortlisting - a candidate may have replaced their profile CV since.
- */
+/** The CV this application was screened from. */
 const cvSchema = new mongoose.Schema(
   {
     data: Buffer,
@@ -33,11 +27,7 @@ const applicationSchema = new mongoose.Schema(
     jobId: { type: mongoose.Schema.Types.ObjectId, ref: "Job", required: true },
     candidateId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     name: { type: String, required: true },
-    /**
-     * Empty when an HR-uploaded CV printed no address. Self-applied rows always
-     * carry the account's address. Never a placeholder - the email composer
-     * skips a candidate it cannot reach instead of mailing a made-up address.
-     */
+    /** Empty when the CV printed no address - never a placeholder. */
     email: { type: String, default: "" },
     phone: String,
     alias: String,
@@ -59,14 +49,7 @@ const applicationSchema = new mongoose.Schema(
     },
     appliedAt: { type: Date, default: Date.now },
     cvFileName: String,
-    /**
-     * Plain text of the screened CV, kept for the assistant's knowledge base.
-     *
-     * `select: false` so it is never pulled by an ordinary query and never
-     * reaches `toJSON` - the rank board, the shortlist and every API response
-     * are unchanged by its presence. Only the RAG indexer asks for it, and what
-     * it indexes is redacted first (`shared/rag/redact.js`).
-     */
+    /** Plain text of the CV, for the assistant's knowledge base. */
     cvText: { type: String, default: "", select: false },
     cv: { type: cvSchema, default: undefined },
   },

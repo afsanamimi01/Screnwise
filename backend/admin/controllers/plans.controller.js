@@ -17,7 +17,7 @@ const EDITABLE = [
 /** Public - feeds the marketing pricing page. */
 export async function listPlans(req, res, next) {
   try {
-    // ---- Sort config ----
+    // Sort config
     const SORT_BY = "order asc";
     const [sortField, sortWord] = SORT_BY.split(" ");
     const sortOrder = sortWord === "desc" ? -1 : 1;
@@ -26,31 +26,31 @@ export async function listPlans(req, res, next) {
 
     const rows = [];
     for (const plan of allPlans) {
-      // ---- Field: Name ----
+      // Name
       const name = plan.name;
 
-      // ---- Field: Price ----
+      // Price
       const price = plan.price;
 
-      // ---- Field: Period ----
+      // Period
       const period = plan.period;
 
-      // ---- Field: CTA label ----
+      // CTA label
       const cta = plan.cta;
 
-      // ---- Field: Tagline ----
+      // Tagline
       const tagline = plan.tagline;
 
-      // ---- Field: Featured ----
+      // Featured
       const featured = plan.featured;
 
-      // ---- Field: HR seat limit ----
+      // HR seat limit
       const hrSeatLimit = plan.hrSeatLimit;
 
-      // ---- Field: CV screening limit ----
+      // CV screening limit
       const cvScreeningLimit = plan.cvScreeningLimit;
 
-      // ---- Field: Features ----
+      // Features
       const features = plan.features;
 
       rows.push({

@@ -6,17 +6,7 @@ import { embeddingClient } from "../shared/rag/embeddings/index.js";
 import { ragConfig } from "../shared/rag/config.js";
 import RagDocument from "../shared/models/RagDocument.model.js";
 
-/**
- * Build (or rebuild) the assistant's knowledge base.
- *
- *   node scripts/rag-index.js                 incremental - only what changed
- *   node scripts/rag-index.js --force         re-embed everything
- *   node scripts/rag-index.js --only=cv,job   one or more sources
- *   node scripts/rag-index.js --stats         report what is stored, index nothing
- *
- * Incremental is the default because re-embedding text that has not moved is
- * the main way a free API tier gets exhausted for nothing.
- */
+/** Build (or rebuild) the assistant's knowledge base. */
 /** Below this many documents the progress line is more noise than help. */
 const BATCH_NOISE_FLOOR = 40;
 
@@ -74,11 +64,7 @@ async function main() {
   const only = value("only")?.split(",").map((s) => s.trim()).filter(Boolean) ?? null;
   const started = Date.now();
 
-  // On the free tier a full index spends most of its time waiting out quota
-  // windows. Without these it looks identical to a hang, and the natural
-  // reaction - killing it - is the one thing that wastes the calls already
-  // spent. Progress is durable: whatever was embedded stays embedded, and
-  // re-running resumes rather than starting over.
+  // Progress is durable - re-running resumes rather than restarting.
   client.onProgress = (done, total) => {
     if (total > BATCH_NOISE_FLOOR) process.stdout.write(`\r  embedding ${done}/${total}...`);
   };

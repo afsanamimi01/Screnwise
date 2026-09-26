@@ -19,36 +19,6 @@
   color: #5e6b73;
 }
 
-.manager-email__status {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border: 1px solid #dee4e7;
-  border-radius: 0.75rem;
-  background: #f4f7f8;
-  font-size: 0.875rem;
-  color: #5e6b73;
-}
-
-/* Live provider configured - mail really goes out. */
-.manager-email__status--live {
-  border-color: #9ed3b4;
-  background: #e8f6ee;
-  color: #1c6b45;
-}
-
-/* No provider, or one that isn't answering - nothing gets delivered. */
-.manager-email__status--warn {
-  border-color: #e6c78a;
-  background: #fbeecf;
-  color: #7a5a12;
-}
-
-.manager-email__status svg {
-  flex-shrink: 0;
-}
-
 /* --- layout ------------------------------------------- */
 .manager-email__grid {
   display: grid;

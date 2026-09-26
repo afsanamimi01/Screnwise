@@ -3,22 +3,7 @@ import { ragConfig } from "../shared/rag/config.js";
 import { embeddingClient } from "../shared/rag/embeddings/index.js";
 import { dot } from "../shared/rag/vector.js";
 
-/**
- * Is the assistant's plumbing working, and is retrieval actually matching
- * meaning rather than words?
- *
- * Run it before a full index. A missing model, a rejected key or a wrong model
- * name all fail the same way at scale - a long index that ends in an error -
- * and this turns that into a few small calls and a clear reason.
- *
- *   node scripts/rag-check.js
- *
- * The last check is the one that matters. It embeds a paraphrase, an unrelated
- * sentence and a nonsense control, then insists on the ranking. A prepended
- * instruction sentence once pushed the CONTROL to first place on both Gemini
- * and bge, while a two-sentence comparison still looked fine - so the control
- * stays, and its position is asserted.
- */
+/** Is the assistant's plumbing working, and matching meaning? */
 const PASS = "  ok  ";
 const FAIL = " FAIL ";
 
@@ -84,9 +69,7 @@ async function checkEmbeddings() {
   const spread = Math.max(...scores) - control;
   console.log(`${PASS} ranking correct, spread ${spread.toFixed(3)} between best and control.`);
 
-  // The floor only does work when non-matches score like non-matches. Some
-  // models (Gemini among them) compress everything into a narrow high band,
-  // where any floor near zero admits the whole corpus.
+  // Floor only works when non-matches score like non-matches.
   if (control >= ragConfig.retrieval.minScore) {
     console.log(
       `       note: the control scores ${control.toFixed(3)}, above RAG_MIN_SCORE ` +

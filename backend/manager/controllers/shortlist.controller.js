@@ -4,11 +4,7 @@ import Candidate from "../../shared/models/Candidate.model.js";
 import { logAudit } from "../../shared/utils/audit.js";
 import { tenantFilter } from "../../shared/middleware/auth.middleware.js";
 
-/**
- * Manager access to the shortlist is read-only: a manager can see who HR has
- * shortlisted and open their CV, but shortlisting and un-shortlisting are
- * HR-only actions - see `hr/controllers/shortlist.controller.js`.
- */
+/** Manager shortlist access is read-only. */
 
 /** Identities are revealed only here, once a candidate has been shortlisted. */
 export async function getShortlist(req, res, next) {
@@ -19,21 +15,18 @@ export async function getShortlist(req, res, next) {
     const [sortField, sortWord] = SORT_BY.split(" ");
     const sortOrder = sortWord === "desc" ? -1 : 1;
 
-    // ---- Step 1: this job, scoped to the caller's company ----
+    // Find job
     const { jobId } = req.params;
     const job = await Job.findOne({ _id: jobId, ...tenantFilter(req) });
     if (!job) return res.status(404).json({ message: "Job not found" });
 
-    // ---- Step 2: every shortlisted application on it ----
+    // Fetch shortlisted
     const apps = await Application.find({
       jobId,
       status: "shortlisted",
     }).sort({ [sortField]: sortOrder });
 
-    // ---- Step 3: which of those candidates have a CV on file, fetched independently ----
-    // A self-applied candidate's CV lives on their profile, so one lookup for
-    // the whole page tells us which rows have a file to open. HR-uploaded CVs
-    // are parsed in memory and never stored, so those rows have none.
+    // Check CV availability
     const candidateIds = [];
     for (const a of apps) {
       if (a.candidateId) candidateIds.push(a.candidateId);
@@ -44,7 +37,7 @@ export async function getShortlist(req, res, next) {
     const cvByUser = new Map();
     for (const p of profiles) cvByUser.set(p.userId.toString(), p.cv);
 
-    // ---- Step 4: pair each application with its candidate and CV info ----
+    // Pair candidates
     const rows = [];
     for (const a of apps) {
       // The submission's own copy wins over the profile: it is the document
@@ -72,21 +65,10 @@ export async function getShortlist(req, res, next) {
   }
 }
 
-/**
- * Serve a shortlisted candidate's own CV to the manager viewing them.
- *
- * This is the one place the full document is readable, and the gate is
- * deliberate: screening happens blind, so the file stays sealed until the
- * candidate has been shortlisted on their score alone. Before that, a 403 -
- * not a 404 - because the honest answer is "not yet", not "no such thing".
- *
- * Only self-applied CVs can be served at all: an HR-uploaded file is parsed in
- * memory and never stored, so there is nothing to open. Every view is written
- * to the audit log, like any other access to a candidate's identity.
- */
+/** Serve a shortlisted candidate's CV to manager. */
 export async function getApplicationCv(req, res, next) {
   try {
-    // ---- Step 1: the application, scoped to the caller's company via its job ----
+    // Find application
     const { applicationId } = req.params;
 
     const application = await Application.findById(applicationId);
@@ -96,7 +78,7 @@ export async function getApplicationCv(req, res, next) {
     const job = await Job.findOne({ _id: application.jobId, ...tenantFilter(req) });
     if (!job) return res.status(404).json({ message: "Application not found" });
 
-    // ---- Step 2: refuse until this candidate has actually been shortlisted ----
+    // Require shortlisted
     if (application.status !== "shortlisted") {
       return res.status(403).json({
         message: "The CV opens once this candidate is shortlisted - screening stays blind until then.",
@@ -104,7 +86,7 @@ export async function getApplicationCv(req, res, next) {
       });
     }
 
-    // ---- Step 3: resolve the file - the submission's own copy first, then the profile's ----
+    // Resolve file
     let cv = application.cv?.data ? application.cv : null;
     if (!cv && application.candidateId) {
       const profile = await Candidate.findOne({ userId: application.candidateId });
@@ -120,7 +102,7 @@ export async function getApplicationCv(req, res, next) {
       });
     }
 
-    // ---- Step 4: log the view, then send the file ----
+    // Log view
     await logAudit(
       req.user.name,
       "CV viewed",

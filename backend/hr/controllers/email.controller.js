@@ -15,14 +15,9 @@ export async function getMailStatus(_req, res, next) {
   }
 }
 
-/**
- * Resolves who to write to. The composer sends `applicationIds` so we can look
- * up each candidate's real name and address ourselves - never trusting the
- * client for the destination - and personalise per recipient. A plain
- * `recipients` array of addresses is still accepted for older clients.
- */
+/** Resolve recipients server-side, never trusted from client. */
 async function resolveRecipients({ applicationIds, recipients, job }) {
-  // ---- Step 1: prefer application ids - they carry the candidate's own name ----
+  // Prefer application ids
   if (Array.isArray(applicationIds) && applicationIds.length) {
     const apps = await Application.find({ _id: { $in: applicationIds }, jobId: job._id });
     const targets = [];
@@ -34,7 +29,7 @@ async function resolveRecipients({ applicationIds, recipients, job }) {
     return targets;
   }
 
-  // ---- Step 2: fall back to a plain list of addresses, no names attached ----
+  // Fallback to addresses
   const addresses = Array.isArray(recipients) ? recipients : [];
   const targets = [];
   for (const email of addresses) {
@@ -45,7 +40,7 @@ async function resolveRecipients({ applicationIds, recipients, job }) {
 
 export async function sendShortlistEmail(req, res, next) {
   try {
-    // ---- Step 1: the message must have a subject and a body ----
+    // Require subject and body
     const { jobId } = req.params;
     const { subject, body, template, recipients = [], applicationIds = [] } = req.body;
 
@@ -53,11 +48,11 @@ export async function sendShortlistEmail(req, res, next) {
       return res.status(400).json({ message: "Subject and body are both required" });
     }
 
-    // ---- Step 2: the job, scoped to the caller's company ----
+    // Find job
     const job = await Job.findOne({ _id: jobId, ...tenantFilter(req) });
     if (!job) return res.status(404).json({ message: "Job not found" });
 
-    // ---- Step 3: who it's actually going to ----
+    // Resolve recipients
     const targets = await resolveRecipients({ applicationIds, recipients, job });
     if (!targets.length) {
       return res
@@ -75,10 +70,7 @@ export async function sendShortlistEmail(req, res, next) {
       ? `Sent by ${req.user.name} at ${companyName} via Screenwise. Reply to this email to reach the hiring team.`
       : `Sent by ${req.user.name} via Screenwise. Reply to this email to reach the hiring team.`;
 
-    // ---- Step 4: send one message per candidate ----
-    // Sequential on purpose: one message per candidate so the greeting is
-    // personal and nobody sees the rest of the shortlist, and so the mailer can
-    // pace itself under the provider's rate limit.
+    // Send messages
     const deliveries = [];
     let driver = "console";
     for (const target of targets) {
@@ -105,14 +97,16 @@ export async function sendShortlistEmail(req, res, next) {
       });
     }
 
-    // ---- Step 5: tally how many actually went out ----
+    // Tally sent
     let sentCount = 0;
+    let totalDeliveries = 0;
     for (const d of deliveries) {
+      totalDeliveries = totalDeliveries + 1;
       if (d.status === "sent") sentCount = sentCount + 1;
     }
-    const status = sentCount === 0 ? "failed" : sentCount === deliveries.length ? "sent" : "partial";
+    const status = sentCount === 0 ? "failed" : sentCount === totalDeliveries ? "sent" : "partial";
 
-    // ---- Step 6: record the send and log it ----
+    // Record and log
     const recipientAddresses = [];
     for (const d of deliveries) recipientAddresses.push(d.email);
 
@@ -131,7 +125,7 @@ export async function sendShortlistEmail(req, res, next) {
     await logAudit(
       req.user.name,
       "Email sent",
-      `${template} - ${sentCount}/${deliveries.length} delivered via ${driver}`,
+      `${template} - ${sentCount}/${totalDeliveries} delivered via ${driver}`,
       req.user.companyId,
     );
 
@@ -150,11 +144,11 @@ export async function listSentEmails(req, res, next) {
     const [sortField, sortWord] = SORT_BY.split(" ");
     const sortOrder = sortWord === "desc" ? -1 : 1;
 
-    // ---- Step 1: the job, scoped to the caller's company ----
+    // Find job
     const job = await Job.findOne({ _id: req.params.jobId, ...tenantFilter(req) });
     if (!job) return res.status(404).json({ message: "Job not found" });
 
-    // ---- Step 2: every email sent for it ----
+    // Fetch emails
     const emails = await SentEmail.find({ jobId: job._id }).sort({ [sortField]: sortOrder });
     res.json(emails);
   } catch (err) {

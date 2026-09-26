@@ -861,10 +861,7 @@ function stripHelperKeys(job) {
   return out;
 }
 
-/**
- * @param {{ reset?: boolean }} [opts] When `reset` is true every collection is
- *   cleared first, so the DB ends up exactly matching this file.
- */
+/** Reset clears everything first, then reseeds. */
 export async function seedDatabase({ reset = false } = {}) {
   if (reset) {
     await Promise.all([
@@ -995,10 +992,7 @@ export async function seedDatabase({ reset = false } = {}) {
   });
   await Application.insertMany(candidateApps);
 
-  // Every self-applied row gets the CV its numbers imply, then is re-scored
-  // from that document - so a recruiter who shortlists one has something real
-  // to open, and the breakdown can be checked against the file. HR-uploaded
-  // rows are left alone: the product deliberately keeps no copy of those.
+  // Every self-applied row gets a CV matching its score.
   const needCvs = await Application.find({ source: "self-applied", needsManualReview: false });
   const jobsById = new Map(jobDocs.map((j) => [j._id.toString(), j]));
   let cvCount = 0;
@@ -1042,10 +1036,7 @@ export async function seedDatabase({ reset = false } = {}) {
     })),
   );
 
-  // Subscription history for the companies that have a plan: one payment per
-  // month since they signed up, so the super admin's revenue page has a trend
-  // to show. Demo data like everything else here - the amounts come from the
-  // Plan records, so the totals stay consistent with the pricing cards.
+  // Monthly payment history since signup, priced from Plan records.
   const priced = Object.fromEntries((await Plan.find()).map((p) => [p.key, p]));
   const paymentDocs = [];
   for (const company of companyDocs) {

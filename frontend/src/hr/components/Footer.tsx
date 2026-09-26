@@ -5,10 +5,7 @@ import "./Footer.css";
 type FooterLink = { label: string; to?: string; href?: string };
 type FooterColumn = { heading: string; links: FooterLink[] };
 
-/**
- * HR / recruiter footer - independent of the other actors. Reorder columns or
- * links by moving array entries; the "Contact" details are hard-coded here.
- */
+/** HR / recruiter footer. */
 const COLUMNS: FooterColumn[] = [
   {
     heading: "Workspace",

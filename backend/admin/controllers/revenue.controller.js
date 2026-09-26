@@ -19,7 +19,7 @@ function sum(rows) {
 
 export async function getRevenue(req, res, next) {
   try {
-    // ---- Sort config ----
+    // Sort config
     const SORT_BY = "createdAt desc";
     const [sortField, sortWord] = SORT_BY.split(" ");
     const sortOrder = sortWord === "desc" ? -1 : 1;
@@ -41,7 +41,7 @@ export async function getRevenue(req, res, next) {
     const real = payments.filter((p) => p.gateway !== "manual");
     const manual = payments.filter((p) => p.gateway === "manual");
 
-    // ---- Section: Tiles (Collected / This month / Last 30 days / Paying companies) ----
+    // Tiles
     const monthStart = startOfMonth();
     const last30Start = new Date(Date.now() - 30 * DAY);
 
@@ -71,7 +71,7 @@ export async function getRevenue(req, res, next) {
       manualAmount = manualAmount + (p.amount ?? 0);
     }
 
-    // ---- Section: Trend chart (up to 12 months, starting from the first payment) ----
+    // Trend chart
     let earliest = null;
     for (const p of real) {
       const at = p.paidAt ?? p.createdAt;
@@ -101,7 +101,7 @@ export async function getRevenue(req, res, next) {
       });
     }
 
-    // ---- Section: By plan ----
+    // By plan
     const byPlan = {};
     for (const p of real) {
       byPlan[p.planKey] ??= { plan: p.planKey, amount: 0, count: 0 };
@@ -109,7 +109,7 @@ export async function getRevenue(req, res, next) {
       byPlan[p.planKey].count += 1;
     }
 
-    // ---- Section: Payments list ----
+    // Payments list
     const paymentRows = payments.slice(0, limit).map((p) => ({
       ...p.toJSON(),
       companyName: nameById[p.companyId.toString()] ?? "(deleted company)",

@@ -2,14 +2,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Check, CreditCard, ShieldCheck, TriangleAlert } from "lucide-react";
+import { Check } from "lucide-react";
 import { Shell } from "@/manager/components/Shell";
 import { ErrorState, LoadingRows } from "@/shared/components/StateViews";
 import {
   changePlan,
   getMyCompany,
   getPayments,
-  getPaymentStatus,
   getPlans,
   startPayment,
 } from "@/shared/lib/api";
@@ -36,7 +35,6 @@ export default function Billing() {
   const queryClient = useQueryClient();
   const company = useQuery({ queryKey: ["company"], queryFn: getMyCompany });
   const plans = useQuery({ queryKey: ["plans"], queryFn: getPlans });
-  const gateway = useQuery({ queryKey: ["payment-status"], queryFn: getPaymentStatus });
   const payments = useQuery({ queryKey: ["payments"], queryFn: getPayments });
   const [switching, setSwitching] = useState<PlanKey | null>(null);
   const [params, setParams] = useSearchParams();
@@ -169,28 +167,6 @@ export default function Billing() {
           <div className="billing__banner">
             <span className="billing__strong">{c.name}</span> has no plan yet. Choosing one starts
             a 30-day subscription and unlocks HR seats and job posting.
-          </div>
-        ) : null}
-
-        {gateway.data ? (
-          <div
-            className={
-              "billing__gateway" +
-              (gateway.data.live
-                ? " billing__gateway--live"
-                : gateway.data.configured
-                  ? " billing__gateway--sandbox"
-                  : " billing__gateway--off")
-            }
-          >
-            {gateway.data.live ? (
-              <ShieldCheck size={16} />
-            ) : gateway.data.configured ? (
-              <CreditCard size={16} />
-            ) : (
-              <TriangleAlert size={16} />
-            )}
-            <span>{gateway.data.message}</span>
           </div>
         ) : null}
 

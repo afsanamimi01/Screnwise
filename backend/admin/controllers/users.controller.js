@@ -5,7 +5,7 @@ import { logAudit } from "../../shared/utils/audit.js";
 
 export async function listUsers(req, res, next) {
   try {
-    // ---- Sort config ----
+    // Sort config
     const SORT_BY = "createdAt asc";
     const [sortField, sortWord] = SORT_BY.split(" ");
     const sortOrder = sortWord === "desc" ? -1 : 1;
@@ -21,22 +21,22 @@ export async function listUsers(req, res, next) {
 
     const rows = [];
     for (const user of allUsers) {
-      // ---- Column: Name ----
+      // Name
       const name = user.name;
 
-      // ---- Column: Email ----
+      // Email
       const email = user.email;
 
-      // ---- Column: Role ----
+      // Role
       const role = user.role;
 
-      // ---- Column: Company ----
+      // Company
       const companyName = user.companyId ? (nameById[user.companyId.toString()] ?? null) : null;
 
-      // ---- Column: Joined ----
+      // Joined
       const createdAt = user.toJSON().createdAt;
 
-      // ---- Column: Active ----
+      // Active
       const active = user.active;
 
       rows.push({
@@ -64,12 +64,12 @@ export async function updateUser(req, res, next) {
 
     const { active, name } = req.body;
 
-    // ---- Action: Rename ----
+    // Rename
     if (name !== undefined) {
       user.name = name;
     }
 
-    // ---- Action: Active / inactive ----
+    // Active/inactive
     // The Users table sends a checkbox state: ticked = active, unticked = inactive.
     if (active !== undefined) {
       const ticked = Boolean(active);

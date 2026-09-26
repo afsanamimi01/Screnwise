@@ -2,18 +2,7 @@ import Candidate from "../../models/Candidate.model.js";
 import User from "../../models/User.model.js";
 import { DocumentDraft } from "../draft.js";
 
-/**
- * A candidate's own profile.
- *
- * Pinned to the account and nothing else - it is never company-scoped, because
- * a profile is not an application. What a recruiter may see of a candidate is
- * the CV that candidate actually submitted to their job, and that is the `cv`
- * builder's business.
- *
- * Its use is the other direction: it gives the assistant something to reason
- * about the person from when they ask which open roles suit them, without
- * having to re-read their CV file on every question.
- */
+/** A candidate's own profile. */
 export const profileBuilder = {
   sourceType: "profile",
 

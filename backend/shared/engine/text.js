@@ -1,11 +1,4 @@
-/**
- * Dependency-free text helpers for the screening engine: normalisation,
- * tokenising, a small stopword list, Levenshtein distance and a TF-IDF cosine
- * similarity.
- *
- * Everything here is plain arithmetic on purpose - any number the engine
- * produces can be traced back to this file, with no model or API in the loop.
- */
+/** Dependency-free text helpers for the screening engine. */
 
 const STOPWORDS = new Set(
   (
@@ -63,14 +56,7 @@ function termFreq(tokens) {
   return tf;
 }
 
-/**
- * TF-IDF cosine similarity between two short documents, 0..1.
- *
- * The two documents form their own two-item corpus, so the IDF term simply
- * damps words that appear in both. It is enough to separate "this CV talks
- * about the same things as the job" from "this one does not"; it is not a
- * semantic model and will not equate synonyms.
- */
+/** TF-IDF cosine similarity between two short documents, 0..1. */
 export function cosineSimilarity(textA, textB) {
   const a = termFreq(tokenize(textA));
   const b = termFreq(tokenize(textB));

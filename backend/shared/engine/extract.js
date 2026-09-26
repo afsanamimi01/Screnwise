@@ -1,13 +1,4 @@
-/**
- * Turn an uploaded file's bytes into plain text.
- *
- *   PDF  → pdf-parse (bundled pdf.js, no native code)
- *   DOCX → mammoth   (raw text, styling discarded)
- *   TXT  → utf-8
- *
- * Anything else, or any failure, comes back as `{ ok: false, reason }` so the
- * caller can flag the candidate for manual review instead of scoring garbage.
- */
+/** Turn an uploaded file's bytes into plain text. */
 import mammoth from "mammoth";
 import { PDFParse } from "pdf-parse";
 

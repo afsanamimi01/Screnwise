@@ -6,38 +6,24 @@ import { screenCv } from "../../shared/engine/index.js";
 import { screeningStatus } from "../../shared/billing/subscription.js";
 import { rag } from "../../shared/rag/indexer.js";
 
-/**
- * Submit an application for a signed-in candidate.
- *
- * The CV comes from one of two places, in order:
- *   1. a file attached to this request (multipart field `cv`) - used as-is,
- *      and saved to the candidate's profile if they don't have one yet;
- *   2. the CV already on the candidate's profile.
- *
- * Whichever is used is run through the local screening engine, so the
- * application lands on the rank board with a real score and breakdown.
- */
+/** Submit an application for a signed-in candidate. */
 export async function submitApplication(req, res, next) {
   try {
     const { jobId, phone } = req.body;
 
-    // ---- Step 1: the target job, only if it's open and taking public applications ----
+    // Find job
     const job = await Job.findOne({ _id: jobId, status: "open", publicApplyEnabled: true });
     if (!job) {
       return res.status(404).json({ message: "Job not found or not open for applications" });
     }
 
-    // ---- Step 2: block a second application to the same job ----
+    // Block duplicate
     const already = await Application.findOne({ jobId: job._id, candidateId: req.user._id });
     if (already) {
       return res.status(409).json({ message: "You've already applied to this role." });
     }
 
-    // ---- Step 3: the company's monthly screening cap, fetched independently ----
-    // A self-applied CV runs through the same screening engine as an
-    // HR bulk upload, so it counts against the same monthly cap - otherwise
-    // the cap is meaningless, bypassed just by pointing candidates at the
-    // public apply link instead of having HR upload in bulk.
+    // Check screening cap
     const company = await Company.findById(job.companyId);
     if (company) {
       const { limit, remaining } = await screeningStatus(company);
@@ -48,10 +34,10 @@ export async function submitApplication(req, res, next) {
       }
     }
 
-    // ---- Step 4: this candidate's profile, fetched independently ----
+    // Load profile
     let profile = await Candidate.findOne({ userId: req.user._id });
 
-    // ---- Step 5: resolve which CV to screen - an attached file, or the profile's own ----
+    // Resolve CV
     let cvBuffer;
     let cvFileName;
     let cvType;
@@ -81,10 +67,10 @@ export async function submitApplication(req, res, next) {
       });
     }
 
-    // ---- Step 6: run that CV through the local screening engine ----
+    // Screen CV
     const result = await screenCv({ buffer: cvBuffer, fileName: cvFileName, mimeType: cvType }, job);
 
-    // ---- Step 7: create the application record ----
+    // Create application
     const existingCount = await Application.countDocuments({ jobId: job._id });
     const application = await Application.create({
       jobId: job._id,
@@ -109,7 +95,7 @@ export async function submitApplication(req, res, next) {
       cvText: result.text ?? "",
     });
 
-    // ---- Step 8: queue it for the assistant's search index and respond ----
+    // Queue reindex
     rag.application(application._id);
 
     res.status(201).json({ trackingId: application._id.toString(), score: result.score });

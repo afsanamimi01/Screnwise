@@ -11,14 +11,7 @@ const CONTEXT_TURNS = 12;
 /** Messages kept on a thread before the oldest are dropped. */
 const MAX_STORED = 200;
 
-/**
- * Every query in this file is scoped by `userId`, never by `_id` alone.
- *
- * A thread belonging to someone else must not be findable and then rejected -
- * it must not be found. That difference matters: a 403 confirms a thread
- * exists, and the id space is guessable enough that confirming existence is
- * itself a leak. Everything here returns 404 for "not yours".
- */
+/** Every query is scoped by userId - never found for others. */
 const own = (req, id) => ({ _id: id, userId: req.user._id });
 
 /** A thread list needs a label, and the opening question is the honest one. */
@@ -27,13 +20,7 @@ function titleFrom(question) {
   return clean.length <= 60 ? clean : `${clean.slice(0, 57)}…`;
 }
 
-/**
- * Whether the assistant can actually answer, and what it is running on.
- *
- * The client uses this to show a real explanation instead of a chat box that
- * fails on first use - the same reason the email composer says which mail
- * driver is live rather than pretending a message went out.
- */
+/** Whether the assistant can answer, and what it runs on. */
 export async function getStatus(req, res, next) {
   try {
     const client = embeddingClient();
@@ -45,11 +32,7 @@ export async function getStatus(req, res, next) {
       documents,
       model: ragConfig.chat.model,
       embeddingModel: client.model,
-      /**
-       * False means retrieval is keyword-only. Worth surfacing: it is the
-       * difference between "who has led a team" working and not, and it fails
-       * as a thin answer rather than an error.
-       */
+      /** False means retrieval is keyword-only. */
       semanticSearch: client.semantic,
       retrievalMode: ragConfig.retrieval.mode,
     });
@@ -116,9 +99,7 @@ export async function askAssistant(req, res, next) {
       return res.status(400).json({ message: `Keep it under ${MAX_QUESTION} characters.` });
     }
 
-    // Continue a thread, or start one. A conversationId that is not this
-    // user's simply does not resolve, and a new thread is started instead of
-    // an error being raised - there is nothing to tell them about it.
+    // Continue or start thread
     let conversation = req.body?.conversationId
       ? await Conversation.findOne(own(req, req.body.conversationId))
       : null;
@@ -133,14 +114,7 @@ export async function askAssistant(req, res, next) {
       });
     }
 
-    /**
-     * History comes from the stored thread, never from the request body.
-     *
-     * It used to be sent up by the client, which meant anything could be put
-     * in front of the model as "what was said earlier" - a plausible route to
-     * talking it into a claim it never made. The server owns the transcript
-     * now, so prior turns are the ones that actually happened.
-     */
+    /** History comes from the stored thread, never the request body. */
     const history = conversation.messages
       .filter((m) => !m.failed)
       .slice(-CONTEXT_TURNS)

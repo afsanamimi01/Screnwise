@@ -26,12 +26,7 @@ function monthLabel(month: string) {
   return m === "01" ? `${name} ${year!.slice(2)}` : name;
 }
 
-/**
- * Twelve months of collected revenue.
- *
- * One series, so no legend - the heading names it. Every month is labelled with
- * its total, and the hover tooltip adds the payment count behind it.
- */
+/** Twelve months of collected revenue. */
 function RevenueTrend({ series, currency }: { series: RevenueReport["series"]; currency: string }) {
   const [hover, setHover] = useState<string | null>(null);
   // The tallest month sets the scale for the rest.

@@ -14,16 +14,7 @@ export class AssistantUnavailableError extends Error {
   }
 }
 
-/**
- * What the assistant is and is not allowed to do, per role.
- *
- * The blind-board rule is the one worth reading twice. Screenwise's product
- * pillar is that a recruiter judges the work before they know whose work it is,
- * and an assistant that names an un-shortlisted candidate would quietly undo
- * that. Retrieval already redacts CV passages, so the model has no name to
- * leak; this tells it why, so it explains the rule instead of apologising for
- * a gap it cannot see the reason for.
- */
+/** What the assistant is and isn't allowed to do, per role. */
 function systemInstruction(user) {
   const shared = `
 You are the Screenwise assistant. Screenwise is a multi-tenant CV-screening product:
@@ -105,18 +96,7 @@ function retryDelayFrom(body) {
   return match ? Math.ceil(Number(match[1]) * 1000) : null;
 }
 
-/**
- * One Gemini call, retried through the transient failures.
- *
- * Flash returns 503 "experiencing high demand" often enough that a single
- * attempt is not a working feature - it means a question fails outright while
- * the model is merely busy, which reads to the user as a broken assistant. A
- * 429 is the same story on the free tier's quota.
- *
- * Waits are kept short here, unlike the indexer's: someone is sitting in front
- * of a chat box. Better to give up after a few seconds with an honest message
- * than to hold a request open for a minute.
- */
+/** One Gemini call, retried through transient failures. */
 async function generate({ apiKey, model, system, contents, tools, temperature }) {
   const body = {
     systemInstruction: { parts: [textPart(system)] },
@@ -172,14 +152,7 @@ function truncate(result) {
   };
 }
 
-/**
- * Answer one question.
- *
- * @param {object} user     the signed-in user
- * @param {string} question
- * @param {Array<{role: string, text: string}>} [history] prior turns, oldest first
- * @returns {Promise<{reply: string, toolsUsed: string[], sources: string[]}>}
- */
+/** Answer one question. */
 export async function ask(user, question, history = []) {
   const { apiKey, model, maxToolRounds, temperature } = ragConfig.chat;
   if (!apiKey) {
@@ -223,9 +196,7 @@ export async function ask(user, question, history = []) {
       };
     }
 
-    // Echo the model's own turn back, then answer every call it made in ONE
-    // user turn - split across several, the model quietly stops making
-    // parallel calls.
+    // Echo model's turn, then answer every call in one user turn.
     contents.push({ role: "model", parts });
 
     const responses = [];

@@ -1,14 +1,4 @@
-/**
- * ScreenWise CV screening engine - free, offline, deterministic.
- *
- *   file bytes ──▶ extract text ──▶ five scored dimensions ──▶ weighted total
- *                                        │
- *                                        └─▶ hard filters ──▶ manual-review flag
- *
- * No LLM, no external API. Every score is arithmetic over the CV text and the
- * job's own `weights` / `hardFilters`, so the same CV against the same job
- * always yields the same number. See docs/screening-engine.md.
- */
+
 import { normalize, clamp } from "./text.js";
 import { extractText } from "./extract.js";
 import { extractContact } from "./contact.js";
@@ -112,16 +102,7 @@ function hardFilterFailures(criteria, { years, matchedSkills, cvNorm }) {
 
 const HARD_FILTER_PENALTY = 15;
 
-/**
- * Screen one CV against one job.
- *
- * @param {{ buffer: Buffer, fileName: string, mimeType?: string }} file
- * @param {object} job  A Job document (or plain object with the same fields).
- * @returns {Promise<object>} Application-shaped fields: `score`,
- *   `scoreBreakdown`, `matchedSkills`, `missingSkills`, `yearsExperience`,
- *   `currentTitle`, `pastTitles`, `educationLevel`, `needsManualReview`,
- *   `status`, plus a non-persisted `reasons` array.
- */
+/** Screen one CV against one job. */
 export async function screenCv(file, job) {
   const criteria = readCriteria(job);
 
@@ -168,9 +149,7 @@ export async function screenCv(file, job) {
     100,
   );
 
-  // Hard filters no longer block a candidate - they apply a fixed penalty and
-  // an explanatory note, so the row still ranks (just lower). Nothing is sent
-  // to a manual-review queue.
+
   const reasons = hardFilterFailures(criteria, {
     years,
     matchedSkills: skills.matched,
@@ -200,12 +179,7 @@ export async function screenCv(file, job) {
     status: "screened",
     /** Read off the CV itself - empty when it doesn't state one. Never guessed. */
     contact: extractContact(raw),
-    /**
-     * The extracted plain text, so a caller that wants to keep it does not have
-     * to parse the file a second time. Not persisted by this function and not
-     * used by any score - the caller decides whether to store it. The assistant's
-     * indexer does; see `shared/rag`.
-     */
+    /** Extracted plain text. */
     text: raw,
   };
 }

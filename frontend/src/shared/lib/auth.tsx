@@ -110,10 +110,7 @@ export const workspaceLabels: Record<Role, string> = {
   superadmin: "Admin console",
 };
 
-/**
- * Access rule: a job's rank board is visible to the super admin and to any
- * member of the company that owns the job. The server enforces this too.
- */
+/** Access rule: board visible to superadmin or company member. */
 export function canViewBoard(user: User | null, companyId: string) {
   if (!user) return false;
   if (user.role === "superadmin") return true;

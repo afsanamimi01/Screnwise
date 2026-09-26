@@ -10,12 +10,7 @@ const CONTACT_PHONE = "+880 1700-000000";
 type FooterLink = { label: string; to?: string; href?: string };
 type FooterColumn = { heading: string; links: FooterLink[] };
 
-/**
- * Link columns, built per actor. A signed-in visitor never sees "Create account"
- * or "Sign in" here - those read as a logged-out state; they get the route back
- * into their own workspace instead. Internal `to` routes never dead-end;
- * `href` is used for contact.
- */
+/** Link columns, built per actor. */
 function columnsFor(role?: Role): FooterColumn[] {
   const keep = (links: (FooterLink | null)[]) => links.filter((l): l is FooterLink => l !== null);
 
@@ -60,11 +55,7 @@ function columnsFor(role?: Role): FooterColumn[] {
   ];
 }
 
-/**
- * App-wide footer for the public pages (Landing / Login / Register / 404).
- * Pass `role` inside a signed-in workspace to surface a shortcut back to that
- * workspace; omit it on public pages.
- */
+/** App-wide footer for the public pages. */
 export function SiteFooter({ role, className }: { role?: Role; className?: string }) {
   const year = new Date().getFullYear();
   const columns = columnsFor(role);

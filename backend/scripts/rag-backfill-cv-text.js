@@ -5,21 +5,7 @@ import Application from "../shared/models/Application.model.js";
 import Candidate from "../shared/models/Candidate.model.js";
 import { extractText } from "../shared/engine/extract.js";
 
-/**
- * Recover CV text for applications screened before `cvText` existed.
- *
- * Until now the engine parsed each CV, scored it and dropped the text. Where
- * the bytes were kept - a self-applied submission, or a candidate's profile CV
- * - the text can be parsed back out. Where they were not, which is every
- * HR-uploaded batch, nothing can: those CVs were held in memory only long
- * enough to score and are genuinely gone. Those applications keep their scores
- * and simply do not appear in the assistant's CV corpus.
- *
- *   node scripts/rag-backfill-cv-text.js --dry-run
- *   node scripts/rag-backfill-cv-text.js
- *
- * Re-extraction only; it never re-scores, so no score in the product moves.
- */
+/** Recover CV text for applications screened before cvText existed. */
 const dryRun = process.argv.includes("--dry-run");
 
 async function main() {

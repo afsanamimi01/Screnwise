@@ -8,24 +8,24 @@ const DAY = 24 * 60 * 60 * 1000;
 
 export async function getAdminDashboard(req, res, next) {
   try {
-    // ---- Card 1: Companies ----
+    // Companies
     const companiesCount = await Company.countDocuments();
 
-    // ---- Card 2: Active now ----
+    // Active now
     // "accessible" is a virtual on the model, so it needs hydrated documents.
     const companiesForActive = await Company.find();
     const activeCompaniesCount = companiesForActive.filter((c) => c.accessible).length;
 
-    // ---- Card 3: Candidates ----
+    // Candidates
     const candidatesCount = await User.countDocuments({ role: "candidate" });
 
-    // ---- Card 4: Jobs ----
+    // Jobs
     const jobsCount = await Job.countDocuments();
 
-    // ---- Card 5: Applications ----
+    // Applications
     const applicationsCount = await Application.countDocuments();
 
-    // ---- Panel: Expiring within 7 days ----
+    // Expiring soon
     const soon = new Date(Date.now() + 7 * DAY);
     const companiesForExpiry = await Company.find();
     const expiringSoon = companiesForExpiry
@@ -44,7 +44,7 @@ export async function getAdminDashboard(req, res, next) {
         subscriptionExpiresAt: c.toJSON().subscriptionExpiresAt,
       }));
 
-    // ---- Panel: Recent companies ----
+    // Recent companies
     const recentCompaniesList = await Company.find().sort({ createdAt: "desc" }).limit(6);
     const recentCompanies = recentCompaniesList.map((c) => ({
       id: c.id,

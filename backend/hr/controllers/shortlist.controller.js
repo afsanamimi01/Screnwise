@@ -14,21 +14,18 @@ export async function getShortlist(req, res, next) {
     const [sortField, sortWord] = SORT_BY.split(" ");
     const sortOrder = sortWord === "desc" ? -1 : 1;
 
-    // ---- Step 1: this job, scoped to the caller's company ----
+    // Find job
     const { jobId } = req.params;
     const job = await Job.findOne({ _id: jobId, ...tenantFilter(req) });
     if (!job) return res.status(404).json({ message: "Job not found" });
 
-    // ---- Step 2: every shortlisted application on it ----
+    // Fetch shortlisted
     const apps = await Application.find({
       jobId,
       status: "shortlisted",
     }).sort({ [sortField]: sortOrder });
 
-    // ---- Step 3: which of those candidates have a CV on file, fetched independently ----
-    // A self-applied candidate's CV lives on their profile, so one lookup for
-    // the whole page tells us which rows have a file to open. HR-uploaded CVs
-    // are parsed in memory and never stored, so those rows have none.
+    // Check CV availability
     const candidateIds = [];
     for (const a of apps) {
       if (a.candidateId) candidateIds.push(a.candidateId);
@@ -39,7 +36,7 @@ export async function getShortlist(req, res, next) {
     const cvByUser = new Map();
     for (const p of profiles) cvByUser.set(p.userId.toString(), p.cv);
 
-    // ---- Step 4: pair each application with its candidate and CV info ----
+    // Pair candidates
     const rows = [];
     for (const a of apps) {
       // The submission's own copy wins over the profile: it is the document
@@ -69,7 +66,7 @@ export async function getShortlist(req, res, next) {
 
 export async function shortlistCandidates(req, res, next) {
   try {
-    // ---- Step 1: only applications that belong to the caller's company ----
+    // Filter allowed
     const { applicationIds = [] } = req.body;
     const apps = await Application.find({ _id: { $in: applicationIds } }).populate("jobId");
 
@@ -79,42 +76,41 @@ export async function shortlistCandidates(req, res, next) {
       if (a.jobId?.companyId?.toString() === companyId) allowed.push(a);
     }
 
-    // ---- Step 2: move them to "shortlisted" ----
+    // Mark shortlisted
     const allowedIds = [];
     for (const a of allowed) allowedIds.push(a._id);
     await Application.updateMany({ _id: { $in: allowedIds } }, { $set: { status: "shortlisted" } });
 
-    // ---- Step 3: re-index and log ----
-    if (allowed.length) {
-      // Shortlisting changes who these documents describe, not what they say,
-      // so their hashes move and the affected ones are re-indexed. The CV text
-      // itself stays redacted - a name is read from the shortlist page, never
-      // from the knowledge base.
+    // Count allowed
+    let allowedCount = 0;
+    for (const a of allowed) {
+      allowedCount = allowedCount + 1;
+    }
+
+    // Re-index and log
+    if (allowedCount > 0) {
+      // Re-index since identity changed; CV text stays redacted.
       for (const app of allowed) rag.application(app._id);
 
       const jobTitle = allowed[0].jobId?.title ?? "a job";
       await logAudit(
         req.user.name,
         "Candidate shortlisted",
-        `${allowed.length} candidate(s) on ${jobTitle}`,
+        `${allowedCount} candidate(s) on ${jobTitle}`,
         req.user.companyId,
       );
     }
 
-    res.json({ shortlisted: allowed.length });
+    res.json({ shortlisted: allowedCount });
   } catch (err) {
     next(err);
   }
 }
 
-/**
- * Undo a shortlist: back to "screened", so the candidate returns to the blind
- * rank board and drops off this shortlist page. HR-only, same as shortlisting
- * itself - see `hr/routes/shortlist.routes.js`.
- */
+/** Undo a shortlist - back to "screened". */
 export async function unshortlistCandidates(req, res, next) {
   try {
-    // ---- Step 1: only applications that belong to the caller's company ----
+    // Filter allowed
     const { applicationIds = [] } = req.body;
     const apps = await Application.find({ _id: { $in: applicationIds } }).populate("jobId");
 
@@ -124,48 +120,41 @@ export async function unshortlistCandidates(req, res, next) {
       if (a.jobId?.companyId?.toString() === companyId) allowed.push(a);
     }
 
-    // ---- Step 2: move them back to "screened" ----
+    // Mark screened
     const allowedIds = [];
     for (const a of allowed) allowedIds.push(a._id);
     await Application.updateMany({ _id: { $in: allowedIds } }, { $set: { status: "screened" } });
 
-    // ---- Step 3: re-index and log, same as a shortlist does ----
-    if (allowed.length) {
-      // Reversing a shortlist hides the identity these documents describe
-      // again, so the affected ones are re-indexed - same reasoning as
-      // shortlisting itself.
+    // Count allowed
+    let allowedCount = 0;
+    for (const a of allowed) {
+      allowedCount = allowedCount + 1;
+    }
+
+    // Re-index and log
+    if (allowedCount > 0) {
+      // Re-index since identity is hidden again.
       for (const app of allowed) rag.application(app._id);
 
       const jobTitle = allowed[0].jobId?.title ?? "a job";
       await logAudit(
         req.user.name,
         "Candidate unshortlisted",
-        `${allowed.length} candidate(s) on ${jobTitle}`,
+        `${allowedCount} candidate(s) on ${jobTitle}`,
         req.user.companyId,
       );
     }
 
-    res.json({ unshortlisted: allowed.length });
+    res.json({ unshortlisted: allowedCount });
   } catch (err) {
     next(err);
   }
 }
 
-/**
- * Serve a shortlisted candidate's own CV to the recruiter who shortlisted them.
- *
- * This is the one place the full document is readable by HR, and the gate is
- * deliberate: screening happens blind, so the file stays sealed until the
- * candidate has been shortlisted on their score alone. Before that, a 403 -
- * not a 404 - because the honest answer is "not yet", not "no such thing".
- *
- * Only self-applied CVs can be served at all: an HR-uploaded file is parsed in
- * memory and never stored, so there is nothing to open. Every view is written
- * to the audit log, like any other access to a candidate's identity.
- */
+/** Serve a shortlisted candidate's CV to HR. */
 export async function getApplicationCv(req, res, next) {
   try {
-    // ---- Step 1: the application, scoped to the caller's company via its job ----
+    // Find application
     const { applicationId } = req.params;
 
     const application = await Application.findById(applicationId);
@@ -175,7 +164,7 @@ export async function getApplicationCv(req, res, next) {
     const job = await Job.findOne({ _id: application.jobId, ...tenantFilter(req) });
     if (!job) return res.status(404).json({ message: "Application not found" });
 
-    // ---- Step 2: refuse until this candidate has actually been shortlisted ----
+    // Require shortlisted
     if (application.status !== "shortlisted") {
       return res.status(403).json({
         message: "The CV opens once this candidate is shortlisted - screening stays blind until then.",
@@ -183,7 +172,7 @@ export async function getApplicationCv(req, res, next) {
       });
     }
 
-    // ---- Step 3: resolve the file - the submission's own copy first, then the profile's ----
+    // Resolve file
     let cv = application.cv?.data ? application.cv : null;
     if (!cv && application.candidateId) {
       const profile = await Candidate.findOne({ userId: application.candidateId });
@@ -199,7 +188,7 @@ export async function getApplicationCv(req, res, next) {
       });
     }
 
-    // ---- Step 4: log the view, then send the file ----
+    // Log view
     await logAudit(
       req.user.name,
       "CV viewed",

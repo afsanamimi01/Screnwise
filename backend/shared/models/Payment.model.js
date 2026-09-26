@@ -1,16 +1,6 @@
 import mongoose from "mongoose";
 
-/**
- * One attempt to buy a plan through the payment gateway.
- *
- * A row is written *before* the customer is sent to the gateway, so we have
- * something to look the transaction up by when the gateway calls back. The
- * plan is only activated - and the row only ever marked `paid` - once the
- * gateway's own validation API confirms the transaction; never on the browser
- * redirect alone, which a customer could forge by opening the success URL
- * themselves. There is no separate failed/cancelled/invalid state: a checkout
- * that never completes just stays `pending` and is not shown as a payment.
- */
+/** One attempt to buy a plan through the gateway. */
 const paymentSchema = new mongoose.Schema(
   {
     companyId: { type: mongoose.Schema.Types.ObjectId, ref: "Company", required: true },

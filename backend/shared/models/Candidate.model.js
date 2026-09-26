@@ -1,11 +1,6 @@
 import mongoose from "mongoose";
 
-/**
- * A candidate's own profile: the details they maintain once, plus a single
- * stored CV (bytes live in Mongo so there is nothing else to provision).
- * One row per candidate `User`. Created lazily the first time the profile is
- * opened.
- */
+/** A candidate's profile, with one stored CV. */
 const cvSchema = new mongoose.Schema(
   {
     data: Buffer,

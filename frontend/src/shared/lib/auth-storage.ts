@@ -1,13 +1,4 @@
-/**
- * The single source of truth for the signed-in session in the browser.
- *
- * `auth.tsx` writes it on login/register/logout; `api.ts` reads the token to
- * attach the `Authorization` header. Kept in its own module so those two files
- * don't have to import each other.
- *
- * Uses sessionStorage (per-tab) rather than localStorage (shared across all
- * tabs of the origin) so different tabs can hold independent logged-in actors.
- */
+/** The single source of truth for the signed-in session. */
 import type { User } from "./types";
 
 const STORAGE_KEY = "screenwise.auth";

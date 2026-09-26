@@ -131,9 +131,7 @@ export type Application = {
   cvFileName: string;
 };
 
-/** Everything the manager's and HR's dashboard pages read - pre-computed by
- * the backend, in the same order each page renders it (KPI cards, then jobs,
- * then chart). Both `/manager/dashboard` and `/hr/dashboard` return this shape. */
+/** Dashboard data pre-computed by the backend, same order as rendered. */
 export type RecruiterDashboard = {
   kpis: {
     activeJobs: number;
@@ -255,14 +253,17 @@ export const DEFAULT_WEIGHTS: ScoringWeights = {
 
 export const SCORE_THRESHOLD = 50;
 
+/** Rank board tile counts, computed server-side. */
+export type BoardSummary = {
+  totalApplicants: number;
+  aboveThreshold: number;
+  shortlisted: number;
+  needsManualReview: number;
+};
+
 export const STATUS_PIPELINE: ApplicationStatus[] = ["applied", "screened", "shortlisted"];
 
-/**
- * Map a status coming back from the API onto the current pipeline. Records
- * created before the `interview` / `hired` stages were removed still carry
- * those values - collapse them onto `shortlisted`, which is the final stage
- * now, so the tracker renders them as fully progressed instead of unknown.
- */
+/** Map a legacy status onto the current pipeline. */
 export function normalizeStatus(status: string): ApplicationStatus {
   if (status === "interview" || status === "hired") return "shortlisted";
   return status as ApplicationStatus;

@@ -1,15 +1,4 @@
-/**
- * A very small PDF writer, used only to give the demo dataset real CV files.
- *
- * The repo already carries a PDF *reader* (`pdf-parse`); adding a writer as a
- * dependency to generate sample data would be a poor trade, so this emits the
- * handful of objects a text-only document needs: catalog, page tree, one
- * content stream per page, and two standard Type1 fonts that every reader has
- * built in (no font embedding, no compression, no images).
- *
- * The output is deliberately plain, because it has to survive the round trip
- * back through `pdf-parse` - the same reader the screening engine uses.
- */
+/** A very small PDF writer for demo CV files. */
 
 const PAGE = { width: 595, height: 842, margin: 56 };
 const LEADING = 14;
@@ -25,10 +14,7 @@ function escapeText(text) {
     .replace(/[^\x20-\x7E]/g, "-");
 }
 
-/**
- * One line of the document.
- * @typedef {{ text: string, bold?: boolean, size?: number, gap?: number }} Line
- */
+/** One line of the document. */
 
 function contentStream(lines) {
   const parts = ["BT", `1 0 0 1 ${PAGE.margin} ${PAGE.height - PAGE.margin} Tm`, `${LEADING} TL`];
@@ -71,12 +57,7 @@ function paginate(lines) {
   return pages.length ? pages : [[{ text: "" }]];
 }
 
-/**
- * Render lines to a PDF document.
- *
- * @param {Line[]} lines
- * @returns {Buffer}
- */
+/** Render lines to a PDF document. */
 export function renderPdf(lines) {
   const pages = paginate(lines);
 

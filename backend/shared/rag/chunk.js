@@ -1,17 +1,6 @@
 import { ragConfig } from "./config.js";
 
-/**
- * Split long prose into retrievable passages.
- *
- * Splitting is done on structure first - blank lines, then single lines - so a
- * passage tends to be a whole section of a CV ("Experience", one role, one
- * project) rather than a window that starts mid-sentence. A chunk that begins
- * halfway through a job title retrieves badly and reads worse when quoted back.
- *
- * Consecutive pieces are packed up to `chunkChars` rather than emitted one per
- * line, because a CV's bullet points are each far too small to be a document on
- * their own - a two-word line scores wildly on BM25 length normalisation.
- */
+/** Split long prose into retrievable passages. */
 export function chunkText(text, { size = ragConfig.ingestion.chunkChars, overlap = ragConfig.ingestion.chunkOverlap } = {}) {
   const clean = String(text || "").replace(/\r\n?/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
   if (!clean) return [];

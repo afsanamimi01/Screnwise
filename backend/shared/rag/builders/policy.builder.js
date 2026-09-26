@@ -8,20 +8,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 /** backend/shared/rag/builders -> repository root */
 const ROOT = path.resolve(HERE, "..", "..", "..", "..");
 
-/**
- * Product documentation - how Screenwise itself works.
- *
- * The smallest corpus and the least glamorous, but it answers the questions
- * support actually receives: what the blind board is, why a hard filter costs
- * 15 points rather than rejecting someone, what a seat limit means, why a
- * scanned CV scores zero. Four roles with different powers and a plan gate make
- * this genuinely confusing, and none of it is derivable from a database row.
- *
- * Source is the repository's own `docs/`, so the answers cannot drift from the
- * documentation the team maintains - there is no second copy to update.
- *
- * Platform-wide: no `companyId`, visible to every role.
- */
+/** Product documentation - how Screenwise works. */
 const SOURCES = [
   { file: "docs/screening-engine.md", title: "How CV screening works" },
   { file: "docs/architecture.md", title: "How Screenwise is put together" },

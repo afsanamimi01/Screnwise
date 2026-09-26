@@ -53,22 +53,16 @@ export async function listPayments(req, res, next) {
   }
 }
 
-/**
- * Start a checkout.
- *
- * With no gateway configured the plan is activated on the spot and the payment
- * is recorded as `manual`, so the demo keeps working and the record still says
- * plainly that no money moved.
- */
+/** Start a checkout. */
 export async function startPayment(req, res, next) {
   try {
-    // ---- Step 1: the plan must be one of the three real plan keys ----
+    // Validate plan
     const { plan: planKey } = req.body;
     if (!PLAN_KEYS.includes(planKey)) {
       return res.status(400).json({ message: "plan must be basic, advance or custom" });
     }
 
-    // ---- Step 2: the company, its priced plan and the manager, fetched independently ----
+    // Fetch records
     const [company, plan, manager] = await Promise.all([
       Company.findById(req.user.companyId),
       Plan.findOne({ key: planKey }),
@@ -76,11 +70,11 @@ export async function startPayment(req, res, next) {
     ]);
     if (!company) return res.status(404).json({ message: "Company not found" });
 
-    // ---- Step 3: refuse a downgrade that could not be applied, before taking any money ----
+    // Check seat conflict
     const conflict = await seatConflict(company._id, planKey);
     if (conflict) return res.status(409).json({ message: conflict });
 
-    // ---- Step 4: this plan must actually be sold online ----
+    // Require purchasable
     const amount = plan?.amount ?? 0;
     if (amount <= 0) {
       return res.status(400).json({
@@ -89,7 +83,7 @@ export async function startPayment(req, res, next) {
       });
     }
 
-    // ---- Step 5: record the pending payment ----
+    // Record payment
     const tranId = newTransactionId(company._id);
     const payment = await Payment.create({
       companyId: company._id,
@@ -101,7 +95,7 @@ export async function startPayment(req, res, next) {
       gateway: activeDriver(),
     });
 
-    // ---- Step 6: no gateway configured - activate the plan on the spot ----
+    // Activate directly
     if (activeDriver() === "manual") {
       const { firstPick } = await activatePlan(company, planKey);
       payment.status = "paid";
@@ -117,7 +111,7 @@ export async function startPayment(req, res, next) {
       return res.status(201).json({ paid: true, redirectUrl: null, payment: payment.toJSON() });
     }
 
-    // ---- Step 7: a gateway is configured - start the real checkout session ----
+    // Start checkout
     const session = await initiatePayment({
       tranId,
       amount,
@@ -139,16 +133,9 @@ export async function startPayment(req, res, next) {
   }
 }
 
-/**
- * Confirm one transaction and, if it holds up, activate the plan.
- *
- * Shared by the browser redirect and the server-to-server IPN, because the
- * checks are the same either way and whichever arrives first should settle it.
- *
- * @returns {Promise<{ok: boolean, payment: object|null, reason: string}>}
- */
+/** Confirm and settle one transaction. */
 async function settlePayment(body) {
-  // ---- Step 1: the callback must carry a transaction id we know about ----
+  // Require tranId
   const tranId = body?.tran_id;
   const valId = body?.val_id;
   if (!tranId) return { ok: false, payment: null, reason: "No transaction id in the callback" };
@@ -156,37 +143,33 @@ async function settlePayment(body) {
   const payment = await Payment.findOne({ tranId });
   if (!payment) return { ok: false, payment: null, reason: "Unknown transaction" };
 
-  // ---- Step 2: already settled - a second callback must not activate anything twice ----
+  // Check already settled
   if (payment.status === "paid") return { ok: true, payment, reason: "Already settled" };
 
-  // Nothing below here is persisted: an unconfirmed checkout just stays
-  // `pending` so a later, genuine callback for the same tranId can still
-  // settle it - it is never labelled failed/cancelled/invalid in the database.
-  // ---- Step 3: the callback must carry a validation id ----
+  // Unconfirmed checkouts stay pending for a later callback.
+  // Require validation id
   if (!valId) {
     return { ok: false, payment, reason: "Callback carried no validation id" };
   }
 
-  // ---- Step 4: the gateway must confirm that validation id ----
+  // Confirm validation
   const check = await validatePayment(valId);
   if (!check.ok) {
     return { ok: false, payment, reason: check.error ?? `Gateway reported ${check.status}` };
   }
 
-  // ---- Step 5: what the gateway says was paid must match what we recorded ----
-  // The gateway is the authority on what was paid; if it does not match what we
-  // recorded, something is wrong and no plan is granted.
+  // Verify amount matches
   if (check.amount == null || Math.abs(check.amount - payment.amount) > 0.01) {
     return { ok: false, payment, reason: `Paid ${check.amount} but the plan costs ${payment.amount}` };
   }
 
-  // ---- Step 6: the company must still exist ----
+  // Require company exists
   const company = await Company.findById(payment.companyId);
   if (!company) {
     return { ok: false, payment, reason: "Company no longer exists" };
   }
 
-  // ---- Step 7: activate the plan and record the payment as paid ----
+  // Activate and record
   const { firstPick } = await activatePlan(company, payment.planKey);
 
   payment.status = "paid";
@@ -196,7 +179,7 @@ async function settlePayment(body) {
   payment.paidAt = new Date();
   await payment.save();
 
-  // ---- Step 8: log who it was for and return ----
+  // Log and return
   const manager = await User.findById(payment.initiatedBy);
   await logAudit(
     manager?.name ?? "Payment gateway",
@@ -224,13 +207,7 @@ export async function paymentSuccess(req, res, next) {
   }
 }
 
-/**
- * The customer's card was declined, or the gateway rejected the payment.
- *
- * The row is left exactly as it is (still `pending`) instead of being marked
- * failed - a genuine IPN for the same tranId can still arrive and settle it,
- * and there is no failed state to record it under either way.
- */
+/** Card declined or payment rejected. */
 export async function paymentFail(req, res, next) {
   try {
     const tranId = req.body?.tran_id ?? req.query?.tran_id;
@@ -252,11 +229,7 @@ export async function paymentCancel(req, res, next) {
   }
 }
 
-/**
- * Server-to-server notification. This is the one that matters when the customer
- * closes the tab mid-redirect: no browser involved, so it answers plainly
- * rather than redirecting.
- */
+/** Server-to-server payment notification. */
 export async function paymentIpn(req, res, next) {
   try {
     const result = await settlePayment(req.body ?? {});

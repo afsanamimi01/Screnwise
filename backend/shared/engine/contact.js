@@ -4,31 +4,21 @@ const NOT_A_TLD =
 
 const EMAIL = /[a-z0-9._%+'-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)+/gi;
 
-/**
- * Phone numbers as CVs actually print them: an optional country code, then 7-14
- * digits broken up by spaces, dashes, dots or brackets.
- */
+/** Phone numbers as CVs actually print them. */
 const PHONE = /(?:\(?\+\d{1,3}\)?[\s.-]?)?(?:\(\d{1,4}\)[\s.-]?)?\d[\d\s.()-]{6,16}\d/g;
 
 /** Lines that head a CV but are not the candidate's name. */
 const HEADING =
   /^(curriculum\s+vitae|resume|résumé|cv|profile|personal\s+details|contact|summary|objective|about\s+me)\b/i;
 
-/**
- * Words that make a line a job title, not a name. Dataset CVs (Kaggle's resume
- * set, for one) open with the role in capitals - "HR ADMINISTRATOR" - exactly
- * where a person's name would otherwise sit.
- */
+/** Words that make a line a job title, not a name. */
 const ROLE_WORD =
   /\b(engineer|developer|manager|analyst|administrator|designer|consultant|specialist|executive|officer|scientist|architect|intern|assistant|associate|director|coordinator|supervisor|technician|accountant|teacher|advocate|chef|fitness|trainer|sales|marketing|finance|banking|testing|operations|resume|profile)\b/i;
 
 /** Sections whose addresses belong to someone else - referees, not the candidate. */
 const OTHERS_SECTION = /\b(references?|referees?|recommendation)\b/i;
 
-/**
- * PDF text extraction often glues a label to the value ("Email:name@host.com")
- * and can leave zero-width characters behind. Strip both before matching.
- */
+/** PDF extraction glues labels to values - strip both before matching. */
 function cleanForMatching(text) {
   return String(text ?? "")
     .replace(/[​-‍﻿]/g, "")
@@ -44,10 +34,7 @@ function isPlausibleEmail(value) {
   return !/^\d+$/.test(value.split("@")[0] ?? "");
 }
 
-/**
- * The candidate's address, or "". Takes the earliest plausible match, since a
- * CV's own address sits in the header and any later one is usually a referee's.
- */
+/** The candidate's address, or "" - earliest plausible match. */
 export function extractEmail(text) {
   const clean = cleanForMatching(text);
   const referencesAt = clean.search(OTHERS_SECTION);
@@ -86,14 +73,7 @@ export function extractPhone(text) {
   return "";
 }
 
-/**
- * The name printed at the top of the CV, or "".
- *
- * Only the first few lines are considered, and only lines that look like a
- * person's name - two to four capitalised words, no digits, no punctuation
- * beyond a hyphen or apostrophe. Anything less certain returns "" so the caller
- * can fall back to the file name.
- */
+/** The name printed at the top of the CV, or "". */
 export function extractName(text) {
   const lines = cleanForMatching(text)
     .split("\n")
@@ -118,12 +98,7 @@ export function extractName(text) {
   return "";
 }
 
-/**
- * Everything the CV says about how to reach this person. Any field the CV
- * doesn't state comes back empty - never guessed.
- *
- * @returns {{ email: string, phone: string, name: string }}
- */
+/** Everything the CV says about how to reach this person. */
 export function extractContact(text) {
   return {
     email: extractEmail(text),

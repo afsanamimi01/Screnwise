@@ -1,20 +1,4 @@
-/**
- * Re-syncs every company's cvScreeningLimit to match its current plan.
- *
- * cvScreeningLimit is snapshotted onto the company when a plan is activated
- * (see activatePlan in shared/billing/subscription.js), so it can drift from
- * the plan's own value if the plan's limit was changed afterwards, or if the
- * company's limit was otherwise left stale. This brings every company back
- * in line with screeningLimitForPlan(company.plan) - the same lookup
- * enforcement uses - without touching usage history (Application rows),
- * which resets on its own each UTC calendar month.
- *
- * Companies with no plan (plan: null, the "cleared" state) are left alone;
- * their limit is deliberately 0 until the manager picks a plan again.
- *
- *   node scripts/resync-screening-limits.js          # report only
- *   node scripts/resync-screening-limits.js --apply  # write the change
- */
+/** Re-syncs every company's cvScreeningLimit to its current plan. */
 import "dotenv/config";
 import mongoose from "mongoose";
 import { connectDB } from "../shared/config/db.js";
